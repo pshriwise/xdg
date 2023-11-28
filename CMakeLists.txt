@@ -5,11 +5,27 @@ option(ENABLE_MOAB_BACKEND "Enable MAOB mesh" ON)
 option(ENABLE_MFEM_BACKEND "Enable MFEM mesh" OFF)
 option(ENABLE_LIBMESH_BACKEND "Enable libMesh mesh" OFF)
 
+if(NOT CMAKE_BUILD_TYPE)
+ set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose build type" FORCE)
+endif()
+
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 
 # use Embree for CPU ray tracing
 find_package(embree REQUIRED HINTS ${EMBREE_DIR})
 
+list(APPEND xdg_sources src/moab/mesh_manager.cpp)
 
+add_library(libxdg SHARED ${xdg_sources})
 
+add_library(xdg::libxdg ALIAS libxdg)
 
+target_include_directories(libxdg
+  PUBLIC
+  $<INSTALL_INTERFACE:include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+if (ENABLE_MOAB_BACKEND)
+  target_link_libraries(libxdg MOAB)
+endif()
