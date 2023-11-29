@@ -15,10 +15,8 @@ class MOABMeshManager : MeshManager {
 
   MOABMeshManager();
 
-
   // Methods
   void load_file(const std::string& filepath);
-
 
   // Accessors
   moab::Interface* moab_mesh() const { return moab_raw_ptr_; };
@@ -27,7 +25,6 @@ private:
 
   std::shared_ptr<moab::Interface> shared_moab_instance_;
   moab::Interface* moab_raw_ptr_;
-
 };
 
 #endif
