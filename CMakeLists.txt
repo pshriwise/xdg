@@ -14,7 +14,10 @@ find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 # use Embree for CPU ray tracing
 find_package(embree REQUIRED HINTS ${EMBREE_DIR})
 
-list(APPEND xdg_sources src/moab/mesh_manager.cpp)
+list(APPEND xdg_sources
+src/moab/mesh_manager.cpp
+src/moab/moab_direct_access.cpp
+)
 
 add_library(libxdg SHARED ${xdg_sources})
 
