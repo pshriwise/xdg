@@ -28,3 +28,12 @@ void MOABMeshManager::load_file(const std::string& filepath)
   this->moab_mesh()->load_file(filepath.c_str());
 }
 
+int MOABMeshManager::num_volumes() const { return 1; }
+
+int MOABMeshManager::num_surfaces() const { return 1; }
+
+int MOABMeshManager::num_ents_of_dimension(int dim) const { return 1; }
+
+MeshID MOABMeshManager::volume(int idx) const { return 1; };
+
+MeshID MOABMeshManager::surface(int idx) const { return 1; };
