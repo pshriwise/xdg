@@ -16,7 +16,7 @@ find_package(embree REQUIRED HINTS ${EMBREE_DIR})
 
 list(APPEND xdg_sources
 src/moab/mesh_manager.cpp
-src/moab/moab_direct_access.cpp
+src/moab/direct_access.cpp
 )
 
 add_library(libxdg SHARED ${xdg_sources})
