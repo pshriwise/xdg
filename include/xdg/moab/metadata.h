@@ -1,5 +1,5 @@
-#ifndef XDG_MOABMETADATA_HPP_
-#define XDG_MOABMETADATA_HPP_
+#ifndef XDG_MOABMETADATA_H_
+#define XDG_MOABMETADATA_H_
 
 #include "xdg/metadata_interface.h"
 
@@ -120,7 +120,7 @@ class MOABMetaData : xdg::Metadata {
 
   // set to collect all particle types in the problem
   std::set<std::string> imp_particles;
-  
+
   // map of importance data
   std::map<moab::EntityHandle, std::map<std::string, double>> importance_map;
 

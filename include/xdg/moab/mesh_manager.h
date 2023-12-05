@@ -1,6 +1,9 @@
 #ifndef _XDG_MOAB_MESH_MANAGER
 #define _XDG_MOAB_MESH_MANAGER
 
+#include <vector>
+#include <unordered_map>
+
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/direct_access.h"
 #include "xdg/moab/metadata.h"
@@ -30,14 +33,33 @@ class MOABMeshManager : MeshManager {
 
   MeshID surface(int idx) const override;
 
+private:
+  // Internal MOAB methods
+  std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
+
+public:
   // Accessors
-  moab::Interface* moab_mesh() const { return moab_raw_ptr_; };
+  moab::Interface* moab_interface() const { return moab_raw_ptr_; };
   const auto& mb_direct() const { return mdam_; }
+  moab::EntityHandle root_set() const { return 0; }
 
 private:
   std::shared_ptr<moab::Interface> shared_moab_instance_;
   moab::Interface* moab_raw_ptr_;
   std::shared_ptr<MBDirectAccess> mdam_;
+
+  // Map from XDG identifier to MOAB handle
+  std::unordered_map<MeshID, moab::EntityHandle> volume_map_;
+  std::unordered_map<MeshID, moab::EntityHandle> surface_map_;
+
+  // tag handles
+  moab::Tag geometry_dimension_tag_;
+  moab::Tag global_id_tag_;
+  moab::Tag category_tag_;
+  moab::Tag name_tag_;
+  moab::Tag surf_to_volume_sense_tag_;
+  // moab::Tag senseNEntsTag,
+  // moab::Tag senseNSensesTag;
 };
 
 #endif
