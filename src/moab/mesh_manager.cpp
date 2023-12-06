@@ -2,6 +2,8 @@
 #include<memory>
 
 #include "xdg/moab/mesh_manager.h"
+
+#include "xdg/error.h"
 #include "xdg/moab/tag_conventions.h"
 
 // Constructors
@@ -23,11 +25,16 @@ void MOABMeshManager::init() {
   this->mb_direct()->setup();
 
   // get all of the necessary tag handles
-  this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME, geometry_dimension_tag_);
-  this->moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_);
-  this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, category_tag_);
-  this->moab_interface()->tag_get_handle(NAME_TAG_NAME, name_tag_);
-  this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, surf_to_volume_sense_tag_);
+  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME, geometry_dimension_tag_) != moab::MB_SUCCESS)
+    fatal_error("Failed to find the MOAB geometry dimension tag");
+  if (this->moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
+      fatal_error("Failed to find the MOAB global ID tag");
+  if(this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, category_tag_) != moab::MB_SUCCESS)
+    fatal_error("Failed to find the MOAB category tag");
+  if(this->moab_interface()->tag_get_handle(NAME_TAG_NAME, name_tag_) != moab::MB_SUCCESS)
+    fatal_error("Failed to find the MOAB name tag");
+  if(this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, surf_to_volume_sense_tag_) != moab::MB_SUCCESS)
+    fatal_error("Failed to find the MOAB surface sense tag");
 
   // populate volumes vector and ID map
   auto moab_volume_handles = this->_ents_of_dim(3);
