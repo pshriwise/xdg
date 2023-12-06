@@ -32,6 +32,8 @@ class MOABMeshManager : MeshManager {
 
   std::vector<Vertex> get_vertices(MeshID element) const override;
 
+  std::vector<MeshID> get_surface_elements(MeshID surface) const override;
+
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
@@ -47,7 +49,7 @@ private:
   moab::Interface* moab_raw_ptr_;
   std::shared_ptr<MBDirectAccess> mdam_;
 
-  // Map from XDG identifier to MOAB handle
+  // Maps from XDG identifiers to MOAB handles
   std::unordered_map<MeshID, moab::EntityHandle> volume_id_map_;
   std::unordered_map<MeshID, moab::EntityHandle> surface_id_map_;
   std::unordered_map<MeshID, moab::EntityHandle> element_id_map_;

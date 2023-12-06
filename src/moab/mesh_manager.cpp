@@ -80,7 +80,7 @@ int MOABMeshManager::num_surfaces() const
 }
 
 int MOABMeshManager::num_ents_of_dimension(int dim) const {
-  this->_ents_of_dim(dim);
+  return this->_ents_of_dim(dim).size();
 }
 
 std::vector<moab::EntityHandle>
@@ -103,4 +103,17 @@ MOABMeshManager::_ents_of_dim(int dim) const {
 std::vector<Vertex> MOABMeshManager::get_vertices(MeshID element) const {
   auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
   return std::vector<Vertex>(out.begin(), out.end());
+}
+
+std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const {
+
+  moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
+
+  std::vector<moab::EntityHandle> elements;
+  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBTRI, elements);
+
+  std::vector<MeshID> element_ids(elements.size());
+  this->moab_interface()->tag_get_data(global_id_tag_, elements.data(), elements.size(), element_ids.data());
+
+  return element_ids;
 }

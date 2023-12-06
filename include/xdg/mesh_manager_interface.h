@@ -22,6 +22,8 @@ public:
 
   virtual std::vector<Vertex> get_vertices(MeshID element) const = 0;
 
+  virtual std::vector<MeshID> get_surface_elements(MeshID surface) const = 0;
+
   // Accessors
   std::vector<MeshID> volumes() const { return volumes_; }
   std::vector<MeshID> surfaces() const { return surfaces_; }
