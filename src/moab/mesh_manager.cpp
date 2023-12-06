@@ -110,6 +110,20 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface)
   this->moab_interface()->add_parent_child(volume, surface);
 }
 
+std::pair<MeshID, MeshID>
+MOABMeshManager::surface_senses(MeshID surface) const
+{
+  std::array<moab::EntityHandle, 2> sense_data;
+  moab::EntityHandle surf_handle = surface_id_map_.at(surface);
+  this->moab_interface()->tag_get_data(surf_to_volume_sense_tag_, &surf_handle, 1, sense_data.data());
+
+  std::array<MeshID, 2> mesh_ids;
+  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data(), 2, mesh_ids.data());
+
+  return {mesh_ids[0], mesh_ids[1]};
+}
+
+
 
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {

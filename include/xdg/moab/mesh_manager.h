@@ -41,6 +41,8 @@ class MOABMeshManager : MeshManager {
 
   void add_surface_to_volume(MeshID volume, MeshID surface) override;
 
+  std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
+
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;

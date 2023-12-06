@@ -28,6 +28,9 @@ public:
 
   virtual void add_surface_to_volume(MeshID volume, MeshID surface) = 0;
 
+  virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
+
+
   // Accessors
   std::vector<MeshID> volumes() const { return volumes_; }
   std::vector<MeshID> surfaces() const { return surfaces_; }
