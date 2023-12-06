@@ -12,6 +12,9 @@
 
 using namespace xdg;
 
+static std::string VOLUME_CATEGORY_VALUE {"Volume"};
+static std::string SURFACE_CATEGORY_VALUE {"Surface"};
+
 class MOABMeshManager : MeshManager {
 
   MOABMeshManager(moab::Interface* mbi);
@@ -33,6 +36,10 @@ class MOABMeshManager : MeshManager {
   std::vector<Vertex> get_vertices(MeshID element) const override;
 
   std::vector<MeshID> get_surface_elements(MeshID surface) const override;
+
+  MeshID create_volume() override;
+
+  void add_surface_to_volume(MeshID volume, MeshID surface) override;
 
 private:
   // Internal MOAB methods

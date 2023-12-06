@@ -2,6 +2,7 @@
 #define _XDG_TOPOLOGY_INTERFACE
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "xdg/constants.h"
@@ -18,6 +19,8 @@ public:
 
   void setup_implicit_complement();
 
+  void generate_implicit_complement();
+
   MeshID get_next_vol(MeshID surface, MeshID current_volume) const;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const;
@@ -31,12 +34,16 @@ public:
 
   MeshID implicit_complement() const { return ipc_; }
 
-  const auto& mesh_manager() const { return mesh_manager_; }
+  const std::shared_ptr<MeshManager>& mesh_manager() const { return mesh_manager_; }
+
+  std::pair<MeshID, MeshID> sense_data(MeshID volume) const { return sense_data_.at(volume); }
 
 private:
   std::vector<MeshID> surfaces_;
   std::vector<MeshID> volumes_;
   MeshID ipc_;
+
+  std::unordered_map<MeshID, std::pair<MeshID, MeshID>> sense_data_;
 
   std::shared_ptr<MeshManager> mesh_manager_;
 };

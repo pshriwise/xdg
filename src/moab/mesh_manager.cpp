@@ -1,5 +1,6 @@
 
-#include<memory>
+#include <memory>
+#include <string>
 
 #include "xdg/moab/mesh_manager.h"
 
@@ -82,6 +83,33 @@ int MOABMeshManager::num_surfaces() const
 int MOABMeshManager::num_ents_of_dimension(int dim) const {
   return this->_ents_of_dim(dim).size();
 }
+
+MeshID MOABMeshManager::create_volume() {
+  moab::EntityHandle volume_set;
+  this->moab_interface()->create_meshset(moab::MESHSET_SET, volume_set);
+
+  MeshID volume_id;
+  this->moab_interface()->tag_get_data(global_id_tag_, &volume_set, 1, &volume_id);
+
+  // set geometry dimension
+  int dim = 3;
+  this->moab_interface()->tag_set_data(geometry_dimension_tag_, &volume_set, 1, &dim);
+
+  // set category tag
+  this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE.c_str());
+
+  volume_id_map_[volume_id] = volume_set;
+
+  return volume_id;
+}
+
+void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface)
+{
+  moab::EntityHandle vol_handle = volume_id_map_.at(volume);
+  moab::EntityHandle surf_handle = surface_id_map_.at(surface);
+  this->moab_interface()->add_parent_child(volume, surface);
+}
+
 
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {
