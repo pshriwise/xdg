@@ -5,6 +5,9 @@
 
 #include "xdg/error.h"
 #include "xdg/moab/tag_conventions.h"
+#include "xdg/vec3da.h"
+
+using namespace xdg;
 
 // Constructors
 MOABMeshManager::MOABMeshManager()
@@ -95,4 +98,9 @@ MOABMeshManager::_ents_of_dim(int dim) const {
     entities
   );
   return std::vector<moab::EntityHandle>(entities.begin(), entities.end());
+}
+
+std::vector<Vertex> MOABMeshManager::get_vertices(MeshID element) const {
+  auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
+  return std::vector<Vertex>(out.begin(), out.end());
 }

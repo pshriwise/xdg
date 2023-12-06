@@ -30,6 +30,8 @@ class MOABMeshManager : MeshManager {
 
   int num_ents_of_dimension(int dim) const override;
 
+  std::vector<Vertex> get_vertices(MeshID element) const override;
+
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
@@ -48,6 +50,7 @@ private:
   // Map from XDG identifier to MOAB handle
   std::unordered_map<MeshID, moab::EntityHandle> volume_id_map_;
   std::unordered_map<MeshID, moab::EntityHandle> surface_id_map_;
+  std::unordered_map<MeshID, moab::EntityHandle> element_id_map_;
 
   // tag handles
   moab::Tag geometry_dimension_tag_;

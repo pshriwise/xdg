@@ -11,6 +11,8 @@
 
 #include "util.hpp"
 
+namespace xdg {
+
 // constructor for metadata class
 MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
 {
@@ -662,3 +664,5 @@ MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata
 //   else
 //     return false;
 // }
+
+} // namespace xdg

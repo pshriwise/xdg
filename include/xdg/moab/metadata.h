@@ -10,18 +10,18 @@
 
 #include "moab/Core.hpp"
 
+namespace xdg {
 
-class MOABMetaData : xdg::Metadata {
+class MOABMetaData : Metadata {
  public:
   // Constructor
-  MOABMetaData(std::shared_ptr<xdg::MeshManager> mm);
+  MOABMetaData(std::shared_ptr<MeshManager> mm);
 
   // Destructor
   ~MOABMetaData() = default;
 
   // load the dagmc properties into maps
   void load_property_data();
-
 
   // Virtual method implementations
   void parse_metadata() override;
@@ -143,5 +143,7 @@ class MOABMetaData : xdg::Metadata {
   const std::string white_str{"White"};
   const std::string periodic_str{"Periodic"};
 };
+
+} // namespace xdg
 
 #endif // include guard

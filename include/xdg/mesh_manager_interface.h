@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "xdg/constants.h"
+#include "xdg/vec3da.h"
 
 namespace xdg {
 
@@ -19,6 +20,9 @@ public:
 
   virtual int num_ents_of_dimension(int dim) const = 0;
 
+  virtual std::vector<Vertex> get_vertices(MeshID element) const = 0;
+
+  // Accessors
   std::vector<MeshID> volumes() const { return volumes_; }
   std::vector<MeshID> surfaces() const { return surfaces_; }
 

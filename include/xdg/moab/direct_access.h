@@ -7,8 +7,7 @@
 // MOAB
 #include "moab/Core.hpp"
 #include "moab/CartVect.hpp"
-
-// #include "Vec3da.h"
+#include "xdg/vec3da.h"
 
 using namespace moab;
 
@@ -43,7 +42,7 @@ public:
   }
 
   //! \brief Get the coordinates of a triangle as MOAB CartVect's
-  inline std::array<moab::CartVect, 3> get_mb_coords(const EntityHandle& tri) {
+  inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
 
     // determine the correct index to use
     int idx = 0;
@@ -59,9 +58,9 @@ public:
     size_t i1 = vconn_[idx][conn_idx + 1] - 1;
     size_t i2 = vconn_[idx][conn_idx + 2] - 1;
 
-    moab::CartVect v0(tx_[idx][i0], ty_[idx][i0], tz_[idx][i0]);
-    moab::CartVect v1(tx_[idx][i1], ty_[idx][i1], tz_[idx][i1]);
-    moab::CartVect v2(tx_[idx][i2], ty_[idx][i2], tz_[idx][i2]);
+    xdg::Vertex v0(tx_[idx][i0], ty_[idx][i0], tz_[idx][i0]);
+    xdg::Vertex v1(tx_[idx][i1], ty_[idx][i1], tz_[idx][i1]);
+    xdg::Vertex v2(tx_[idx][i2], ty_[idx][i2], tz_[idx][i2]);
 
     return {v0, v1, v2};
   }
