@@ -23,15 +23,12 @@ class MOABMeshManager : MeshManager {
 
   void init();
 
+  // Virtual method implementations
   int num_volumes() const override;
 
   int num_surfaces() const override;
 
   int num_ents_of_dimension(int dim) const override;
-
-  MeshID volume(int idx) const override;
-
-  MeshID surface(int idx) const override;
 
 private:
   // Internal MOAB methods
@@ -49,8 +46,8 @@ private:
   std::shared_ptr<MBDirectAccess> mdam_;
 
   // Map from XDG identifier to MOAB handle
-  std::unordered_map<MeshID, moab::EntityHandle> volume_map_;
-  std::unordered_map<MeshID, moab::EntityHandle> surface_map_;
+  std::unordered_map<MeshID, moab::EntityHandle> volume_id_map_;
+  std::unordered_map<MeshID, moab::EntityHandle> surface_id_map_;
 
   // tag handles
   moab::Tag geometry_dimension_tag_;
@@ -58,8 +55,6 @@ private:
   moab::Tag category_tag_;
   moab::Tag name_tag_;
   moab::Tag surf_to_volume_sense_tag_;
-  // moab::Tag senseNEntsTag,
-  // moab::Tag senseNSensesTag;
 };
 
 #endif

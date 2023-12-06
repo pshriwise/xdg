@@ -3,6 +3,7 @@
 #define _XDG_MESH_MANAGER_INTERFACE
 
 #include <string>
+#include <vector>
 
 #include "xdg/constants.h"
 
@@ -18,9 +19,12 @@ public:
 
   virtual int num_ents_of_dimension(int dim) const = 0;
 
-  virtual MeshID volume(int idx) const = 0;
+  std::vector<MeshID> volumes() const { return volumes_; }
+  std::vector<MeshID> surfaces() const { return surfaces_; }
 
-  virtual MeshID surface(int idx) const = 0;
+private:
+  std::vector<MeshID> volumes_;
+  std::vector<MeshID> surfaces_;
 };
 
 } // namespace xdg

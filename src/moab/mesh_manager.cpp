@@ -28,6 +28,29 @@ void MOABMeshManager::init() {
   this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, category_tag_);
   this->moab_interface()->tag_get_handle(NAME_TAG_NAME, name_tag_);
   this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, surf_to_volume_sense_tag_);
+
+  // populate volumes vector and ID map
+  auto moab_volume_handles = this->_ents_of_dim(3);
+  std::vector<int> moab_volume_ids(moab_volume_handles.size());
+  this->moab_interface()->tag_get_data(global_id_tag_,
+                                       moab_volume_handles.data(),
+                                       moab_volume_handles.size(),
+                                       moab_volume_ids.data());
+
+  for (int i = 0; i < moab_volume_ids.size(); i++) {
+    volume_id_map_[moab_volume_ids[i]] = moab_volume_handles[i];
+  }
+
+  // populate volumes vector and ID map
+  auto moab_surface_handles = this->_ents_of_dim(2);
+  std::vector<int> moab_surface_ids(moab_surface_handles.size());
+  this->moab_interface()->tag_get_data(global_id_tag_,
+                                       moab_surface_handles.data(),
+                                       moab_surface_handles.size(),
+                                       moab_surface_ids.data());
+  for (int i = 0; i < moab_surface_ids.size(); i++) {
+    surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
+  }
 }
 
 // Methods
@@ -66,7 +89,3 @@ MOABMeshManager::_ents_of_dim(int dim) const {
   );
   return std::vector<moab::EntityHandle>(entities.begin(), entities.end());
 }
-
-MeshID MOABMeshManager::volume(int idx) const { return 1; };
-
-MeshID MOABMeshManager::surface(int idx) const { return 1; };
