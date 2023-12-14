@@ -19,6 +19,7 @@ static std::string SURFACE_CATEGORY_VALUE {"Surface"};
 
 class MOABMeshManager : MeshManager {
 
+public:
   MOABMeshManager(moab::Interface* mbi);
 
   MOABMeshManager();
@@ -44,6 +45,8 @@ class MOABMeshManager : MeshManager {
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
+
+  std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override;
 
 private:
   // Internal MOAB methods

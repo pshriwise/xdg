@@ -148,6 +148,12 @@ MOABMeshManager::surface_senses(MeshID surface) const
   return {mesh_ids[0], mesh_ids[1]};
 }
 
+std::pair<MeshID, MeshID>
+MOABMeshManager::get_parent_volumes(MeshID surface) const
+{
+  return this->surface_senses(surface);
+}
+
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {
   std::array<moab::Tag, 1> tags = {geometry_dimension_tag_};

@@ -14,21 +14,21 @@
 namespace xdg {
 
 // constructor for metadata class
-MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
-{
-  // these are the keywords that dagmc will understand
-  // from groups if you need to process more
-  // they should be added here
-  metadata_keywords.push_back("mat");
-  metadata_keywords.push_back("rho");
-  metadata_keywords.push_back("boundary");
-  metadata_keywords.push_back("tally");
-  metadata_keywords.push_back("importance");
+// MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
+// {
+//   // these are the keywords that dagmc will understand
+//   // from groups if you need to process more
+//   // they should be added here
+//   metadata_keywords.push_back("mat");
+//   metadata_keywords.push_back("rho");
+//   metadata_keywords.push_back("boundary");
+//   metadata_keywords.push_back("tally");
+//   metadata_keywords.push_back("importance");
 
-  // allow some synonyms
-  keyword_synonyms["rho"] = "density";
-  keyword_synonyms["mat"] = "material";
-}
+//   // allow some synonyms
+//   keyword_synonyms["rho"] = "density";
+//   keyword_synonyms["mat"] = "material";
+// }
 
 // // load the property data from the dagmc instance
 // void MOABMetaData::load_property_data() {
