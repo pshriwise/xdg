@@ -103,27 +103,50 @@ MeshID MOABMeshManager::create_volume() {
   return volume_id;
 }
 
-void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface)
+void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite)
 {
   moab::EntityHandle vol_handle = volume_id_map_.at(volume);
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
   this->moab_interface()->add_parent_child(volume, surface);
+
+  // insert new volume into sense data
+  auto sense_data = this->surface_senses(surface);
+
+  if (sense == Sense::SENSE_FORWARD) {
+    if (sense_data.first != ID_NONE && !overwrite) fatal_error("Surface to volume sense is already set");
+    sense_data.first = volume;
+  } else if (sense == Sense::SENSE_REVERSE) {
+    if (sense_data.second != ID_NONE && !overwrite) fatal_error("Surface to volume sense is already set");
+    sense_data.second = volume;
+  } else {
+    fatal_error("Invalid sense provided");
+  }
+
+  std::array<moab::EntityHandle, 2> sense_handles;
+  sense_handles[0] = sense_data.first == ID_NONE ? 0 : volume_id_map_[sense_data.first];
+  sense_handles[1] = sense_data.second == ID_NONE ? 0 : volume_id_map_[sense_data.second];
+  const moab::EntityHandle* surf_handle_ptr = &surf_handle; // this is lame
+  this->moab_interface()->tag_set_data(surf_to_volume_sense_tag_, surf_handle_ptr, 1, sense_handles.data());
 }
 
 std::pair<MeshID, MeshID>
 MOABMeshManager::surface_senses(MeshID surface) const
 {
-  std::array<moab::EntityHandle, 2> sense_data;
+  std::array<moab::EntityHandle, 2> sense_data {0, 0};
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
   this->moab_interface()->tag_get_data(surf_to_volume_sense_tag_, &surf_handle, 1, sense_data.data());
 
-  std::array<MeshID, 2> mesh_ids;
-  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data(), 2, mesh_ids.data());
+
+
+  std::array<MeshID, 2> mesh_ids {ID_NONE, ID_NONE};
+  // independent calls in case one of the handles is invalid
+  if (sense_data[0] != 0)
+  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data(), 1, mesh_ids.data());
+  if (sense_data[1] != 0)
+  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data()+1, 1, mesh_ids.data()+1);
 
   return {mesh_ids[0], mesh_ids[1]};
 }
-
-
 
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {

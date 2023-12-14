@@ -9,11 +9,13 @@
 #include "xdg/moab/metadata.h"
 
 #include "moab/Core.hpp"
+#include "moab/Types.hpp"
 
 using namespace xdg;
 
 static std::string VOLUME_CATEGORY_VALUE {"Volume"};
 static std::string SURFACE_CATEGORY_VALUE {"Surface"};
+
 
 class MOABMeshManager : MeshManager {
 
@@ -39,7 +41,7 @@ class MOABMeshManager : MeshManager {
 
   MeshID create_volume() override;
 
-  void add_surface_to_volume(MeshID volume, MeshID surface) override;
+  void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 

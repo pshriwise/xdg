@@ -24,9 +24,12 @@ public:
 
   virtual std::vector<MeshID> get_surface_elements(MeshID surface) const = 0;
 
+  // Returns parent with forward sense, then reverse
+  virtual std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const = 0;
+
   virtual MeshID create_volume() = 0;
 
-  virtual void add_surface_to_volume(MeshID volume, MeshID surface) = 0;
+  virtual void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) = 0;
 
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
 

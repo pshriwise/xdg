@@ -19,6 +19,8 @@ public:
 
   void setup_implicit_complement();
 
+  void load_sense_data();
+
   void generate_implicit_complement();
 
   MeshID get_next_vol(MeshID surface, MeshID current_volume) const;
