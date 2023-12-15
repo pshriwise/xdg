@@ -2,12 +2,16 @@
 #ifndef _XDG_METADATA_INTERFACE
 #define _XDG_METADATA_INTERFACE
 
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
 
 namespace xdg {
+
 class Metadata
 {
 public:
@@ -29,6 +33,10 @@ private:
   // Data members
   // TODO: SHOULD BE GEOMETRY TOPOLOGY OBJECT!!!!
   std::shared_ptr<MeshManager> mesh_manager_;
+
+  std::set<std::string> properties_; //! All registered properties
+
+  std::map<std::pair<std::string, MeshID>, std::string> metadata_; //! Metadata entries
 };
 
 } // namespace xdg

@@ -16,7 +16,6 @@ namespace xdg {
 static std::string VOLUME_CATEGORY_VALUE {"Volume"};
 static std::string SURFACE_CATEGORY_VALUE {"Surface"};
 
-
 class MOABMeshManager : public MeshManager {
 
 public:

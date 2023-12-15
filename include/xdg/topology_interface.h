@@ -43,7 +43,7 @@ public:
 private:
   std::vector<MeshID> surfaces_;
   std::vector<MeshID> volumes_;
-  MeshID ipc_;
+  MeshID ipc_; //! Implicit complement handle
 
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> sense_data_;
 

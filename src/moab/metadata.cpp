@@ -13,6 +13,15 @@
 
 namespace xdg {
 
+std::map<MeshID, std::vector<std::string>>
+MOABMetaData::get_property_assignments(const std::string& property,
+                                       int dimension,
+                                       const std::string& delimiters,
+                                       bool remove_duplicates)
+{
+  return {};
+}
+
 // constructor for metadata class
 // MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
 // {

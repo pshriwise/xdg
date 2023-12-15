@@ -81,9 +81,9 @@ class MOABMetaData : Metadata {
 
   // Parse property for entities with the specified dimension and delimiters.
   // Optionally remove duplicate property values if necessary.
-  std::map<moab::EntityHandle, std::vector<std::string>>
-  get_property_assignments(std::string property, int dimension,
-                           std::string delimiters,
+  std::map<MeshID, std::vector<std::string>>
+  get_property_assignments(const std::string& property, int dimension,
+                           const std::string& delimiters,
                            bool remove_duplicates = true);
 
   // remove duplicate properties from the vector of properties
