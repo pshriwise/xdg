@@ -3,7 +3,7 @@
 set(
 TEST_NAMES
 
-initialize
+test_initialize
 )
 
 foreach(test ${TEST_NAMES})
