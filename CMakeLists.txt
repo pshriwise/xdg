@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(openmc C CXX)
 
-option(ENABLE_MOAB_BACKEND "Enable MAOB mesh" ON)
-option(ENABLE_MFEM_BACKEND "Enable MFEM mesh" OFF)
-option(ENABLE_LIBMESH_BACKEND "Enable libMesh mesh" OFF)
+option(XDG_MOAB_BACKEND "Enable MAOB mesh" ON)
+option(XDG_MFEM_BACKEND "Enable MFEM mesh" OFF)
+option(XDG_LIBMESH_BACKEND "Enable libMesh mesh" OFF)
+option(XDG_BUILD_TESTS "Enable C++ unit testing" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
- set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose build type" FORCE)
+ set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
 endif()
 
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
@@ -15,11 +16,14 @@ find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 find_package(embree REQUIRED HINTS ${EMBREE_DIR})
 
 # Catch2 testing module
-find_package(Catch2 QUIET NO_SYSTEM_ENVIRONMENT_PATH)
-if (NOT Catch2_FOUND)
-  add_subdirectory("vendor/catch2")
+
+if (XDG_BUILD_TESTS)
+  find_package(Catch2 QUIET NO_SYSTEM_ENVIRONMENT_PATH)
+  if (NOT Catch2_FOUND)
+    add_subdirectory("vendor/catch2")
+  endif()
+  include(CTest)
 endif()
-include(CTest)
 
 list(APPEND xdg_sources
 src/moab/mesh_manager.cpp
@@ -32,7 +36,9 @@ add_library(libxdg SHARED ${xdg_sources})
 
 add_library(xdg::libxdg ALIAS libxdg)
 
-add_subdirectory("tests")
+if (XDG_BUILD_TESTS)
+  add_subdirectory("tests")
+endif()
 
 target_include_directories(libxdg
   PUBLIC
@@ -40,6 +46,6 @@ target_include_directories(libxdg
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-if (ENABLE_MOAB_BACKEND)
+if (XDG_MOAB_BACKEND)
   target_link_libraries(libxdg MOAB)
 endif()
