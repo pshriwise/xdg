@@ -11,13 +11,13 @@
 #include "moab/Core.hpp"
 #include "moab/Types.hpp"
 
-using namespace xdg;
+namespace xdg {
 
 static std::string VOLUME_CATEGORY_VALUE {"Volume"};
 static std::string SURFACE_CATEGORY_VALUE {"Surface"};
 
 
-class MOABMeshManager : MeshManager {
+class MOABMeshManager : public MeshManager {
 
 public:
   MOABMeshManager(moab::Interface* mbi);
@@ -27,7 +27,7 @@ public:
   // Methods
   void load_file(const std::string& filepath);
 
-  void init();
+  void init() override;
 
   // Virtual method implementations
   int num_volumes() const override;
@@ -76,4 +76,7 @@ private:
   moab::Tag surf_to_volume_sense_tag_;
 };
 
+} // namespace xdg
+
 #endif
+

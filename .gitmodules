@@ -2,3 +2,6 @@
 	path = vendor/catch2
 	url = https://github.com/catchorg/Catch2.git
 	branch = 5a40b2275caa05cf809bf04df848764a9d7df2e2
+[submodule "tests/test_files"]
+	path = tests/test_files
+	url = https://github.com/pshriwise/xdg_test_files

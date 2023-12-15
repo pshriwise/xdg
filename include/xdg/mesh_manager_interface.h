@@ -14,6 +14,8 @@ class MeshManager {
 public:
   virtual void load_file(const std::string& filepath) = 0;
 
+  virtual void init() = 0;
+
   virtual int num_volumes() const = 0;
 
   virtual int num_surfaces() const = 0;
