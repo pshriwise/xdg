@@ -12,7 +12,7 @@
 
 namespace xdg {
 
-class MOABMetaData : Metadata {
+class MOABMetaData : public Metadata {
  public:
   // Constructor
   MOABMetaData(std::shared_ptr<MeshManager> mm);

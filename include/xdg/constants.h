@@ -5,6 +5,12 @@
 
 namespace xdg {
 
+// Whether information pertains to a surface or volume
+enum class GeometryType {
+    SURFACE = 2,
+    VOLUME = 3
+};
+
 // Surface to Volume sense values (may differ from mesh-specific values)
 enum class Sense {
     SENSE_UNSET = -1,

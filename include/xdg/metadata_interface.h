@@ -12,6 +12,12 @@
 
 namespace xdg {
 
+struct PropertyData {
+  GeometryType type;
+  MeshID id;
+  std::vector<std::string> data;
+};
+
 class Metadata
 {
 public:
@@ -26,9 +32,10 @@ public:
   // Accessors
   const auto& mesh_manager() const { return mesh_manager_; }
 
-private:
   // Private Methods
   virtual void parse_metadata() = 0;
+
+protected:
 
   // Data members
   // TODO: SHOULD BE GEOMETRY TOPOLOGY OBJECT!!!!

@@ -22,6 +22,15 @@ MOABMetaData::get_property_assignments(const std::string& property,
   return {};
 }
 
+void
+MOABMetaData::parse_metadata() {
+
+  for (const auto property : properties_ ) {
+
+  }
+
+}
+
 // constructor for metadata class
 // MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
 // {
