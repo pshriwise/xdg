@@ -47,6 +47,13 @@ public:
 
   std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override;
 
+  // Geometry
+
+  // Metadata
+  Property get_volume_property(MeshID volume, PropertyType type) const override;
+
+  std::string get_volume_property(const std::string& property, MeshID vol) const;
+
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;

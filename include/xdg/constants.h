@@ -28,5 +28,19 @@ constexpr MeshID ID_NONE {-1};
 constexpr float min_rcp_input = std::numeric_limits<float>::min() /* FIX ME */ *1E5 /* SHOULDNT NEED TO MULTIPLY BY THIS VALUE */;
 constexpr int BVH_MAX_DEPTH = 64;
 
+// geometric property type (e.g. material assignment or boundary condition)
+enum class PropertyType {
+    BOUNDARY_CONDITION = -1,
+    MATERIAL = 0,
+    DENSITY = 1,
+    TEMPERATURE = 2
+};
+
+struct Property{
+  PropertyType type;
+  std::string value;
+};
+
+
 }
 #endif // include guard

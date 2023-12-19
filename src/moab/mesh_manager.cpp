@@ -176,7 +176,6 @@ std::vector<Vertex> MOABMeshManager::get_vertices(MeshID element) const {
 }
 
 std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const {
-
   moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
 
   std::vector<moab::EntityHandle> elements;
@@ -188,3 +187,8 @@ std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const 
   return element_ids;
 }
 
+Property
+MOABMeshManager::get_volume_property(MeshID volume, PropertyType type) const
+{
+  return Property{};
+}

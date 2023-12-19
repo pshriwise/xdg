@@ -1,6 +1,7 @@
 #include "xdg/mesh_manager_interface.h"
 
 #include <algorithm>
+
 namespace xdg {
 
 void

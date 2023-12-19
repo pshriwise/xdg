@@ -12,10 +12,13 @@ namespace xdg {
 
 class MeshManager {
 public:
+
+  // setup
   virtual void load_file(const std::string& filepath) = 0;
 
   virtual void init() = 0;
 
+  // geometry
   virtual int num_volumes() const = 0;
 
   virtual int num_surfaces() const = 0;
@@ -36,6 +39,9 @@ public:
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
 
   void create_implicit_complement();
+
+  // metadata
+  virtual Property get_volume_property(MeshID volume, PropertyType type) const = 0;
 
   // Accessors
   const std::vector<MeshID>& volumes() const { return volumes_; }
