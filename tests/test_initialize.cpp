@@ -20,4 +20,8 @@ TEST_CASE("Test initialization")
 
   REQUIRE(mesh_manager->num_volumes() == 3);
   REQUIRE(mesh_manager->num_surfaces() == 12);
+
+  // create the implicit complement volume
+  mesh_manager->create_implicit_complement();
+  REQUIRE(mesh_manager->num_volumes() == 4);
 }

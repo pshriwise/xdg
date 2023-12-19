@@ -13,9 +13,9 @@ enum class GeometryType {
 
 // Surface to Volume sense values (may differ from mesh-specific values)
 enum class Sense {
-    SENSE_UNSET = -1,
-    SENSE_FORWARD = 0,
-    SENSE_REVERSE = 1
+    UNSET = -1,
+    FORWARD = 0,
+    REVERSE = 1
 };
 
 // Mesh identifer type

@@ -26,10 +26,13 @@ if (XDG_BUILD_TESTS)
 endif()
 
 list(APPEND xdg_sources
+src/mesh_manager_interface.cpp
+src/error.cpp
+
+# MOAB
 src/moab/mesh_manager.cpp
 src/moab/direct_access.cpp
 src/moab/metadata.cpp
-src/error.cpp
 )
 
 add_library(libxdg SHARED ${xdg_sources})

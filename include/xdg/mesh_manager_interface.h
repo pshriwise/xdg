@@ -35,9 +35,13 @@ public:
 
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
 
+  void create_implicit_complement();
+
   // Accessors
-  std::vector<MeshID> volumes() const { return volumes_; }
-  std::vector<MeshID> surfaces() const { return surfaces_; }
+  const std::vector<MeshID>& volumes() const { return volumes_; }
+  std::vector<MeshID>& volumes() { return volumes_; }
+  const std::vector<MeshID>& surfaces() const { return surfaces_; }
+  std::vector<MeshID>& surfaces() { return surfaces_; }
 
 private:
   std::vector<MeshID> volumes_;

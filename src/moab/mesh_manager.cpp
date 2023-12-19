@@ -26,6 +26,7 @@ MOABMeshManager::MOABMeshManager(moab::Interface* mbi) : moab_raw_ptr_(mbi)
 };
 
 void MOABMeshManager::init() {
+  // initialize the direct access manager
   this->mb_direct()->setup();
 
   // get all of the necessary tag handles
@@ -112,10 +113,10 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
   // insert new volume into sense data
   auto sense_data = this->surface_senses(surface);
 
-  if (sense == Sense::SENSE_FORWARD) {
+  if (sense == Sense::FORWARD) {
     if (sense_data.first != ID_NONE && !overwrite) fatal_error("Surface to volume sense is already set");
     sense_data.first = volume;
-  } else if (sense == Sense::SENSE_REVERSE) {
+  } else if (sense == Sense::REVERSE) {
     if (sense_data.second != ID_NONE && !overwrite) fatal_error("Surface to volume sense is already set");
     sense_data.second = volume;
   } else {
@@ -135,8 +136,6 @@ MOABMeshManager::surface_senses(MeshID surface) const
   std::array<moab::EntityHandle, 2> sense_data {0, 0};
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
   this->moab_interface()->tag_get_data(surf_to_volume_sense_tag_, &surf_handle, 1, sense_data.data());
-
-
 
   std::array<MeshID, 2> mesh_ids {ID_NONE, ID_NONE};
   // independent calls in case one of the handles is invalid
@@ -188,3 +187,4 @@ std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const 
 
   return element_ids;
 }
+

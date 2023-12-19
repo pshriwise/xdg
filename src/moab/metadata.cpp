@@ -31,6 +31,12 @@ MOABMetaData::parse_metadata() {
 
 }
 
+std::vector<moab::EntityHandle>
+MOABMetaData::_group_handles() const
+{
+  return {};
+}
+
 // constructor for metadata class
 // MOABMetaData::MOABMetaData(std::shared_ptr<xdg::MeshManager> mm) : xdg::Metadata(mm)
 // {

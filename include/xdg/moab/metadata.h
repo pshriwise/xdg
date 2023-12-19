@@ -27,24 +27,24 @@ class MOABMetaData : public Metadata {
   void parse_metadata() override;
 
   // get a given property on a volume
-  std::string get_volume_property(const std::string& property, MeshID vol) const override;
+  // std::string get_volume_property(const std::string& property, MeshID vol) const override;
 
-  std::string get_surface_property(const std::string& property, MeshID surf) const override;
+  // std::string get_surface_property(const std::string& property, MeshID surf) const override;
 
-  std::string get_volume_property(const std::string& property, moab::EntityHandle vol) const;
+  // std::string get_volume_property(const std::string& property, moab::EntityHandle vol) const;
 
-  // get a property for the specified volume, treats the vol parameter as
-  // an index by default and as an ID if idx is false.
-  std::string get_volume_property(std::string property, int vol,
-                                  bool idx = true) const;
+  // // get a property for the specified volume, treats the vol parameter as
+  // // an index by default and as an ID if idx is false.
+  // std::string get_volume_property(std::string property, int vol,
+  //                                 bool idx = true) const;
 
-  // get a given property on a surface
-  std::string get_surface_property(std::string property,
-                                   moab::EntityHandle surface) const;
-  // get a property for the specified surface, treats the surface parameter as
-  // an index by default and as an ID if idx is false.
-  std::string get_surface_property(std::string property, int surface,
-                                   bool idx = true) const;
+  // // get a given property on a surface
+  // std::string get_surface_property(std::string property,
+  //                                  moab::EntityHandle surface) const;
+  // // get a property for the specified surface, treats the surface parameter as
+  // // an index by default and as an ID if idx is false.
+  // std::string get_surface_property(std::string property, int surface,
+  //                                  bool idx = true) const;
 
   // unpack the packed string of the form
   // delimeter<data>delimiter<data>delimiter into a vector of the form
@@ -123,6 +123,10 @@ class MOABMetaData : public Metadata {
 
   // map of importance data
   std::map<moab::EntityHandle, std::map<std::string, double>> importance_map;
+
+// private methods
+private:
+  std::vector<moab::EntityHandle> _group_handles() const;
 
   // private member variables
  private:
