@@ -41,6 +41,5 @@ struct Property{
   std::string value;
 };
 
-
 }
 #endif // include guard

@@ -28,6 +28,7 @@ endif()
 list(APPEND xdg_sources
 src/mesh_manager_interface.cpp
 src/error.cpp
+src/util/str_utils.cpp
 
 # MOAB
 src/moab/mesh_manager.cpp

@@ -15,6 +15,7 @@ namespace xdg {
 
 static std::string VOLUME_CATEGORY_VALUE {"Volume"};
 static std::string SURFACE_CATEGORY_VALUE {"Surface"};
+static std::string GROUP_CATEGORY_VALUE {"Group"};
 
 class MOABMeshManager : public MeshManager {
 
@@ -50,6 +51,8 @@ public:
   // Geometry
 
   // Metadata
+  void parse_metadata() const;
+
   Property get_volume_property(MeshID volume, PropertyType type) const override;
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
@@ -80,6 +83,13 @@ private:
   moab::Tag category_tag_;
   moab::Tag name_tag_;
   moab::Tag surf_to_volume_sense_tag_;
+
+  // metadata
+  std::map<MeshID, std::vector<Property>> volume_metadata_;
+  std::map<MeshID, std::vector<Property>> surface_metadata_;
+
+  // TODO: Make this comprehensive or a parameter in the constructor
+  inline static const std::string delimiters = "|";
 };
 
 } // namespace xdg

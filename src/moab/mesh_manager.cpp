@@ -6,6 +6,7 @@
 
 #include "xdg/error.h"
 #include "xdg/moab/tag_conventions.h"
+#include "xdg/util/str_utils.h"
 #include "xdg/vec3da.h"
 
 using namespace xdg;
@@ -156,7 +157,7 @@ MOABMeshManager::get_parent_volumes(MeshID surface) const
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {
   std::array<moab::Tag, 1> tags = {geometry_dimension_tag_};
-  std::array<void*, 1> values = {&dim};
+  std::array<const void*, 1> values = {&dim};
   moab::Range entities;
 
   this->moab_interface()->get_entities_by_type_and_tag(
@@ -190,5 +191,33 @@ std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const 
 Property
 MOABMeshManager::get_volume_property(MeshID volume, PropertyType type) const
 {
-  return Property{};
+  return Property();
+}
+
+void
+MOABMeshManager::parse_metadata() const
+{
+  // loop over all groups
+  moab::Range groups;
+
+  std::array<moab::Tag, 1> tags = {category_tag_};
+  std::array<const void*, 1> values = {GROUP_CATEGORY_VALUE.c_str()};
+
+  this->moab_interface()->get_entities_by_type_and_tag(
+    this->root_set(),
+    moab::MBENTITYSET,
+    tags.data(),
+    values.data(),
+    1,
+    groups
+  );
+
+  for (auto group : groups) {
+    // get the value of the name tag for this group
+    std::string group_name(" ", CATEGORY_TAG_SIZE);
+    this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
+    std::vector<std::string> tokens = tokenize(strtrim(group_name), delimiters);
+  }
+
+
 }
