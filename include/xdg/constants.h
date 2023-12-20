@@ -30,6 +30,7 @@ constexpr float min_rcp_input = std::numeric_limits<float>::min() /* FIX ME */ *
 constexpr int BVH_MAX_DEPTH = 64;
 
 // geometric property type (e.g. material assignment or boundary condition)
+// TODO: separate into VolumeProperty and SurfaceProperty
 enum class PropertyType {
     BOUNDARY_CONDITION = -1,
     MATERIAL = 0,
@@ -51,7 +52,6 @@ struct Property{
 };
 
 static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
-
 }
 
 #endif // include guard

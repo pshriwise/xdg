@@ -13,7 +13,6 @@ using namespace xdg;
 
 TEST_CASE("Test initialization")
 {
-
   std::unique_ptr<MeshManager> mesh_manager = std::make_unique<MOABMeshManager>();
 
   mesh_manager->load_file("test_files/pwr_pincell.h5m");
@@ -43,4 +42,10 @@ TEST_CASE("Test initialization")
     REQUIRE(material_exp_results[volume] == prop.value);
   }
 
+  std::vector reflecting_surface_ids {2, 3, 14, 15, 17, 18};
+
+  for (auto surface : reflecting_surface_ids) {
+    auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
+    REQUIRE(prop.value == "reflecting");
+  }
 }
