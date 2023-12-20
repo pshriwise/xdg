@@ -61,6 +61,7 @@ public:
   // Metadata
   void parse_metadata() override;
 
+  // TODO: move to mesh_manger_interface???
   Property get_volume_property(MeshID volume, PropertyType type) const override;
 
   Property get_surface_property(MeshID surface, PropertyType type) const override;
