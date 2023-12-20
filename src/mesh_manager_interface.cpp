@@ -17,7 +17,7 @@ MeshManager::create_implicit_complement()
       this->add_surface_to_volume(ipc_volume, surface, Sense::FORWARD);
 
     if (parent_vols.second == ID_NONE)
-      this->add_surface_to_volume(ipc_volume, surface, Sense::FORWARD);
+      this->add_surface_to_volume(ipc_volume, surface, Sense::REVERSE);
   }
 
   // insert the ipc volume into volume sets if it isn't present already
