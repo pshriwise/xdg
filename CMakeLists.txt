@@ -10,19 +10,28 @@ if(NOT CMAKE_BUILD_TYPE)
  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
 endif()
 
+# Compiler options (things in this section may not be platform-portable)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 
 # use Embree for CPU ray tracing
 find_package(embree REQUIRED HINTS ${EMBREE_DIR})
 
 # Catch2 testing module
-
 if (XDG_BUILD_TESTS)
   find_package(Catch2 QUIET NO_SYSTEM_ENVIRONMENT_PATH)
   if (NOT Catch2_FOUND)
     add_subdirectory("vendor/catch2")
   endif()
   include(CTest)
+endif()
+
+# fmt
+find_package(fmt QUIET NO_SYSTEM_ENVIRONMENT_PATH)
+if (NOT fmt_FOUND)
+  set(FMT_INSTALL ON CACHE BOOL "Generate the fmt install target")
+  add_subdirectory(vendor/fmt)
 endif()
 
 list(APPEND xdg_sources
@@ -49,6 +58,8 @@ target_include_directories(libxdg
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
+
+target_link_libraries(libxdg fmt::fmt)
 
 if (XDG_MOAB_BACKEND)
   target_link_libraries(libxdg MOAB)
