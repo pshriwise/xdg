@@ -40,10 +40,11 @@ public:
 
   void create_implicit_complement();
 
-  // metadata
+  // Metadata methods
   virtual void parse_metadata() = 0;
 
   virtual Property get_volume_property(MeshID volume, PropertyType type) const = 0;
+  virtual Property get_surface_property(MeshID surface, PropertyType type) const = 0;
 
   // Accessors
   const std::vector<MeshID>& volumes() const { return volumes_; }
@@ -51,7 +52,13 @@ public:
   const std::vector<MeshID>& surfaces() const { return surfaces_; }
   std::vector<MeshID>& surfaces() { return surfaces_; }
 
+protected:
+  // metadata
+  std::map<std::pair<MeshID, PropertyType>, Property> volume_metadata_;
+  std::map<std::pair<MeshID, PropertyType>, Property> surface_metadata_;
+
 private:
+
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
 };

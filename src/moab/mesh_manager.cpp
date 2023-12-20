@@ -1,4 +1,5 @@
-
+#include <algorithm>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -191,12 +192,13 @@ std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const 
 Property
 MOABMeshManager::get_volume_property(MeshID volume, PropertyType type) const
 {
-  auto properties = volume_metadata_.at(volume);
-  for (auto p : properties) {
-    if (p.type == type) return p;
-  }
-  fatal_error("Could not find property of type '' "); // TODO: fmt
-  return Property();
+  return volume_metadata_.at({volume, type});
+}
+
+Property
+MOABMeshManager::get_surface_property(MeshID surface, PropertyType type) const
+{
+  return surface_metadata_.at({surface, type});
 }
 
 void
@@ -221,12 +223,12 @@ MOABMeshManager::parse_metadata()
     // get the value of the name tag for this group
     std::string group_name(" ", CATEGORY_TAG_SIZE);
     this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
-    std::vector<std::string> tokens = tokenize(strtrim(group_name), delimiters);
+    std::vector<std::string> tokens = tokenize(strtrim(group_name), metadata_delimiters);
 
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
     if (tokens.size() % 2 != 0)
-      fatal_error("Group name tokens are of incorrect size! ") ; // TODO: add fmt << tokens.size());
+      fatal_error("Group name tokens are of incorrect size: {}", tokens.size());
 
     std::vector<Property> group_properties;
     // iterate over tokens by 2 and setup property objects
@@ -234,7 +236,7 @@ MOABMeshManager::parse_metadata()
       std::string key = tokens[i];
       std::string value = tokens[i+1];
       if (MOAB_PROPERTY_MAP.count(key) == 0)
-        fatal_error("Could not find property for key ''"); // TODO: add fmt
+        fatal_error("Could not find property for key '{}'", key);
       Property p;
       p.type = MOAB_PROPERTY_MAP.at(key);
       p.value = value;
@@ -253,11 +255,16 @@ MOABMeshManager::parse_metadata()
       this->moab_interface()->tag_get_data(geometry_dimension_tag_, &entity, 1, &dim);
 
       if (dim == 3) {
-        volume_metadata_[global_id] = group_properties;
+        for (const auto& p : group_properties) {
+          volume_metadata_[{global_id, p.type}] = p;
+        }
       } else if (dim == 2) {
-        surface_metadata_[global_id] = group_properties;
+        for (const auto& p : group_properties) {
+          surface_metadata_[{global_id, p.type}] = p;
+        }
+
       } else {
-        fatal_error("Properties for entities with dimension '' are unsupported"); //TODO : fmt
+        fatal_error("Properties for entities with dimension {} are unsupported", dim);
       }
     }
   }
