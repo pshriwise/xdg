@@ -27,4 +27,5 @@ TEST_CASE("Test initialization")
 
   // parse metadata
   mesh_manager->parse_metadata();
+
 }

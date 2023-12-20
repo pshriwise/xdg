@@ -48,10 +48,6 @@ static const std::map<PropertyType, std::string> PROP_TYPE_TO_STR =
 struct Property{
   PropertyType type;
   std::string value;
-
-  // to support find
-  bool operator ==(const Property& other) { return other.type == type; }
-  bool operator ==(const PropertyType other) { return other == type; }
 };
 
 }
