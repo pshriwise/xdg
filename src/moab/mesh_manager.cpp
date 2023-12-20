@@ -53,8 +53,8 @@ void MOABMeshManager::init() {
 
   for (int i = 0; i < moab_volume_ids.size(); i++) {
     volume_id_map_[moab_volume_ids[i]] = moab_volume_handles[i];
+    volumes_.push_back(moab_volume_ids[i]);
   }
-
   // populate volumes vector and ID map
   auto moab_surface_handles = this->_ents_of_dim(2);
   std::vector<int> moab_surface_ids(moab_surface_handles.size());
@@ -64,6 +64,7 @@ void MOABMeshManager::init() {
                                        moab_surface_ids.data());
   for (int i = 0; i < moab_surface_ids.size(); i++) {
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
+    surfaces_.push_back(moab_surface_ids[i]);
   }
 }
 
@@ -91,8 +92,9 @@ MeshID MOABMeshManager::create_volume() {
   moab::EntityHandle volume_set;
   this->moab_interface()->create_meshset(moab::MESHSET_SET, volume_set);
 
-  MeshID volume_id;
-  this->moab_interface()->tag_get_data(global_id_tag_, &volume_set, 1, &volume_id);
+  MeshID volume_id = next_volume_id();
+
+  this->moab_interface()->tag_set_data(global_id_tag_, &volume_set, 1, &volume_id);
 
   // set geometry dimension
   int dim = 3;
@@ -233,13 +235,11 @@ MOABMeshManager::parse_metadata()
     std::vector<Property> group_properties;
     // iterate over tokens by 2 and setup property objects
     for (unsigned int i = 0; i < tokens.size(); i += 2) {
-      std::string key = tokens[i];
-      std::string value = tokens[i+1];
+      const std::string& key = tokens[i];
+      const std::string& value = tokens[i+1];
       if (MOAB_PROPERTY_MAP.count(key) == 0)
         fatal_error("Could not find property for key '{}'", key);
-      Property p;
-      p.type = MOAB_PROPERTY_MAP.at(key);
-      p.value = value;
+      group_properties.push_back({MOAB_PROPERTY_MAP.at(key), value});
     }
 
     // now we have all of the properties. Get the geometric entities they apply to

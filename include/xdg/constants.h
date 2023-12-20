@@ -50,5 +50,8 @@ struct Property{
   std::string value;
 };
 
+static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
+
 }
+
 #endif // include guard

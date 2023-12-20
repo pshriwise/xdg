@@ -32,6 +32,12 @@ void output(const std::string& message, std::ostream& out, int indent)
   }
 }
 
+void write_message(const std::string& message)
+{
+    std::cout << " ";
+    output(message, std::cout, 1);
+}
+
 void fatal_error(const std::string& message, int err)
 {
 #ifdef _POSIX_VERSION

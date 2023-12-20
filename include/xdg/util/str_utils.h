@@ -10,7 +10,7 @@ namespace xdg
 std::vector<std::string> tokenize(const std::string& str,
                                   const std::string& delimiters);
 
-std::string& strtrim(std::string& s);
+std::string& strtrim(std::string&, std::string symbols=" \t\n\r\f\v");
 
 
 } // namespace xdg

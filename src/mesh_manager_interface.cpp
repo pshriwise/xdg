@@ -23,6 +23,19 @@ MeshManager::create_implicit_complement()
   // insert the ipc volume into volume sets if it isn't present already
   if (std::find(volumes().begin(), volumes().end(), ipc_volume) == volumes().end())
     volumes().push_back(ipc_volume);
+
+  // TODO: allow for alternate material assignment in IPC
+  volume_metadata_[{ipc_volume, PropertyType::MATERIAL}] = VOID_MATERIAL;
+}
+
+MeshID MeshManager::next_volume_id() const
+{
+    return *std::max_element(volumes().begin(), volumes().end()) + 1;
+}
+
+MeshID MeshManager::next_surface_id() const
+{
+    return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 }
 
 }

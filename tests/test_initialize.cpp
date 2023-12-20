@@ -5,6 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 // xdg includes
+#include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
 
@@ -27,5 +28,19 @@ TEST_CASE("Test initialization")
 
   // parse metadata
   mesh_manager->parse_metadata();
+
+  std::map<MeshID, std::string> material_exp_results =
+    {
+      {1, "UO2 (2.4%)"},
+      {2, "Zircaloy"},
+      {3, "Hot borated water"},
+      {4, "void"}
+    };
+
+  for (auto volume : mesh_manager->volumes()) {
+    auto prop = mesh_manager->get_volume_property(volume, PropertyType::MATERIAL);
+    REQUIRE(prop.type == PropertyType::MATERIAL);
+    REQUIRE(material_exp_results[volume] == prop.value);
+  }
 
 }

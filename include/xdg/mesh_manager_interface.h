@@ -13,12 +13,14 @@ namespace xdg {
 class MeshManager {
 public:
 
-  // setup
+  // Abstract Methods
+
+  // Setup
   virtual void load_file(const std::string& filepath) = 0;
 
   virtual void init() = 0;
 
-  // geometry
+  // Geometry
   virtual int num_volumes() const = 0;
 
   virtual int num_surfaces() const = 0;
@@ -38,6 +40,11 @@ public:
 
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
 
+  // Methods
+  MeshID next_volume_id() const;
+
+  MeshID next_surface_id() const;
+
   void create_implicit_complement();
 
   // Metadata methods
@@ -56,8 +63,6 @@ protected:
   // metadata
   std::map<std::pair<MeshID, PropertyType>, Property> volume_metadata_;
   std::map<std::pair<MeshID, PropertyType>, Property> surface_metadata_;
-
-private:
 
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
