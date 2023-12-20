@@ -191,11 +191,16 @@ std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const 
 Property
 MOABMeshManager::get_volume_property(MeshID volume, PropertyType type) const
 {
+  auto properties = volume_metadata_.at(volume);
+  for (auto p : properties) {
+    if (p.type == type) return p;
+  }
+  fatal_error("Could not find property of type '' "); // TODO: fmt
   return Property();
 }
 
 void
-MOABMeshManager::parse_metadata() const
+MOABMeshManager::parse_metadata()
 {
   // loop over all groups
   moab::Range groups;
@@ -217,7 +222,44 @@ MOABMeshManager::parse_metadata() const
     std::string group_name(" ", CATEGORY_TAG_SIZE);
     this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
     std::vector<std::string> tokens = tokenize(strtrim(group_name), delimiters);
-  }
 
+    // ensure we have an even number of tokens
+    // TODO: are there any cases in which this shouldn't be true???
+    if (tokens.size() % 2 != 0)
+      fatal_error("Group name tokens are of incorrect size! ") ; // TODO: add fmt << tokens.size());
+
+    std::vector<Property> group_properties;
+    // iterate over tokens by 2 and setup property objects
+    for (unsigned int i = 0; i < tokens.size(); i += 2) {
+      std::string key = tokens[i];
+      std::string value = tokens[i+1];
+      if (MOAB_PROPERTY_MAP.count(key) == 0)
+        fatal_error("Could not find property for key ''"); // TODO: add fmt
+      Property p;
+      p.type = MOAB_PROPERTY_MAP.at(key);
+      p.value = value;
+    }
+
+    // now we have all of the properties. Get the geometric entities they apply to
+    moab::Range entities;
+    this->moab_interface()->get_entities_by_type(group, moab::MBENTITYSET, entities);
+
+    // assign parsed properties to metadata maps based on geom dimension tag
+    // TODO: verify that the property data is valid for an entity with that dimenison
+    for (auto entity : entities) {
+      // get the entity dimension and id
+      int dim, global_id;
+      this->moab_interface()->tag_get_data(global_id_tag_, &entity, 1, &global_id);
+      this->moab_interface()->tag_get_data(geometry_dimension_tag_, &entity, 1, &dim);
+
+      if (dim == 3) {
+        volume_metadata_[global_id] = group_properties;
+      } else if (dim == 2) {
+        surface_metadata_[global_id] = group_properties;
+      } else {
+        fatal_error("Properties for entities with dimension '' are unsupported"); //TODO : fmt
+      }
+    }
+  }
 
 }

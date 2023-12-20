@@ -3,6 +3,7 @@
 
 // Borrowed from OpenMC
 #include <string>
+#include <iostream>
 
 void fatal_error(const std::string& message, int err=-1);
 

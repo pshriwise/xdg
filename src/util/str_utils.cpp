@@ -26,9 +26,9 @@ tokenize(const std::string& str,
 // from OpenMC
 std::string& strtrim(std::string& s)
 {
-  const char* t = " \t\n\r\f\v";
-  s.erase(s.find_last_not_of(t) + 1);
-  s.erase(0, s.find_first_not_of(t));
+  const std::string t = " \t\n\r\f\v";
+  s.erase(s.find_last_not_of(t.c_str()) + 1);
+  s.erase(0, s.find_first_not_of(t.c_str()));
   return s;
 }
 

@@ -17,6 +17,13 @@ static std::string VOLUME_CATEGORY_VALUE {"Volume"};
 static std::string SURFACE_CATEGORY_VALUE {"Surface"};
 static std::string GROUP_CATEGORY_VALUE {"Group"};
 
+static const std::map<std::string, PropertyType> MOAB_PROPERTY_MAP
+{
+  {"mat", PropertyType::MATERIAL},
+  {"material", PropertyType::MATERIAL}
+};
+
+
 class MOABMeshManager : public MeshManager {
 
 public:
@@ -51,7 +58,7 @@ public:
   // Geometry
 
   // Metadata
-  void parse_metadata() const;
+  void parse_metadata() override;
 
   Property get_volume_property(MeshID volume, PropertyType type) const override;
 
@@ -90,6 +97,7 @@ private:
 
   // TODO: Make this comprehensive or a parameter in the constructor
   inline static const std::string delimiters = "|";
+
 };
 
 } // namespace xdg

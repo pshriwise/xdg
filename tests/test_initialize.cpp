@@ -24,4 +24,7 @@ TEST_CASE("Test initialization")
   // create the implicit complement volume
   mesh_manager->create_implicit_complement();
   REQUIRE(mesh_manager->num_volumes() == 4);
+
+  // parse metadata
+  mesh_manager->parse_metadata();
 }

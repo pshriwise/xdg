@@ -41,6 +41,8 @@ public:
   void create_implicit_complement();
 
   // metadata
+  virtual void parse_metadata() = 0;
+
   virtual Property get_volume_property(MeshID volume, PropertyType type) const = 0;
 
   // Accessors
