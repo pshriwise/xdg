@@ -42,6 +42,7 @@ list(APPEND xdg_sources
 src/mesh_manager_interface.cpp
 src/error.cpp
 src/ray_tracing_interface.cpp
+src/triangle_ref.cpp
 src/util/str_utils.cpp
 
 # MOAB
