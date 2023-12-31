@@ -37,7 +37,7 @@ public:
 
   void init() override;
 
-  // Virtual method implementations
+  // Geometry
   int num_volumes() const override;
 
   int num_surfaces() const override;
@@ -52,11 +52,16 @@ public:
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
+  // Mesh
+  std::vector<std::array<double, 3>> element_vertices(MeshID element) const override {};
+
+  BoundingBox element_bounding_box(MeshID element) const override {};
+
+  // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 
   std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override;
 
-  // Geometry
 
   // Metadata
   void parse_metadata() override;

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "xdg/bbox.h"
 #include "xdg/constants.h"
 #include "xdg/vec3da.h"
 
@@ -31,6 +32,13 @@ public:
 
   virtual std::vector<MeshID> get_surface_elements(MeshID surface) const = 0;
 
+  // Mesh
+  // TODO: can we accomplish this without allocating memory?
+  virtual std::vector<std::array<double, 3>> element_vertices(MeshID element) const = 0;
+
+  virtual BoundingBox element_bounding_box(MeshID element) const = 0;
+
+  // Topology
   // Returns parent with forward sense, then reverse
   virtual std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const = 0;
 
