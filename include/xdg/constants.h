@@ -3,6 +3,7 @@
 
 #include <map>
 #include <limits>
+#include <string>
 
 namespace xdg {
 

@@ -17,7 +17,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 
 # use Embree for CPU ray tracing
-find_package(embree 3.0.0 REQUIRED)
+find_package(embree 3.6.1 REQUIRED)
+if (NOT ${EMBREE_VERSION} VERSION_GREATER 3.6.0)
+  message(FATAL_ERROR "XDG requires Embree v3.6.1 or higher.")
+endif()
 
 # Catch2 testing module
 if (XDG_BUILD_TESTS)
@@ -38,6 +41,7 @@ endif()
 list(APPEND xdg_sources
 src/mesh_manager_interface.cpp
 src/error.cpp
+src/ray_tracing_interface.cpp
 src/util/str_utils.cpp
 
 # MOAB
@@ -50,6 +54,13 @@ add_library(libxdg SHARED ${xdg_sources})
 
 add_library(xdg::libxdg ALIAS libxdg)
 
+# pass precompile definition depending on embree version
+if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
+  target_compile_definitions(libxdg PRIVATE EMBREE4)
+else()
+  target_compile_definitions(libxdg PRIVATE EMBREE3)
+endif()
+
 if (XDG_BUILD_TESTS)
   add_subdirectory("tests")
 endif()
@@ -60,7 +71,7 @@ target_include_directories(libxdg
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-target_link_libraries(libxdg fmt::fmt)
+target_link_libraries(libxdg embree fmt::fmt)
 
 if (XDG_MOAB_BACKEND)
   target_link_libraries(libxdg MOAB)
