@@ -1,5 +1,3 @@
-
-
 #include "xdg/moab/metadata.h"
 
 #include <algorithm>
@@ -8,8 +6,6 @@
 #include <limits>
 #include <set>
 #include <sstream>
-
-#include "util.hpp"
 
 namespace xdg {
 

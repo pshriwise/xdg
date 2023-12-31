@@ -223,7 +223,7 @@ MOABMeshManager::parse_metadata()
 
   for (auto group : groups) {
     // get the value of the name tag for this group
-    std::string group_name(" ", CATEGORY_TAG_SIZE);
+    std::string group_name(' ', CATEGORY_TAG_SIZE);
     this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
     std::vector<std::string> tokens = tokenize(strtrim(group_name), metadata_delimiters);
 
