@@ -13,10 +13,11 @@ endif()
 # Compiler options (things in this section may not be platform-portable)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# require MOAB for now
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 
 # use Embree for CPU ray tracing
-find_package(embree REQUIRED HINTS ${EMBREE_DIR})
+find_package(embree 3.0.0 REQUIRED)
 
 # Catch2 testing module
 if (XDG_BUILD_TESTS)
