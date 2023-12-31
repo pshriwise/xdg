@@ -101,7 +101,7 @@ MeshID MOABMeshManager::create_volume() {
   this->moab_interface()->tag_set_data(geometry_dimension_tag_, &volume_set, 1, &dim);
 
   // set category tag
-  this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE.c_str());
+  this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE);
 
   volume_id_map_[volume_id] = volume_set;
 
@@ -210,7 +210,7 @@ MOABMeshManager::parse_metadata()
   moab::Range groups;
 
   std::array<moab::Tag, 1> tags = {category_tag_};
-  std::array<const void*, 1> values = {GROUP_CATEGORY_VALUE.c_str()};
+  std::array<const void*, 1> values = {GROUP_CATEGORY_VALUE};
 
   this->moab_interface()->get_entities_by_type_and_tag(
     this->root_set(),

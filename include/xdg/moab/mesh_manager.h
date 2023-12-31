@@ -13,9 +13,9 @@
 
 namespace xdg {
 
-static std::string VOLUME_CATEGORY_VALUE {"Volume"};
-static std::string SURFACE_CATEGORY_VALUE {"Surface"};
-static std::string GROUP_CATEGORY_VALUE {"Group"};
+static const char VOLUME_CATEGORY_VALUE[32] = "Volume";
+static const char SURFACE_CATEGORY_VALUE[32] = "Surface";
+static const char GROUP_CATEGORY_VALUE[32] = "Group";
 
 static const std::map<std::string, PropertyType> MOAB_PROPERTY_MAP
 {
