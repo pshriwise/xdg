@@ -21,6 +21,13 @@ RayTracingInterface::~RayTracingInterface()
   rtcReleaseDevice(device_);
 }
 
+void
+RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
+                                     MeshID volume_id)
+{
+  
+}
+
 void RayTracingInterface::init()
 {
 

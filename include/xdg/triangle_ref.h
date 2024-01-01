@@ -17,8 +17,8 @@ struct GeometryUserData {
 
 // TODO: could be a more generic primitive ref?
 struct TriangleRef {
-  MeshID triangle_id;
-  Sense sense;
+  MeshID triangle_id {ID_NONE};
+  Sense sense {Sense::UNSET};
 };
 
 void TriangleBoundsFunc(RTCBoundsFunctionArguments* args);

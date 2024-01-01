@@ -135,6 +135,53 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
 }
 
 // Mesh Methods
+moab::Range
+MOABMeshManager::_surface_elements(MeshID surface) const
+{
+  moab::EntityHandle surf_handle = surface_id_map_.at(surface);
+  moab::Range elements;
+  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBTRI, elements);
+  return elements;
+}
+
+int
+MOABMeshManager::num_volume_elements(MeshID volume) const
+{
+  int out {0};
+  for (auto surface : this->get_volume_surfaces(volume)) {
+    out += this->num_surface_elements(surface);
+  }
+  return out;
+}
+
+int
+MOABMeshManager::num_surface_elements(MeshID surface) const
+{
+  return this->_surface_elements(surface).size();
+}
+
+std::vector<MeshID>
+MOABMeshManager::get_volume_elements(MeshID volume) const
+{
+  moab::Range elements;
+  for (auto surface : this->get_volume_surfaces(volume)) {
+    elements.merge(this->_surface_elements(surface));
+  }
+  return std::vector<MeshID>(elements.begin(), elements.end());
+}
+
+std::vector<MeshID>
+MOABMeshManager::get_surface_elements(MeshID surface) const
+{
+  auto elements = this->_surface_elements(surface);
+
+  std::vector<MeshID> element_ids(elements.size());
+  this->moab_interface()->tag_get_data(global_id_tag_, elements, element_ids.data());
+
+  return element_ids;
+}
+
+
 std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
   auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
@@ -191,21 +238,18 @@ MOABMeshManager::_ents_of_dim(int dim) const {
   return std::vector<moab::EntityHandle>(entities.begin(), entities.end());
 }
 
-std::vector<Vertex> MOABMeshManager::get_vertices(MeshID element) const {
-  auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
-  return std::vector<Vertex>(out.begin(), out.end());
-}
+std::vector<MeshID>
+MOABMeshManager::get_volume_surfaces(MeshID volume) const
+{
+  moab::EntityHandle vol_handle = this->volume_id_map_.at(volume);
 
-std::vector<MeshID> MOABMeshManager::get_surface_elements(MeshID surface) const {
-  moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
+  std::vector<moab::EntityHandle> surfaces;
+  this->moab_interface()->get_child_meshsets(vol_handle, surfaces);
 
-  std::vector<moab::EntityHandle> elements;
-  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBTRI, elements);
+  std::vector<MeshID> surface_ids(surfaces.size());
+  this->moab_interface()->tag_get_data(global_id_tag_, surfaces.data(), surfaces.size(), surface_ids.data());
 
-  std::vector<MeshID> element_ids(elements.size());
-  this->moab_interface()->tag_get_data(global_id_tag_, elements.data(), elements.size(), element_ids.data());
-
-  return element_ids;
+  return surface_ids;
 }
 
 Property

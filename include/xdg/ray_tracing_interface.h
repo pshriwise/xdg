@@ -2,6 +2,7 @@
 #define _XDG_RAY_TRACING_INTERFACE_H
 
 #include <vector>
+#include <unordered_map>
 
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
@@ -16,10 +17,11 @@ class RayTracingInterface {
 public:
   RayTracingInterface();
   ~RayTracingInterface();
+
 // Methods
   void init();
 
-  void register_volume(const MeshID mesh_id, const std::vector<TriangleRef>& triangles);
+  void register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
 // Data members
 private:
@@ -33,6 +35,9 @@ private:
 
   // Internal parameters
   double numerical_precision_ {1e-3};
+
+  // storage
+  std::unordered_map<MeshID, std::vector<TriangleRef>> triangle_storage_map_;
 };
 
 } // namespace xdg

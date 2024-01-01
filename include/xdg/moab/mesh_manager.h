@@ -44,15 +44,19 @@ public:
 
   int num_ents_of_dimension(int dim) const override;
 
-  std::vector<Vertex> get_vertices(MeshID element) const override;
-
-  std::vector<MeshID> get_surface_elements(MeshID surface) const override;
-
   MeshID create_volume() override;
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   // Mesh
+  int num_volume_elements(MeshID volume) const override;
+
+  int num_surface_elements(MeshID surface) const override;
+
+  std::vector<MeshID> get_volume_elements(MeshID volume) const override;
+
+  std::vector<MeshID> get_surface_elements(MeshID surface) const override;
+
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
   BoundingBox element_bounding_box(MeshID element) const override;
@@ -61,6 +65,8 @@ public:
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 
   std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override;
+
+  std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
   // Metadata
   void parse_metadata() override;
@@ -75,6 +81,7 @@ public:
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
+  moab::Range _surface_elements(MeshID surface) const;
 
 public:
   // Accessors
