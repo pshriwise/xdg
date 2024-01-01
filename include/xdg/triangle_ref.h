@@ -1,6 +1,7 @@
 #ifndef _XDG_TRIANGLE_REF_H
 #define _XDG_TRIANGLE_REF_H
 
+#include "xdg/constants.h"
 #include "xdg/embree_interface.h"
 #include "xdg/mesh_manager_interface.h"
 
@@ -16,12 +17,11 @@ struct GeometryUserData {
 
 // TODO: could be a more generic primitive ref?
 struct TriangleRef {
-  uint32_t mesh_id;
-  uint32_t triangle_id;
-  uint32_t sense;
+  MeshID triangle_id;
+  Sense sense;
 };
 
-void TriangleBoundsFunc(const struct RTCBoundsFunctionArguments* args);
+void TriangleBoundsFunc(RTCBoundsFunctionArguments* args);
 
 } // namespace xdg
 
