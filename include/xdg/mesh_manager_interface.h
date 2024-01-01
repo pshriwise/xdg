@@ -34,7 +34,7 @@ public:
 
   // Mesh
   // TODO: can we accomplish this without allocating memory?
-  virtual std::vector<std::array<double, 3>> element_vertices(MeshID element) const = 0;
+  virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
   virtual BoundingBox element_bounding_box(MeshID element) const = 0;
 

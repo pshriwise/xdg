@@ -15,6 +15,8 @@
 #define __forceinline inline __attribute__((always_inline))
 #endif
 
+#include <array>
+
 #include "xdg/constants.h"
 
 namespace xdg {
@@ -28,6 +30,8 @@ struct Vec3da {
 #endif
     struct{ double x,y,z;  size_t a;};
   };
+
+  __forceinline Vec3da(std::array<double, 3> const& arr) : x(arr[0]), y(arr[1]), z(arr[2]), a(0) { }
 
   __forceinline Vec3da () {}
 #ifdef __AVX2__

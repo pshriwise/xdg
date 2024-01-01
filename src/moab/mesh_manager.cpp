@@ -134,6 +134,23 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
   this->moab_interface()->tag_set_data(surf_to_volume_sense_tag_, surf_handle_ptr, 1, sense_handles.data());
 }
 
+// Mesh Methods
+std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
+{
+  auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
+  return std::vector<Vertex>(out.begin(), out.end());
+}
+
+BoundingBox MOABMeshManager::element_bounding_box(MeshID element) const
+{
+  auto vertices = this->element_vertices(element);
+  BoundingBox bb;
+  for (const auto& v : vertices) {
+    bb.update(v);
+  }
+  return bb;
+}
+
 std::pair<MeshID, MeshID>
 MOABMeshManager::surface_senses(MeshID surface) const
 {
