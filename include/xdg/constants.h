@@ -7,6 +7,8 @@
 
 namespace xdg {
 
+constexpr double INFTY {std::numeric_limits<double>::max()};
+
 // Whether information pertains to a surface or volume
 enum class GeometryType {
     SURFACE = 2,
@@ -53,6 +55,11 @@ struct Property{
 };
 
 static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
-}
+
+// Enumerator for different ray fire types
+enum RayFireType { RF, PIV, ACCUM, FV };
+
+
+} // namespace xdg
 
 #endif // include guard

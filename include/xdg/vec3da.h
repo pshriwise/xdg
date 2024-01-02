@@ -72,6 +72,20 @@ struct Vec3da {
 
     __forceinline Vec3da operator /=(const Vec3da& v) { x = x / v.x; y = y /v.y; z = z / v.z; return *this; }
 
+    __forceinline double dot(const Vec3da& v) const
+    {
+      return x * v.x + y * v.y + z * v.z;
+    }
+
+    __forceinline Vec3da cross(const Vec3da& v) const
+    {
+      return Vec3da(y * v.z - z * v.y,
+                    z * v.x - x * v.z,
+                    x * v.y - y * v.x);
+    }
+
+
+
 };
 
 
@@ -130,19 +144,29 @@ __forceinline Vec3da operator +( const Vec3da &a ) { return Vec3da(+a.x, +a.y, +
 
 __forceinline Vec3da operator -( const Vec3da &a ) { return Vec3da(-a.x, -a.y, -a.z); }
 
-__forceinline double dot( const Vec3da& a, const Vec3da& b ) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+__forceinline double dot( const Vec3da& a, const Vec3da& b ) { return a.dot(b); }
 
-__forceinline Vec3da cross( const Vec3da& a, const Vec3da& b ) { return Vec3da( a[1] * b[2] - a[2] * b[1],
-										a[2] * b[0] - a[0] * b[2],
-										a[0] * b[1] - a[1] * b[0] ); }
+__forceinline Vec3da cross( const Vec3da& a, const Vec3da& b ) { return a.cross(b); }
 
 
 __forceinline std::ostream& operator <<(std::ostream &os, Vec3da  const& v) {
   return os << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ' ' << v.a << ']';
 }
 
+//! Determine if a position is lexicographically higher or lower than another
+//! position
+inline bool lower(const Vec3da& a, const Vec3da& b)
+{
+  for (int i = 0; i < 3; i++)
+    if (a[i] != b[i])
+      return a[i] < b[i];
+  return false;
+}
+
 // Type aliases
 using Vertex = Vec3da;
+using Position = Vec3da;
+using Direction = Vec3da;
 
 } // end namespace xdg
 
