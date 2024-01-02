@@ -59,6 +59,8 @@ public:
 
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
+  std::array<Vertex, 3> triangle_vertices(MeshID element) const override;
+
   BoundingBox element_bounding_box(MeshID element) const override;
 
   // Topology

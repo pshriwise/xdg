@@ -31,10 +31,13 @@ double plucker_edge_test(const Position& vertexa, const Position& vertexb,
 }
 
 bool plucker_ray_tri_intersect(const std::array<Position, 3> vertices,
-  const Position& origin, const Direction& direction, double& dist_out,
-  const double* neg_ray_len, const int* orientation)
+                               const Position& origin,
+                               const Direction& direction,
+                               double& dist_out,
+                               const double nonneg_ray_len,
+                               const double* neg_ray_len,
+                               const int* orientation)
 {
-  const double nonneg_ray_len = INFTY;
   dist_out = INFTY;
 
   const Position raya = direction;

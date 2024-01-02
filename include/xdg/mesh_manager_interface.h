@@ -41,6 +41,8 @@ public:
   // TODO: can we accomplish this without allocating memory?
   virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
+  virtual std::array<Vertex, 3> triangle_vertices(MeshID element) const = 0;
+
   virtual BoundingBox element_bounding_box(MeshID element) const = 0;
 
   // Topology

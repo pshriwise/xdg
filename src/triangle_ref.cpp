@@ -1,5 +1,7 @@
+
 #include "xdg/triangle_ref.h"
 #include "xdg/geometry_data.h"
+#include "xdg/plucker.h"
 #include "xdg/ray.h"
 
 namespace xdg
@@ -27,14 +29,20 @@ void TriangleIntersectionFunc(const RTCIntersectFunctionNArguments* args) {
 
     const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
 
-    auto vertices = mesh_manager->element_vertices(tri_ref.triangle_id);
+    auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
 
     RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
+    RTCDRay& ray = rayhit->ray;
+    RTCDHit& hit = rayhit->hit;
+
+    Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
+    Direction ray_direction = {ray.ddir[0], ray.ddir[1], ray.ddir[2]};
 
     // local variable for distance to the triangle intersection
     double dist;
 
-    
+    bool hit_tri = plucker_ray_tri_intersect(vertices, ray_origin, ray_direction, dist);
+
 
 
 }
