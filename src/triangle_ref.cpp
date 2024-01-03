@@ -65,16 +65,9 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   double plucker_dist;
   bool hit_tri = plucker_ray_tri_intersect(vertices, ray_origin, ray_direction, plucker_dist);
 
-  if (!hit_tri) {
-    // rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
-    return;
-  }
+  if (!hit_tri) return;
 
-  if (plucker_dist > rayhit->ray.dtfar) {
-     // rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
-    return;
-  }
-
+  if (plucker_dist > rayhit->ray.dtfar) return;
 
   Direction normal = (vertices[1] - vertices[0]).cross((vertices[2] - vertices[0]));
   normal.normalize();
