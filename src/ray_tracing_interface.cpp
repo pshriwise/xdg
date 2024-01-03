@@ -101,7 +101,7 @@ RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_man
 
     // set the bounds function
     rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
-
+    rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
 
     rtcCommitGeometry(surface_geometry);
   }
@@ -120,7 +120,7 @@ RayTracingInterface::ray_fire(MeshID volume,
   RTCDRayHit rayhit;
   rayhit.ray.set_org(origin);
   rayhit.ray.set_dir(direction);
-  rayhit.ray.set_tfar(distance);
+  rayhit.ray.set_tfar(INFTY);
   rayhit.ray.set_tnear(0.0);
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = HitOrientation::EXITING;
@@ -136,6 +136,12 @@ RayTracingInterface::ray_fire(MeshID volume,
     rayhit.hit.Ng_x *= -1.0;
     rayhit.hit.Ng_y *= -1.0;
     rayhit.hit.Ng_z *= -1.0;
+  }
+
+  if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
+    distance = INFTY;
+  } else {
+    distance = rayhit.ray.dtfar;
   }
 }
 

@@ -24,11 +24,21 @@ public:
 
   void register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
+  void register_all_volumes(const std::shared_ptr<MeshManager> mesh_manager) {
+    for (auto volume : mesh_manager->volumes()) {
+      this->register_volume(mesh_manager, volume);
+    }
+  }
+
   void ray_fire(MeshID volume,
                 const Position& origin,
                 const Direction& direction,
                 double& distance,
                 const std::vector<MeshID>* exclude_primitives = nullptr);
+
+// Accessors
+  int num_registered_volumes() const { return volume_map_.size(); }
+
 
 // Data members
 private:

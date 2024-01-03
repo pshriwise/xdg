@@ -75,13 +75,13 @@ struct RTCDRay: RTCRay {
   Vec3da dorg, ddir; //!< double precision versions of the origin and ray direction
   double dtfar; //!< double precision version of the ray far distance
   HitOrientation orientation; //!< Enum indicating what hits to accept based on orientation
-  const std::vector<MeshID>* exclude_primitives; //! < Set of primitives to exclude from the query
+  const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
 };
 
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
 struct RTCDHit : RTCHit {
   // data members
-  const TriangleRef* tri_ref; //!< Pointer to the triangle reference for this hit
+  const TriangleRef* tri_ref {nullptr}; //!< Pointer to the triangle reference for this hit
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 

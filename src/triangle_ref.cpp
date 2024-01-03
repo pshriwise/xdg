@@ -24,38 +24,29 @@ void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
   args->bounds_o->upper_z = bounds.max_z + user_data->box_bump;
 }
 
-void orientation_cull(RTCDRayHit* rayhit) {
-  RTCDRay& ray = rayhit->ray;
-  RTCDHit& hit = rayhit->hit;
-
-  // if looking for exiting intersections, cull if the normal is not pointing out wrt ray direction
-  if (ray.orientation == HitOrientation::EXITING) {
-    if (rayhit->dot_prod() < 0.0) {
-      rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
-      rayhit->hit.primID = RTC_INVALID_GEOMETRY_ID;
-    }
+bool orientation_cull(const Direction& ray_dir, const Direction& normal, HitOrientation orientation)
+{
+  double dot_prod = ray_dir.dot(normal);
+  if (orientation == HitOrientation::EXITING) {
+    if (dot_prod < 0.0) return true;
   }
-  // if looking for entering intersections, cull if the normal is not pointing in wrt ray direction
-  else if (ray.orientation == HitOrientation::ENTERING) {
-    if (rayhit->dot_prod() >= 0.0) {
-      rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
-      rayhit->hit.primID = RTC_INVALID_GEOMETRY_ID;
-    }
+  else if (orientation == HitOrientation::ENTERING) {
+    if (dot_prod >= 0.0) return true;
   }
+  return false;
 }
 
-void primitive_mask_cull(RTCDRayHit* rayhit) {
+bool primitive_mask_cull(RTCDRayHit* rayhit) {
+  if (!rayhit->ray.exclude_primitives) return false;
+
   RTCDRay& ray = rayhit->ray;
   RTCDHit& hit = rayhit->hit;
 
   // if the primitive mask is set, cull if the primitive is not in the mask
-  if (std::find(ray.exclude_primitives->begin(), ray.exclude_primitives->end(), hit.primID) != ray.exclude_primitives->end()) {
-    rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
-    rayhit->hit.primID = RTC_INVALID_GEOMETRY_ID;
-  }
+  return std::find(ray.exclude_primitives->begin(), ray.exclude_primitives->end(), hit.primID) != ray.exclude_primitives->end();
 }
 
-void TriangleIntersectionFunc(const RTCIntersectFunctionNArguments* args) {
+void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*)args->geometryUserPtr;
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
@@ -75,15 +66,27 @@ void TriangleIntersectionFunc(const RTCIntersectFunctionNArguments* args) {
   bool hit_tri = plucker_ray_tri_intersect(vertices, ray_origin, ray_direction, plucker_dist);
 
   if (!hit_tri) {
-    rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
+    // rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
     return;
   }
 
   if (plucker_dist > rayhit->ray.dtfar) {
-    rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
+     // rayhit->hit.geomID = RTC_INVALID_GEOMETRY_ID;
     return;
   }
 
+
+  Direction normal = (vertices[1] - vertices[0]).cross((vertices[2] - vertices[0]));
+  normal.normalize();
+  // if this is a normal ray fire, flip the normal as needed
+  if (tri_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME) normal = -normal;
+
+  if (rayhit->ray.rf_type == RayFireType::VOLUME) {
+   if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
+   if (primitive_mask_cull(rayhit)) return;
+  }
+
+  // if we've gotten through all of the filters, set the ray information
   rayhit->ray.set_tfar(plucker_dist);
   // zero-out barycentric coords
   rayhit->hit.u = 0.0;
@@ -93,19 +96,9 @@ void TriangleIntersectionFunc(const RTCIntersectFunctionNArguments* args) {
   rayhit->hit.primID = args->primID;
   rayhit->hit.tri_ref = &tri_ref;
 
-  Direction normal = (vertices[1] - vertices[0]) - (vertices[2] - vertices[0]);
-  normal.normalize();
-  // if this is a normal ray fire, flip the normal as needed
-  if (tri_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME) normal = -normal;
-
   rayhit->hit.dNg[0] = normal[0];
   rayhit->hit.dNg[1] = normal[1];
   rayhit->hit.dNg[2] = normal[2];
-
-  if (rayhit->ray.rf_type == RayFireType::VOLUME) {
-    orientation_cull(rayhit);
-    primitive_mask_cull(rayhit);
-  }
 }
 
 } // namespace xdg

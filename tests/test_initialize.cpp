@@ -43,7 +43,6 @@ TEST_CASE("Test initialization")
   }
 
   std::vector reflecting_surface_ids {2, 3, 14, 15, 17, 18};
-
   for (auto surface : reflecting_surface_ids) {
     auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
     REQUIRE(prop.value == "reflecting");

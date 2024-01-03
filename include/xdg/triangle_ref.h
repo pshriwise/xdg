@@ -16,6 +16,7 @@ struct TriangleRef {
   Sense sense {Sense::UNSET};
 };
 
+void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args);
 void TriangleBoundsFunc(RTCBoundsFunctionArguments* args);
 
 } // namespace xdg

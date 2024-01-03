@@ -52,29 +52,29 @@ src/moab/direct_access.cpp
 src/moab/metadata.cpp
 )
 
-add_library(libxdg SHARED ${xdg_sources})
+add_library(xdg SHARED ${xdg_sources})
 
-add_library(xdg::libxdg ALIAS libxdg)
+add_library(xdg::libxdg ALIAS xdg)
 
 # pass precompile definition depending on embree version
 if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
-  target_compile_definitions(libxdg PUBLIC XDG_EMBREE4)
+  target_compile_definitions(xdg PUBLIC XDG_EMBREE4)
 else()
-  target_compile_definitions(libxdg PUBLIC XDG_EMBREE3)
+  target_compile_definitions(xdg PUBLIC XDG_EMBREE3)
 endif()
 
 if (XDG_BUILD_TESTS)
   add_subdirectory("tests")
 endif()
 
-target_include_directories(libxdg
+target_include_directories(xdg
   PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-target_link_libraries(libxdg embree fmt::fmt)
+target_link_libraries(xdg embree fmt::fmt)
 
 if (XDG_MOAB_BACKEND)
-  target_link_libraries(libxdg MOAB)
+  target_link_libraries(xdg MOAB)
 endif()
