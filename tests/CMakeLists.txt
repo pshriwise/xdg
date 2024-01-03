@@ -4,6 +4,7 @@ set(
 TEST_NAMES
 
 test_initialize
+test_bbox
 )
 
 foreach(test ${TEST_NAMES})
