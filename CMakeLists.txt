@@ -58,9 +58,9 @@ add_library(xdg::libxdg ALIAS libxdg)
 
 # pass precompile definition depending on embree version
 if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
-  target_compile_definitions(libxdg PRIVATE EMBREE4)
+  target_compile_definitions(libxdg PUBLIC XDG_EMBREE4)
 else()
-  target_compile_definitions(libxdg PRIVATE EMBREE3)
+  target_compile_definitions(libxdg PUBLIC XDG_EMBREE3)
 endif()
 
 if (XDG_BUILD_TESTS)

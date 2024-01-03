@@ -15,7 +15,7 @@ TEST_CASE("Test initialization")
 {
   std::unique_ptr<MeshManager> mesh_manager = std::make_unique<MOABMeshManager>();
 
-  mesh_manager->load_file("test_files/pwr_pincell.h5m");
+  mesh_manager->load_file("pwr_pincell.h5m");
   mesh_manager->init();
 
   REQUIRE(mesh_manager->num_volumes() == 3);
