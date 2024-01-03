@@ -8,6 +8,7 @@
 #include "xdg/embree_interface.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/triangle_ref.h"
+#include "xdg/geometry_data.h"
 
 namespace xdg
 {
