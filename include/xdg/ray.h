@@ -2,6 +2,7 @@
 #ifndef _XDG_RAY_H
 #define _XDG_RAY_H
 
+#include <set>
 #include "xdg/vec3da.h"
 
 #include "xdg/constants.h"
@@ -16,6 +17,12 @@ namespace xdg {
     and intersection distance.
  */
 struct RTCDRay: RTCRay {
+
+  RTCDRay() {
+    this->tnear = 0.0;
+    this->tfar = INFTY;
+  }
+
   //! \brief Set both the single and double precision versions of the ray origin
   void set_org(double o[3]) {
     org_x = o[0]; org_y = o[1]; org_z = o[2];
@@ -52,21 +59,29 @@ struct RTCDRay: RTCRay {
     ddir[0] = o[0]; ddir[1] = o[1]; ddir[2] = o[2];
   }
 
-  //! \brief Set both the single and double precision versions of the ray length
-  void set_len(double len) {
-    tfar = len;
-    dtfar = len;
+  //! \brief Set both the single and double precision versions of the ray max distance
+  void set_tfar(double d) {
+    tfar = d;
+    dtfar = d;
+  }
+
+  //! \brief Set both the single and double precision versions of the ray near distance
+  void set_tnear(double d) {
+    tnear = d;
   }
 
   // Member variables
   RayFireType rf_type; //!< Enum indicating the type of query this ray is used for
   Vec3da dorg, ddir; //!< double precision versions of the origin and ray direction
-  double dtfar; //!< double precision version of the ray length
+  double dtfar; //!< double precision version of the ray far distance
+  HitOrientation orientation; //!< Enum indicating what hits to accept based on orientation
+  const std::vector<MeshID>* exclude_primitives; //! < Set of primitives to exclude from the query
 };
 
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
 struct RTCDHit : RTCHit {
   // data members
+  const TriangleRef* tri_ref; //!< Pointer to the triangle reference for this hit
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 

@@ -57,8 +57,10 @@ struct Property{
 static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
 
 // Enumerator for different ray fire types
-enum RayFireType { RF, PIV, ACCUM, FV };
+enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME };
 
+//
+enum class HitOrientation { NONE, EXITING, ENTERING };
 
 } // namespace xdg
 

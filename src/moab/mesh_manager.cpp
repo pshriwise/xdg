@@ -203,6 +203,28 @@ BoundingBox MOABMeshManager::element_bounding_box(MeshID element) const
   return bb;
 }
 
+BoundingBox
+MOABMeshManager::volume_bounding_box(MeshID volume) const
+{
+  BoundingBox bb;
+  auto surfaces = this->get_volume_surfaces(volume);
+  for (auto surface : surfaces) {
+    bb.update(this->surface_bounding_box(surface));
+  }
+  return bb;
+}
+
+BoundingBox
+MOABMeshManager::surface_bounding_box(MeshID surface) const
+{
+  auto elements = this->get_surface_elements(surface);
+  BoundingBox bb;
+  for (const auto& element : elements) {
+    bb.update(this->element_bounding_box(element));
+  }
+  return bb;
+}
+
 std::pair<MeshID, MeshID>
 MOABMeshManager::surface_senses(MeshID surface) const
 {

@@ -63,6 +63,10 @@ public:
 
   BoundingBox element_bounding_box(MeshID element) const override;
 
+  BoundingBox volume_bounding_box(MeshID volume) const override;
+
+  BoundingBox surface_bounding_box(MeshID surface) const override;
+
   // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 

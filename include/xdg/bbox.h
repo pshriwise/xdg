@@ -32,6 +32,15 @@ void update(const std::array<double, 3>& v) {
     max_z = std::max(max_z, v[2]);
 }
 
+void update(const BoundingBox& other) {
+    min_x = std::min(min_x, other.min_x);
+    min_y = std::min(min_y, other.min_y);
+    min_z = std::min(min_z, other.min_z);
+    max_x = std::max(max_x, other.max_x);
+    max_y = std::max(max_y, other.max_y);
+    max_z = std::max(max_z, other.max_z);
+}
+
 };
 } // namespace xdg
 

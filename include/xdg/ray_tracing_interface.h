@@ -23,6 +23,12 @@ public:
 
   void register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
+  void ray_fire(MeshID volume,
+                const Position& origin,
+                const Direction& direction,
+                double& distance,
+                const std::vector<MeshID>* exclude_primitives = nullptr);
+
 // Data members
 private:
   // Embree members
@@ -32,6 +38,9 @@ private:
   std::map<MeshID, RTCScene> volume_map_;
   std::map<MeshID, RTCScene> surface_map_;
   RTCScene gloabal_scene_;
+
+  // Internal Embree Mappings
+  std::unordered_map<RTCGeometry, GeometryUserData> user_data_map_;
 
   // Internal parameters
   double numerical_precision_ {1e-3};
