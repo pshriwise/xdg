@@ -176,14 +176,18 @@ MOABMeshManager::get_surface_elements(MeshID surface) const
   auto elements = this->_surface_elements(surface);
 
   std::vector<MeshID> element_ids(elements.size());
-  this->moab_interface()->tag_get_data(global_id_tag_, elements, element_ids.data());
+  for (int i = 0; i < elements.size(); i++) {
+    element_ids[i] = this->moab_interface()->id_from_handle(elements[i]);
+  }
 
   return element_ids;
 }
 
 std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
-  auto out = this->mb_direct()->get_mb_coords(element_id_map_.at(element));
+  moab::EntityHandle element_handle;
+  this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
+  auto out = this->mb_direct()->get_mb_coords(element_handle);
   return std::vector<Vertex>(out.begin(), out.end());
 }
 
@@ -217,7 +221,7 @@ MOABMeshManager::volume_bounding_box(MeshID volume) const
 BoundingBox
 MOABMeshManager::surface_bounding_box(MeshID surface) const
 {
-  auto elements = this->get_surface_elements(surface);
+  auto elements = this->_surface_elements(surface);
   BoundingBox bb;
   for (const auto& element : elements) {
     bb.update(this->element_bounding_box(element));

@@ -103,7 +103,6 @@ private:
   // Maps from XDG identifiers to MOAB handles
   std::unordered_map<MeshID, moab::EntityHandle> volume_id_map_;
   std::unordered_map<MeshID, moab::EntityHandle> surface_id_map_;
-  std::unordered_map<MeshID, moab::EntityHandle> element_id_map_;
 
   // tag handles
   moab::Tag geometry_dimension_tag_;
