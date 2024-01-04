@@ -12,11 +12,11 @@ using namespace xdg;
 TEST_CASE("Test BoundingBox")
 {
 
-  BoundingBox a = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+  BoundingBox a {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
 
-  BoundingBox b = {-1.0, -1.0, -1.0, 0.0, 0.0, 0.0};
+  BoundingBox b {-1.0, -1.0, -1.0, 0.0, 0.0, 0.0};
 
-  BoundingBox expanded_box = {-1.0, -1.0, -1.0, 1.0, 1.0, 1.0};
+  BoundingBox expanded_box {-1.0, -1.0, -1.0, 1.0, 1.0, 1.0};
 
   BoundingBox c = a;
   REQUIRE(c == a);

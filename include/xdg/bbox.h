@@ -50,6 +50,14 @@ void update(const BoundingBox& other) {
   max_z = std::max(max_z, other.max_z);
 }
 
+static BoundingBox from_points(const std::vector<Position>& points) {
+  BoundingBox bbox {INFTY, INFTY, INFTY, -INFTY, -INFTY, -INFTY};
+  for (const auto& p : points) {
+    bbox.update(p);
+  }
+  return bbox;
+}
+
 };
 
 inline std::ostream& operator <<(std::ostream& os, const BoundingBox& bbox) {

@@ -6,6 +6,7 @@ test_initialize
 test_bbox
 test_bvh
 test_ray_fire
+test_mesh_internal
 )
 
 foreach(test ${TEST_NAMES})
