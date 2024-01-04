@@ -28,8 +28,6 @@ void RayTracingInterface::init()
 
 }
 
-
-
 void
 RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                                      MeshID volume_id)
@@ -102,6 +100,7 @@ RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_man
     // set the bounds function
     rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
+    rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
 
     rtcCommitGeometry(surface_geometry);
   }
@@ -143,6 +142,28 @@ RayTracingInterface::ray_fire(MeshID volume,
   } else {
     distance = rayhit.ray.dtfar;
   }
+}
+
+void RayTracingInterface::closest(MeshID volume,
+                                  const Position& point,
+                                  double& distance)
+{
+  RTCScene scene = volume_map_[volume];
+
+  RTCDPointQuery query;
+  query.set_point(point);
+
+  RTCPointQueryContext context;
+  rtcInitPointQueryContext(&context);
+
+  rtcPointQuery(scene, &query, &context, (RTCPointQueryFunction)&TriangleClosestFunc, &scene);
+
+  if (query.geomID == RTC_INVALID_GEOMETRY_ID) {
+    distance = INFTY;
+    return;
+  }
+
+  distance = query.dradius;
 }
 
 } // namespace xdg

@@ -18,6 +18,8 @@ struct TriangleRef {
 
 void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args);
 void TriangleBoundsFunc(RTCBoundsFunctionArguments* args);
+void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args);
+bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args);
 
 } // namespace xdg
 

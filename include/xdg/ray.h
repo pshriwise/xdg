@@ -99,6 +99,12 @@ struct RTCDRayHit {
 
 /*! Structure extending Embree's RTCPointQuery to include double precision values */
 struct RTCDPointQuery : RTCPointQuery {
+
+  RTCDPointQuery() {
+    this->set_radius(INFTY);
+    this->time = 0.0;
+  }
+
   //! \brief Set both the single and double precision versions of the query radius
   void set_radius(double rad) {
     radius = rad;
@@ -108,12 +114,17 @@ struct RTCDPointQuery : RTCPointQuery {
   //! \brief Set both the single and double precision versions of the query location
   void set_point(const double xyz[3]) {
     x = xyz[0]; y = xyz[1]; z = xyz[2];
-    dx = xyz[0]; dy = xyz[1]; dz = xyz[2];
+    dblx = xyz[0]; dbly = xyz[1]; dblz = xyz[2];
+  }
+
+  void set_point(const Position& xyz) {
+    x = xyz[0]; y = xyz[1]; z = xyz[2];
+    dblx = xyz[0]; dbly = xyz[1]; dblz = xyz[2];
   }
 
   unsigned int primID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest primitive
   unsigned int geomID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest geometry
-  double dx, dy, dz; //<! Double precision version of the query location
+  double dblx, dbly, dblz; //<! Double precision version of the query location
   double dradius; //!< Double precision version of the query distance
 };
 

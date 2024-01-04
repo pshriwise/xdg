@@ -39,8 +39,9 @@ if (NOT fmt_FOUND)
 endif()
 
 list(APPEND xdg_sources
-src/mesh_manager_interface.cpp
+src/closest.cpp
 src/error.cpp
+src/mesh_manager_interface.cpp
 src/plucker.cpp
 src/ray_tracing_interface.cpp
 src/triangle_ref.cpp

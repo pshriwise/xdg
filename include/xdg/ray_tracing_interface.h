@@ -36,6 +36,10 @@ public:
                 double& distance,
                 const std::vector<MeshID>* exclude_primitives = nullptr);
 
+  void closest(MeshID volume,
+               const Position& origin,
+               double& dist);
+
 // Accessors
   int num_registered_volumes() const { return volume_map_.size(); }
 
