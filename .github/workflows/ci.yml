@@ -19,7 +19,12 @@ jobs:
         shell: bash
         run: |
           sudo apt -y update
-          sudo apt install -y libgcc-9-dev libstdc++-9-dev libembree-dev libhdf5-dev cmake
+          sudo apt install -y libgcc-9-dev \
+                              libstdc++-9-dev \
+                              libembree-dev \
+                              libhdf5-dev \
+                              libeigen3-dev \
+                              cmake
 
       - name: Build MOAB
         shell: bash
