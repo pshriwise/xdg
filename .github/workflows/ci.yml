@@ -8,17 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  main:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Apt dependencies
-       shell: bash
-       run: |
-         sudo apt -y update
-         sudo apt install -y libgcc-9-dev libstdc++-9-dev libembree-dev libhdf5-dev cmake
+        shell: bash
+        run: |
+          sudo apt -y update
+          sudo apt install -y libgcc-9-dev libstdc++-9-dev libembree-dev libhdf5-dev cmake
 
       - name: Build MOAB
         shell: bash
@@ -29,7 +30,7 @@ jobs:
           git checkout 5.3.1
           mkdir build
           cd build
-          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release
+          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
           make -j4
           sudo make install
 
