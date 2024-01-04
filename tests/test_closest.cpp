@@ -36,6 +36,10 @@ TEST_CASE("Test Mesh Mock")
   rti->closest(volume, origin, nearest_distance);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(1.0, 1e-6));
 
+  // move the point outside of the volume, the same should apply
+  origin = {10.0, 0.0, 0.0};
+  rti->closest(volume, origin, nearest_distance);
+  REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
 
 }
