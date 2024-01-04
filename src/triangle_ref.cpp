@@ -1,9 +1,9 @@
 #include <algorithm> // for find
 
-#include "xdg/closest.h"
+#include "xdg/geometry/closest.h"
 #include "xdg/triangle_ref.h"
 #include "xdg/geometry_data.h"
-#include "xdg/plucker.h"
+#include "xdg/geometry/plucker.h"
 #include "xdg/ray.h"
 
 namespace xdg

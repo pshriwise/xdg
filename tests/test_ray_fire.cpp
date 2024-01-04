@@ -61,7 +61,6 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   direction = {-1.0, 0.0, 0.0};
   rti->ray_fire(volume, origin, direction, intersection_distance);
   REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(12.0, 1e-6));
-
 }
 
 TEST_CASE("Test Ray Fire MOAB")

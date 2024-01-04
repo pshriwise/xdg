@@ -58,6 +58,10 @@ struct Vec3da {
     return *this;
   }
 
+  __forceinline bool approx_eq (const Vec3da& other, const double tol = 1e-6) const {
+    return fabs(x - other.x) < tol && fabs(y - other.y) < tol && fabs(z - other.z) < tol;
+  }
+
     __forceinline Vec3da operator +=(const Vec3da& v) { x = x + v.x; y = y +v.y; z = z + v.z; return *this; }
 
     __forceinline Vec3da operator -=(const Vec3da& v) { x = x - v.x; y = y -v.y; z = z - v.z; return *this; }

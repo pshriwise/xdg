@@ -14,6 +14,10 @@ struct {
 };
 double bounds[6];
 
+double operator[](const size_t index) const {
+  return bounds[index];
+}
+
 bool operator ==(const BoundingBox& other) {
   return min_x == other.min_x &&
          min_y == other.min_y &&
@@ -48,6 +52,12 @@ void update(const BoundingBox& other) {
   max_x = std::max(max_x, other.max_x);
   max_y = std::max(max_y, other.max_y);
   max_z = std::max(max_z, other.max_z);
+}
+
+Position center() const {
+  return Position {(min_x + max_x) / 2.0,
+                   (min_y + max_y) / 2.0,
+                   (min_z + max_z) / 2.0};
 }
 
 static BoundingBox from_points(const std::vector<Position>& points) {
