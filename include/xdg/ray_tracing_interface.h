@@ -41,6 +41,11 @@ public:
                const Position& origin,
                double& dist);
 
+  bool occluded(MeshID volume,
+                const Position& origin,
+                const Direction& direction,
+                double& dist) const;
+
 // Accessors
   int num_registered_volumes() const { return volume_map_.size(); }
 

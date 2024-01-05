@@ -14,4 +14,12 @@ inline void rtcIntersect1(RTCScene scene, RTCRayHit* rayhit) {
   }
 }
 
+inline void rtcOccluded1(RTCScene scene, RTCRay* ray) {
+  {
+    RTCIntersectContext context;
+    rtcInitIntersectContext(&context);
+    rtcOccluded1(scene, &context, ray);
+  }
+}
+
 #endif // include guard

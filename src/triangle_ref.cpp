@@ -96,23 +96,6 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   rayhit->hit.dNg[2] = normal[2];
 }
 
-
-void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
-  const GeometryUserData* user_data = (const GeometryUserData*) args->geometryUserPtr;
-  const MeshManager* mesh_manager = user_data->mesh_manager;
-  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
-
-  auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
-
-  // get the double precision ray from the args
-  RTCDRay* ray = (RTCDRay*) args->ray;
-
-  double plucker_dist;
-  if (plucker_ray_tri_intersect(vertices, ray->dorg, ray->ddir, plucker_dist)) {
-    ray->set_tfar(-INFTY);
-  }
-}
-
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   RTCGeometry g = rtcGetGeometry(*(RTCScene*)args->userPtr, args->geomID);
   // get the array of DblTri's stored on the geometry
@@ -137,6 +120,22 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
     return true;
   } else {
     return false;
+  }
+}
+
+void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
+  const GeometryUserData* user_data = (const GeometryUserData*) args->geometryUserPtr;
+  const MeshManager* mesh_manager = user_data->mesh_manager;
+  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
+
+  auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
+
+  // get the double precision ray from the args
+  RTCDRay* ray = (RTCDRay*) args->ray;
+
+  double plucker_dist;
+  if (plucker_ray_tri_intersect(vertices, ray->dorg, ray->ddir, plucker_dist)) {
+    ray->set_tfar(-INFTY);
   }
 }
 

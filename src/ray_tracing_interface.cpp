@@ -166,4 +166,30 @@ void RayTracer::closest(MeshID volume,
   distance = query.dradius;
 }
 
+bool RayTracer::occluded(MeshID volume,
+                         const Position& origin,
+                         const Direction& direction,
+                         double& distance) const
+{
+  RTCScene scene = volume_map_.at(volume);
+
+  RTCDRay ray;
+  ray.set_org(origin);
+  ray.set_dir(direction);
+  ray.set_tfar(INFTY);
+  ray.set_tnear(0.0);
+  ray.rf_type = RayFireType::FIND_VOLUME;
+  ray.orientation = HitOrientation::ANY;
+  ray.flags = 0;
+  ray.mask = -1; // no mask
+
+  // fire the ray
+  {
+    rtcOccluded1(scene, (RTCRay*)&ray);
+  }
+
+  distance = ray.dtfar;
+  return distance != INFTY;
+}
+
 } // namespace xdg

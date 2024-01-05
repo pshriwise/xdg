@@ -67,7 +67,7 @@ static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
 enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME };
 
 //
-enum class HitOrientation { NONE, EXITING, ENTERING };
+enum class HitOrientation { ANY, EXITING, ENTERING };
 
 } // namespace xdg
 
