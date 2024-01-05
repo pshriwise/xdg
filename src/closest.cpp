@@ -1,4 +1,5 @@
 #include "xdg/geometry/closest.h"
+#include "xdg/error.h"
 
 namespace xdg {
 
@@ -53,8 +54,6 @@ Region determine_region(double s, double t, double det) {
 Position closest_location_on_triangle(const std::array<Position, 3>& vertices,
                                       const Position& point)
 {
-  Position closest_out;
-
   const Position sv {vertices[1] - vertices[0]};
   const Position tv {vertices[2] - vertices[0]};
   const Position pv {vertices[0] - point};
@@ -177,6 +176,8 @@ Position closest_location_on_triangle(const std::array<Position, 3>& vertices,
                 return vertices[0] - ( sp / ss ) * sv;
       break;
       default:
+        fatal_error("Invalid region {}", static_cast<int>(region));
+        return {INFTY, INFTY, INFTY};
         break;
   }
 }

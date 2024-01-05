@@ -11,15 +11,22 @@ constexpr double INFTY {std::numeric_limits<double>::max()};
 
 // Whether information pertains to a surface or volume
 enum class GeometryType {
-    SURFACE = 2,
-    VOLUME = 3
+ SURFACE = 2,
+  VOLUME = 3
 };
 
 // Surface to Volume sense values (may differ from mesh-specific values)
 enum class Sense {
-    UNSET = -1,
-    FORWARD = 0,
-    REVERSE = 1
+  UNSET = -1,
+  FORWARD = 0,
+  REVERSE = 1
+};
+
+// Mesh library identifier
+enum class MeshLibrary {
+  INTERANAL = 0,
+  MOAB,
+  LIBMESH
 };
 
 // Mesh identifer type
@@ -35,10 +42,10 @@ constexpr int BVH_MAX_DEPTH = 64;
 // geometric property type (e.g. material assignment or boundary condition)
 // TODO: separate into VolumeProperty and SurfaceProperty
 enum class PropertyType {
-    BOUNDARY_CONDITION = -1,
-    MATERIAL = 0,
-    DENSITY = 1,
-    TEMPERATURE = 2
+  BOUNDARY_CONDITION = -1,
+  MATERIAL = 0,
+  DENSITY = 1,
+  TEMPERATURE = 2
 };
 
 static const std::map<PropertyType, std::string> PROP_TYPE_TO_STR =

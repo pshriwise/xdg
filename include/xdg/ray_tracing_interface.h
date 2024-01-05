@@ -1,6 +1,7 @@
 #ifndef _XDG_RAY_TRACING_INTERFACE_H
 #define _XDG_RAY_TRACING_INTERFACE_H
 
+#include <memory>
 #include <vector>
 #include <unordered_map>
 
@@ -13,11 +14,11 @@
 namespace xdg
 {
 
-class RayTracingInterface {
+class RayTracer {
 // Constructors
 public:
-  RayTracingInterface();
-  ~RayTracingInterface();
+  RayTracer();
+  ~RayTracer();
 
 // Methods
   void init();

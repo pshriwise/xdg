@@ -2,12 +2,13 @@
 
 set(
 TEST_NAMES
-test_initialize
 test_bbox
 test_bvh
 test_closest
 test_ray_fire
 test_mesh_internal
+test_xdg_interface
+test_moab
 )
 
 foreach(test ${TEST_NAMES})

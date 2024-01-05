@@ -37,7 +37,6 @@ public:
 
   virtual std::vector<MeshID> get_surface_elements(MeshID surface) const = 0;
 
-
   // TODO: can we accomplish this without allocating memory?
   virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
@@ -48,7 +47,6 @@ public:
   virtual BoundingBox volume_bounding_box(MeshID volume) const = 0;
 
   virtual BoundingBox surface_bounding_box(MeshID surface) const = 0;
-
 
   // Topology
   // Returns parent with forward sense, then reverse
@@ -79,6 +77,8 @@ public:
   const std::vector<MeshID>& surfaces() const { return surfaces_; }
   std::vector<MeshID>& surfaces() { return surfaces_; }
 
+  virtual MeshLibrary mesh_library() const = 0;
+
 protected:
   // metadata
   std::map<std::pair<MeshID, PropertyType>, Property> volume_metadata_;
@@ -86,6 +86,8 @@ protected:
 
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
+
+
 };
 
 } // namespace xdg

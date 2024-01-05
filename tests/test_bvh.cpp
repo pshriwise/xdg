@@ -6,26 +6,24 @@
 // xdg includes
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/moab/mesh_manager.h"
 #include "xdg/ray_tracing_interface.h"
+
+#include "mesh_mock.h"
 
 using namespace xdg;
 
-TEST_CASE("Test BVH Build")
+TEST_CASE("Test Mesh BVH")
 {
-  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  mm->init(); // this should do nothing
 
-  mesh_manager->load_file("cube.h5m");
-  mesh_manager->init();
+  REQUIRE(mm->num_volumes() == 1);
+  REQUIRE(mm->num_surfaces() == 6);
+  REQUIRE(mm->num_volume_elements(1) == 12);
 
-  REQUIRE(mesh_manager->num_volumes() == 1);
-  REQUIRE(mesh_manager->num_surfaces() == 6);
+  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 
-  std::unique_ptr<RayTracingInterface> ray_tracing_interface = std::make_unique<RayTracingInterface>();
+  rti->register_all_volumes(mm);
 
-  for (auto volume : mesh_manager->volumes()) {
-    ray_tracing_interface->register_volume(mesh_manager, volume);
-  }
-
-  REQUIRE(ray_tracing_interface->num_registered_volumes() == 1);
+  REQUIRE(rti->num_registered_volumes() == 1);
 }

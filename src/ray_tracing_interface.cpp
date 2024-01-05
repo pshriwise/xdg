@@ -12,24 +12,24 @@ void error(void* dum, RTCError code, const char* str) {
 }
 
 
-RayTracingInterface::RayTracingInterface()
+RayTracer::RayTracer()
 {
   device_ = rtcNewDevice(nullptr);
   rtcSetDeviceErrorFunction(device_, (RTCErrorFunction)error, nullptr);
 }
 
-RayTracingInterface::~RayTracingInterface()
+RayTracer::~RayTracer()
 {
   rtcReleaseDevice(device_);
 }
 
-void RayTracingInterface::init()
+void RayTracer::init()
 {
 
 }
 
 void
-RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
+RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                                      MeshID volume_id)
 {
   // allocate storage for this volume
@@ -108,7 +108,7 @@ RayTracingInterface::register_volume(const std::shared_ptr<MeshManager> mesh_man
 }
 
 void
-RayTracingInterface::ray_fire(MeshID volume,
+RayTracer::ray_fire(MeshID volume,
                               const Position& origin,
                               const Direction& direction,
                               double& distance,
@@ -144,7 +144,7 @@ RayTracingInterface::ray_fire(MeshID volume,
   }
 }
 
-void RayTracingInterface::closest(MeshID volume,
+void RayTracer::closest(MeshID volume,
                                   const Position& point,
                                   double& distance)
 {

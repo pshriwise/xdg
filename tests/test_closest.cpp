@@ -23,7 +23,7 @@ TEST_CASE("Test Mesh Mock")
   REQUIRE(mm->num_surfaces() == 6);
   REQUIRE(mm->num_volume_elements(1) == 12);
 
-  std::shared_ptr<RayTracingInterface> rti = std::make_shared<RayTracingInterface>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 
   rti->register_all_volumes(mm);
 

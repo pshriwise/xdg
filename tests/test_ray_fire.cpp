@@ -3,20 +3,21 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "mesh_mock.h"
 // xdg includes
+#include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/moab/mesh_manager.h"
 #include "xdg/ray_tracing_interface.h"
+
+#include "mesh_mock.h"
 
 using namespace xdg;
 
 TEST_CASE("Test Ray Fire Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  mm->init(); // this should do nothing
-
-  std::shared_ptr<RayTracingInterface> rti = std::make_shared<RayTracingInterface>();
+  mm->init(); // this should do nothing, just good practice to call it
+  REQUIRE(mm->mesh_library() == MeshLibrary::INTERANAL);
+  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 
   rti->register_all_volumes(mm);
 
@@ -61,35 +62,4 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   direction = {-1.0, 0.0, 0.0};
   rti->ray_fire(volume, origin, direction, intersection_distance);
   REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(12.0, 1e-6));
-}
-
-TEST_CASE("Test Ray Fire MOAB")
-{
-  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
-
-  mesh_manager->load_file("cube.h5m");
-  mesh_manager->init();
-
-  std::shared_ptr<RayTracingInterface> rti = std::make_shared<RayTracingInterface>();
-
-  rti->register_all_volumes(mesh_manager);
-
-  MeshID volume = mesh_manager->volumes()[0];
-
-  Position origin {0.0, 0.0, 0.0};
-  Direction direction {1.0, 0.0, 0.0};
-  double intersection_distance {0.0};
-
-  rti->ray_fire(volume, origin, direction, intersection_distance);
-
-  // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
-
-  origin = {3.0, 0.0, 0.0};
-  rti->ray_fire(volume, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(2.0, 1e-6));
-
-  origin = {-10.0, 0.0, 0.0};
-  rti->ray_fire(volume, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(15.0, 1e-6));
 }

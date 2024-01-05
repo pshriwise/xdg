@@ -121,6 +121,9 @@ public:
     return Property();
   }
 
+  // Other
+  virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERANAL; }
+
 // Data members
 private:
   const BoundingBox bounding_box {-2.0, -3.0, -4.0, 5.0, 6.0, 7.0};
