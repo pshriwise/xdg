@@ -8,8 +8,11 @@ test_closest
 test_ray_fire
 test_mesh_internal
 test_xdg_interface
-test_moab
 )
+
+if (XDG_ENABLE_MOAB)
+    list(APPEND TEST_NAMES test_moab)
+endif()
 
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
