@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "xdg/error.h"
+
 namespace xdg {
 
 void
@@ -38,4 +40,16 @@ MeshID MeshManager::next_surface_id() const
     return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 }
 
+MeshID MeshManager::next_volume(MeshID surface, MeshID current_volume) const
+{
+  auto parent_vols = this->get_parent_volumes(surface);
+
+  if (parent_vols.first == current_volume)
+    return parent_vols.second;
+  else if (parent_vols.second == current_volume)
+    return parent_vols.first;
+  else
+    fatal_error("Volume {} is not a parent of surface {}", current_volume, surface);
 }
+
+} // namespace xdg

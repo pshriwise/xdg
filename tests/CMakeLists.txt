@@ -5,9 +5,10 @@ TEST_NAMES
 test_bbox
 test_bvh
 test_closest
+test_mesh_internal
 test_occluded
 test_ray_fire
-test_mesh_internal
+test_point_in_volume
 test_xdg_interface
 )
 

@@ -80,6 +80,11 @@ struct RTCDRay: RTCRay {
 
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
 struct RTCDHit : RTCHit {
+  RTCDHit() {
+    this->geomID = RTC_INVALID_GEOMETRY_ID;
+    this->primID = RTC_INVALID_GEOMETRY_ID;
+  }
+
   // data members
   const TriangleRef* tri_ref {nullptr}; //!< Pointer to the triangle reference for this hit
   Vec3da dNg; //!< Double precision version of the primitive normal

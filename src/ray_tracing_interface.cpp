@@ -107,16 +107,46 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   rtcCommitScene(volume_scene);
 }
 
-void
-RayTracer::ray_fire(MeshID volume,
-                              const Position& origin,
-                              const Direction& direction,
-                              double& distance,
-                              const std::vector<MeshID>* exclude_primitves)
+bool RayTracer::point_in_volume(MeshID volume,
+                                const Position& point,
+                                const Direction* direction,
+                                const std::vector<MeshID>* exclude_primitives)
 {
   RTCScene scene = volume_map_[volume];
 
   RTCDRayHit rayhit;
+  rayhit.ray.set_org(point);
+  if (direction != nullptr) rayhit.ray.set_dir(*direction);
+  else rayhit.ray.set_dir({1. / std::sqrt(2.0), 1 / std::sqrt(2.0), 0.0});
+  rayhit.ray.rf_type = RayFireType::VOLUME;
+  rayhit.ray.orientation = HitOrientation::ANY;
+  rayhit.ray.set_tfar(INFTY);
+  rayhit.ray.set_tnear(0.0);
+  if (exclude_primitives != nullptr) rayhit.ray.exclude_primitives = exclude_primitives;
+
+  {
+    rtcIntersect1(scene, (RTCRayHit*)&rayhit);
+  }
+
+  // if the ray hit nothing, the point is outside of the volume
+  if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID) return false;
+
+  // use the hit triangle normal to determine if the intersection is
+  // exiting or entering
+  return rayhit.ray.ddir.dot(rayhit.hit.dNg) > 0.0;
+}
+
+void
+RayTracer::ray_fire(MeshID volume,
+                    const Position& origin,
+                    const Direction& direction,
+                    double& distance,
+                    const std::vector<MeshID>* exclude_primitves)
+{
+  RTCScene scene = volume_map_[volume];
+
+  RTCDRayHit rayhit;
+  // set ray data
   rayhit.ray.set_org(origin);
   rayhit.ray.set_dir(direction);
   rayhit.ray.set_tfar(INFTY);
@@ -124,9 +154,7 @@ RayTracer::ray_fire(MeshID volume,
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = HitOrientation::EXITING;
   rayhit.ray.mask = -1; // no mask
-
-  rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
-  rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
+  if (exclude_primitves != nullptr) rayhit.ray.exclude_primitives = exclude_primitves;
 
   // fire the ray
   {
@@ -137,11 +165,10 @@ RayTracer::ray_fire(MeshID volume,
     rayhit.hit.Ng_z *= -1.0;
   }
 
-  if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
+  if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     distance = INFTY;
-  } else {
+  else
     distance = rayhit.ray.dtfar;
-  }
 }
 
 void RayTracer::closest(MeshID volume,

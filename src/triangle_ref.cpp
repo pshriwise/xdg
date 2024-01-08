@@ -11,12 +11,14 @@ namespace xdg
 
 bool orientation_cull(const Direction& ray_dir, const Direction& normal, HitOrientation orientation)
 {
+  if (orientation == HitOrientation::ANY) return false;
+
   double dot_prod = ray_dir.dot(normal);
-  if (orientation == HitOrientation::EXITING) {
-    if (dot_prod < 0.0) return true;
+  if (orientation == HitOrientation::EXITING && dot_prod < 0.0) {
+    return true;
   }
-  else if (orientation == HitOrientation::ENTERING) {
-    if (dot_prod >= 0.0) return true;
+  else if (orientation == HitOrientation::ENTERING && dot_prod >= 0.0) {
+    return true;
   }
   return false;
 }
@@ -46,7 +48,6 @@ void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
   args->bounds_o->upper_y = bounds.max_y + user_data->box_bump;
   args->bounds_o->upper_z = bounds.max_z + user_data->box_bump;
 }
-
 
 void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*)args->geometryUserPtr;
@@ -91,9 +92,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   rayhit->hit.primID = args->primID;
   rayhit->hit.tri_ref = &tri_ref;
 
-  rayhit->hit.dNg[0] = normal[0];
-  rayhit->hit.dNg[1] = normal[1];
-  rayhit->hit.dNg[2] = normal[2];
+  rayhit->hit.dNg = normal;
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {

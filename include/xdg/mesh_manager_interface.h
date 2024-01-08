@@ -58,6 +58,8 @@ public:
 
   virtual void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) = 0;
 
+  MeshID next_volume(MeshID surface, MeshID current_volume) const;
+
   // Methods
   MeshID next_volume_id() const;
 

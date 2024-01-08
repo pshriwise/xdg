@@ -31,6 +31,14 @@ public:
     }
   }
 
+
+  // Query Methods
+
+  bool point_in_volume(MeshID volume,
+                       const Position& point,
+                       const Direction* direction = nullptr,
+                       const std::vector<MeshID>* exclude_primitives = nullptr);
+
   void ray_fire(MeshID volume,
                 const Position& origin,
                 const Direction& direction,
@@ -49,15 +57,13 @@ public:
 // Accessors
   int num_registered_volumes() const { return volume_map_.size(); }
 
-
 // Data members
 private:
   // Embree members
   RTCDevice device_;
-
   // Mesh-to-Scene maps
-  std::map<MeshID, RTCScene> volume_map_;
-  std::map<MeshID, RTCScene> surface_map_;
+  std::map<MeshID, RTCScene> volume_map_;  //<! Map from mesh volume to embree scene
+  std::map<MeshID, RTCScene> surface_map_; //<! Map from mesh surface to embree scnee
   RTCScene gloabal_scene_;
 
   // Internal Embree Mappings
