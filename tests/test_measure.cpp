@@ -1,4 +1,5 @@
 #include <memory>
+#include <vector>
 
 // for testing
 #include <catch2/catch_test_macros.hpp>
@@ -24,5 +25,12 @@ TEST_CASE("Test Mesh Mock")
 
   double area = xdg.measure_volume_area(mm->volumes()[0]);
   REQUIRE_THAT(area, Catch::Matchers::WithinAbs(478., 1e-6));
+
+  std::vector<double> surface_areas = {63., 63., 99., 99., 77., 77.};
+
+  for (int i = 0; i < mm->surfaces().size(); ++i) {
+    double area = xdg.measure_surface_area(mm->surfaces()[i]);
+    REQUIRE_THAT(area, Catch::Matchers::WithinAbs(surface_areas[i], 1e-6));
+  }
 
 }
