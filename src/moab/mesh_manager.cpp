@@ -197,6 +197,12 @@ std::array<Vertex, 3> MOABMeshManager::triangle_vertices(MeshID element) const
   return {vertices[0], vertices[1], vertices[2]};
 }
 
+Direction MOABMeshManager::triangle_normal(MeshID element) const
+{
+  auto vertices = this->triangle_vertices(element);
+  return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
+}
+
 BoundingBox MOABMeshManager::element_bounding_box(MeshID element) const
 {
   auto vertices = this->element_vertices(element);

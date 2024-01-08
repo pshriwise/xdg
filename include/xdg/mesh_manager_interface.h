@@ -42,6 +42,8 @@ public:
 
   virtual std::array<Vertex, 3> triangle_vertices(MeshID element) const = 0;
 
+  virtual Direction triangle_normal(MeshID element) const = 0;
+
   virtual BoundingBox element_bounding_box(MeshID element) const = 0;
 
   virtual BoundingBox volume_bounding_box(MeshID volume) const = 0;

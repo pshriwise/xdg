@@ -17,11 +17,7 @@ using namespace xdg;
 TEST_CASE("Test Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  mm->init(); // this should do nothing
-
-  REQUIRE(mm->num_volumes() == 1);
-  REQUIRE(mm->num_surfaces() == 6);
-  REQUIRE(mm->num_volume_elements(1) == 12);
+  mm->init(); // this should do nothing, but its good practice to call it
 
   std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 

@@ -72,8 +72,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   if (plucker_dist > rayhit->ray.dtfar) return;
 
-  Direction normal = (vertices[1] - vertices[0]).cross((vertices[2] - vertices[0]));
-  normal.normalize();
+  Direction normal = mesh_manager->triangle_normal(tri_ref.triangle_id);
   // if this is a normal ray fire, flip the normal as needed
   if (tri_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME) normal = -normal;
 
@@ -114,6 +113,7 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   if ( dist < query->dradius) {
     query->radius = dist;
     query->dradius = dist;
+    query->tri_ref = &tri_ref;
     query->primID = args->primID;
     query->geomID = args->geomID;
     return true;

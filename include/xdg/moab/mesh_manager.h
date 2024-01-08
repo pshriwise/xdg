@@ -61,6 +61,8 @@ public:
 
   std::array<Vertex, 3> triangle_vertices(MeshID element) const override;
 
+  Direction triangle_normal(MeshID element) const override;
+
   BoundingBox element_bounding_box(MeshID element) const override;
 
   BoundingBox volume_bounding_box(MeshID volume) const override;

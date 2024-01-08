@@ -60,7 +60,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   auto volume_scene = rtcNewScene(device_);
   rtcSetSceneFlags(volume_scene, RTC_SCENE_FLAG_ROBUST);
   rtcSetSceneBuildQuality(volume_scene, RTC_BUILD_QUALITY_HIGH);
-  this->volume_map_[volume_id] = volume_scene;
+  this->volume_to_scene_map_[volume_id] = volume_scene;
 
   TriangleRef* tri_ref_ptr = triangle_storage.data();
 
@@ -83,6 +83,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     RTCGeometry surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
     rtcSetGeometryUserPrimitiveCount(surface_geometry, surface_triangles.size());
     unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);
+    this->surface_to_geometry_map_[surface] = surface_geometry;
 
     GeometryUserData surface_data;
     surface_data.mesh_manager = mesh_manager.get();
@@ -112,7 +113,7 @@ bool RayTracer::point_in_volume(MeshID volume,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives)
 {
-  RTCScene scene = volume_map_[volume];
+  RTCScene scene = volume_to_scene_map_[volume];
 
   RTCDRayHit rayhit;
   rayhit.ray.set_org(point);
@@ -143,7 +144,7 @@ RayTracer::ray_fire(MeshID volume,
                     double& distance,
                     const std::vector<MeshID>* exclude_primitves)
 {
-  RTCScene scene = volume_map_[volume];
+  RTCScene scene = volume_to_scene_map_[volume];
 
   RTCDRayHit rayhit;
   // set ray data
@@ -172,10 +173,11 @@ RayTracer::ray_fire(MeshID volume,
 }
 
 void RayTracer::closest(MeshID volume,
-                                  const Position& point,
-                                  double& distance)
+                        const Position& point,
+                        double& distance,
+                        TriangleRef& triangle_ref)
 {
-  RTCScene scene = volume_map_[volume];
+  RTCScene scene = volume_to_scene_map_[volume];
 
   RTCDPointQuery query;
   query.set_point(point);
@@ -191,6 +193,15 @@ void RayTracer::closest(MeshID volume,
   }
 
   distance = query.dradius;
+  triangle_ref = *query.tri_ref;
+}
+
+void RayTracer::closest(MeshID volume,
+                        const Position& point,
+                        double& distance)
+{
+  TriangleRef triangle_ref;
+  closest(volume, point, distance, triangle_ref);
 }
 
 bool RayTracer::occluded(MeshID volume,
@@ -198,7 +209,7 @@ bool RayTracer::occluded(MeshID volume,
                          const Direction& direction,
                          double& distance) const
 {
-  RTCScene scene = volume_map_.at(volume);
+  RTCScene scene = volume_to_scene_map_.at(volume);
 
   RTCDRay ray;
   ray.set_org(origin);
@@ -217,6 +228,43 @@ bool RayTracer::occluded(MeshID volume,
 
   distance = ray.dtfar;
   return distance != INFTY;
+}
+
+Direction RayTracer::get_normal(MeshID surface,
+                                Position point,
+                                const std::vector<MeshID>* exclude_primitives)
+{
+  auto geom_data = geometry_data(surface);
+  const MeshManager* mesh_manager = geom_data.mesh_manager;
+
+  MeshID element;
+  // use the last element hit if the information is provided
+  if (exclude_primitives != nullptr) {
+    element = exclude_primitives->back();
+
+  } else {
+    // get one of the volumes for this surface
+    auto surface_vols = mesh_manager->get_parent_volumes(surface);
+
+    double dist;
+
+    RTCDPointQuery point_query;
+    point_query.set_point(point);
+    point_query.set_radius(INFTY);
+
+    TriangleRef triangle_ref;
+    closest(surface_vols.first, point, dist, triangle_ref);
+
+    if (triangle_ref.surface_id != surface) {
+      fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, triangle_ref.surface_id, surface, surface_vols.first);
+    }
+
+    element = triangle_ref.triangle_id;
+
+  }
+
+  // set the normal based on the triangle
+  return mesh_manager->triangle_normal(element);
 }
 
 } // namespace xdg
