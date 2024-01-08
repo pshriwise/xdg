@@ -76,6 +76,8 @@ public:
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
+  Sense surface_sense(MeshID surface, MeshID volume) const override;
+
   // Metadata
   void parse_metadata() override;
 

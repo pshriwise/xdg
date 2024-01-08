@@ -12,5 +12,5 @@ TEST_CASE("XDG Interface")
 {
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
   REQUIRE(xdg->ray_tracing_interface() != nullptr);
-  REQUIRE(xdg->mesh_manager_interface() == nullptr);
+  REQUIRE(xdg->mesh_manager() == nullptr);
 }

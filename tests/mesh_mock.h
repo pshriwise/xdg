@@ -103,6 +103,10 @@ public:
     return {0, 1, 2, 3, 4, 5};
   }
 
+  Sense surface_sense(MeshID surface, MeshID volume) const override {
+    return Sense::FORWARD;
+  }
+
   virtual MeshID create_volume() override {
     fatal_error("MockMesh does not support create_volume()");
     return ID_NONE;
