@@ -3,9 +3,7 @@
 #include "xdg/xdg.h"
 
 #include "xdg/constants.h"
-#include "xdg/geometry/area.h"
-
-
+#include "xdg/geometry/measure.h"
 namespace xdg {
 
 double XDG::measure_volume(MeshID volume) const

@@ -1,4 +1,4 @@
-#include "xdg/geometry/area.h"
+#include "xdg/geometry/measure.h"
 
 namespace xdg {
   double triangle_volume_contribution(const std::array<Vertex, 3>& vertices)

@@ -41,11 +41,11 @@ if (NOT fmt_FOUND)
 endif()
 
 list(APPEND xdg_sources
-src/area.cpp
-src/closest.cpp
+src/geometry/measure.cpp
+src/geometry/plucker.cpp
+src/geometry/closest.cpp
 src/error.cpp
 src/mesh_manager_interface.cpp
-src/plucker.cpp
 src/ray_tracing_interface.cpp
 src/triangle_ref.cpp
 src/util/str_utils.cpp
