@@ -3,7 +3,10 @@
 #define _XDG_RAY_H
 
 #include <set>
+
 #include "xdg/vec3da.h"
+
+#include <fmt/format.h>
 
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
@@ -130,9 +133,24 @@ struct RTCDPointQuery : RTCPointQuery {
   unsigned int primID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest primitive
   unsigned int geomID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest geometry
   double dblx, dbly, dblz; //<! Double precision version of the query location
+  const TriangleRef* tri_ref {nullptr}; //!< Pointer to the triangle reference for this hit
   double dradius; //!< Double precision version of the query distance
 };
 
 } // namespace xdg
+
+namespace fmt {
+
+template<>
+struct formatter<xdg::Vec3da> : formatter<std::string> {
+  template<typename FormatContext>
+  auto format(const xdg::Vec3da& v, FormatContext& ctx)
+  {
+    return formatter<std::string>::format(
+      fmt::format("({}, {}, {})", v.x, v.y, v.z), ctx);
+  }
+};
+
+} // namespace fmt
 
 #endif // include guard

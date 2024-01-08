@@ -47,6 +47,11 @@ public:
 
   void closest(MeshID volume,
                const Position& origin,
+               double& dist,
+               TriangleRef& triangle);
+
+  void closest(MeshID volume,
+               const Position& origin,
                double& dist);
 
   bool occluded(MeshID volume,
@@ -54,16 +59,23 @@ public:
                 const Direction& direction,
                 double& dist) const;
 
+  Direction get_normal(MeshID surface,
+                       Position point,
+                       const std::vector<MeshID>* exclude_primitives = nullptr);
+
 // Accessors
-  int num_registered_volumes() const { return volume_map_.size(); }
+  int num_registered_volumes() const { return volume_to_scene_map_.size(); }
+
+  const GeometryUserData& geometry_data(MeshID surface) const { return user_data_map_.at(surface_to_geometry_map_.at(surface)); }
 
 // Data members
 private:
   // Embree members
   RTCDevice device_;
   // Mesh-to-Scene maps
-  std::map<MeshID, RTCScene> volume_map_;  //<! Map from mesh volume to embree scene
-  std::map<MeshID, RTCScene> surface_map_; //<! Map from mesh surface to embree scnee
+  std::map<MeshID, RTCScene> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
+  std::map<MeshID, RTCScene> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   RTCScene gloabal_scene_;
 
   // Internal Embree Mappings

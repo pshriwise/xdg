@@ -50,6 +50,8 @@ MeshID MeshManager::next_volume(MeshID surface, MeshID current_volume) const
     return parent_vols.first;
   else
     fatal_error("Volume {} is not a parent of surface {}", current_volume, surface);
+
+  return ID_NONE;
 }
 
 } // namespace xdg

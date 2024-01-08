@@ -71,6 +71,11 @@ public:
     return {vertices[0], vertices[1], vertices[2]};
   }
 
+  virtual Direction triangle_normal(MeshID element) const override {
+    const auto vertices = element_vertices(element);
+    return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
+  }
+
   virtual BoundingBox element_bounding_box(MeshID element) const override {
     const auto vertices = element_vertices(element);
     return BoundingBox::from_points(vertices);
