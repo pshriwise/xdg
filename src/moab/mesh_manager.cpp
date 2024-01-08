@@ -258,6 +258,16 @@ MOABMeshManager::get_parent_volumes(MeshID surface) const
   return this->surface_senses(surface);
 }
 
+Sense
+MOABMeshManager::surface_sense(MeshID surface, MeshID volume) const
+{
+  auto sense_data = this->get_parent_volumes(surface);
+  if (sense_data.first == volume) return Sense::FORWARD;
+  else if (sense_data.second == volume) return Sense::REVERSE;
+  else fatal_error("Volume {} is not a parent of surface {}", volume, surface);
+  return Sense::UNSET;
+}
+
 std::vector<moab::EntityHandle>
 MOABMeshManager::_ents_of_dim(int dim) const {
   std::array<moab::Tag, 1> tags = {geometry_dimension_tag_};

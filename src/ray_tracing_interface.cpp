@@ -258,12 +258,10 @@ Direction RayTracer::get_normal(MeshID surface,
     if (triangle_ref.surface_id != surface) {
       fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, triangle_ref.surface_id, surface, surface_vols.first);
     }
-
     element = triangle_ref.triangle_id;
-
   }
 
-  // set the normal based on the triangle
+  // return the normal of the selected triangle
   return mesh_manager->triangle_normal(element);
 }
 

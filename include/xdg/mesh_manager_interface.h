@@ -56,6 +56,8 @@ public:
 
   virtual std::vector<MeshID> get_volume_surfaces(MeshID volume) const = 0;
 
+  virtual Sense surface_sense(MeshID surface, MeshID volume) const = 0;
+
   virtual MeshID create_volume() = 0;
 
   virtual void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) = 0;

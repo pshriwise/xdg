@@ -11,15 +11,26 @@ namespace xdg {
 class XDG {
 
 public:
+// Constructors
+  XDG() = default;
+
+  XDG(std::shared_ptr<MeshManager> mesh_manager) :
+    mesh_manager_(mesh_manager) {}
+
 
 // Methods
   void prepare_raytracer() {
-    ray_tracing_interface_->register_all_volumes(mesh_manager_interface_);
+    ray_tracing_interface_->register_all_volumes(mesh_manager_);
   }
 
+  double measure_volume(MeshID volume) const;
+
+  double measure_surface_area(MeshID surface) const;
+  double measure_volume_area(MeshID surface) const;
+
 // Mutators
-  void set_mesh_manager_interface(std::shared_ptr<MeshManager> mesh_manager_interface) {
-    mesh_manager_interface_ = mesh_manager_interface;
+  void set_mesh_manager_interface(std::shared_ptr<MeshManager> mesh_manager) {
+    mesh_manager_ = mesh_manager;
   }
 
 // Accessors
@@ -27,13 +38,18 @@ public:
     return ray_tracing_interface_.get();
   }
 
-  const MeshManager* mesh_manager_interface() const {
-    return mesh_manager_interface_.get();
+  const MeshManager* mesh_manager() const {
+    return mesh_manager_.get();
   }
+
+// Private methods
+private:
+  double _triangle_volume_contribution(const TriangleRef& triangle) const;
+  double _triangle_area_contribution(const TriangleRef& triangle) const;
 
 private:
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
-  std::shared_ptr<MeshManager> mesh_manager_interface_ {nullptr};
+  std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 };
 
 }
