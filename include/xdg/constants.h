@@ -24,7 +24,7 @@ enum class Sense {
 
 // Mesh library identifier
 enum class MeshLibrary {
-  INTERANAL = 0,
+  INTERNAL = 0,
   MOAB,
   LIBMESH
 };

@@ -131,7 +131,7 @@ public:
   }
 
   // Other
-  virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERANAL; }
+  virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERNAL; }
 
 // Data members
 private:

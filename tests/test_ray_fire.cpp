@@ -16,7 +16,7 @@ TEST_CASE("Test Ray Fire Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing, just good practice to call it
-  REQUIRE(mm->mesh_library() == MeshLibrary::INTERANAL);
+  REQUIRE(mm->mesh_library() == MeshLibrary::INTERNAL);
   std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 
   rti->register_all_volumes(mm);
