@@ -1,0 +1,16 @@
+get_filename_component(XDG_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+
+find_package(fmt REQUIRED HINTS ${XDG_CMAKE_DIR}/../fmt)
+find_package(embree 3.6.1 REQUIRED HINTS @EMBREE_DIR@)
+
+if(@XDG_ENABLE_MOAB@)
+  find_package(MOAB REQUIRED HINTS @MOAB_DIR@)
+endif()
+
+if (NOT TARGET xdg::xdg)
+    include("${XDG_CMAKE_DIR}/XDGTargets.cmake")
+endif()
+
+if (NOT TARGET xdg::xdg)
+    FATAL_ERROR("XDG Target not found")
+endif()
