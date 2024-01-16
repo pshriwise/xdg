@@ -18,7 +18,7 @@ TEST_CASE("Test Mesh Mock")
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing, but its good practice to call it
 
-  XDG xdg{mm};
+  AcceleratedDiscretizedGeometry xdg{mm};
 
   double volume = xdg.measure_volume(mm->volumes()[0]);
   REQUIRE_THAT(volume, Catch::Matchers::WithinAbs(693., 1e-6));

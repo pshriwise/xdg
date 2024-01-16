@@ -8,23 +8,23 @@
 
 namespace xdg {
 
-class XDG {
+
+class AcceleratedDiscretizedGeometry {
 
 public:
 // Constructors
-  XDG() = default;
+  AcceleratedDiscretizedGeometry() = default;
 
-  XDG(std::shared_ptr<MeshManager> mesh_manager) :
+  AcceleratedDiscretizedGeometry(std::shared_ptr<MeshManager> mesh_manager) :
     mesh_manager_(mesh_manager) {}
-
 
 // Methods
   void prepare_raytracer() {
     ray_tracing_interface_->register_all_volumes(mesh_manager_);
   }
 
+  // Geometric Measurements
   double measure_volume(MeshID volume) const;
-
   double measure_surface_area(MeshID surface) const;
   double measure_volume_area(MeshID surface) const;
 
