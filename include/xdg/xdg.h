@@ -18,6 +18,9 @@ public:
   XDG(std::shared_ptr<MeshManager> mesh_manager) :
     mesh_manager_(mesh_manager) {}
 
+  // factor method that allows for specification of a backend mesh library
+  static std::shared_ptr<XDG> create(MeshLibrary library);
+
 // Methods
   void prepare_raytracer();
 
@@ -69,8 +72,8 @@ Direction surface_normal(MeshID surface,
     return ray_tracing_interface_;
   }
 
-  const MeshManager* mesh_manager() const {
-    return mesh_manager_.get();
+  const std::shared_ptr<MeshManager>& mesh_manager() const {
+    return mesh_manager_;
   }
 
 // Private methods

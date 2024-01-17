@@ -2,6 +2,9 @@
 
 #include "xdg/xdg.h"
 
+// mesh manager concrete implementations
+#include "xdg/moab/mesh_manager.h"
+
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
 namespace xdg {
@@ -12,6 +15,22 @@ void XDG::prepare_raytracer()
     TreeID tree = ray_tracing_interface_->register_volume(mesh_manager_, volume);
     volume_to_scene_map_[volume] = tree;
   }
+}
+
+
+std::shared_ptr<XDG> XDG::create(MeshLibrary library)
+{
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
+
+  switch (library)
+  {
+  case MeshLibrary::MOAB:
+    xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
+    break;
+  default:
+    break;
+  }
+  return xdg;
 }
 
 MeshID XDG::find_volume(const Position& point,
