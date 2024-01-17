@@ -2,7 +2,7 @@
 #include "xdg/geometry_data.h"
 #include "xdg/ray_tracing_interface.h"
 #include "xdg/ray.h"
-#include "xdg/triangle_ref.h"
+#include "xdg/primitive_ref.h"
 
 namespace xdg {
 
@@ -34,8 +34,8 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 {
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);
-  this->triangle_storage_map_[volume_id].resize(volume_elements.size());
-  auto& triangle_storage = this->triangle_storage_map_[volume_id];
+  this->primitive_ref_storage_[volume_id].resize(volume_elements.size());
+  auto& triangle_storage = this->primitive_ref_storage_[volume_id];
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
   int storage_offset {0};
@@ -49,10 +49,9 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 
     auto surface_elements = mesh_manager->get_surface_elements(surface_id);
     for (int i = 0; i < surface_elements.size(); ++i) {
-      auto& triangle_ref = triangle_storage[i + storage_offset];
-      triangle_ref.triangle_id = surface_elements[i];
-      triangle_ref.surface_id = surface_id;
-      triangle_ref.sense = triangle_sense;
+      auto& primitive_ref = triangle_storage[i + storage_offset];
+      primitive_ref.primitive_id = surface_elements[i];
+      primitive_ref.sense = triangle_sense;
     }
     storage_offset += surface_elements.size();
  }
@@ -62,7 +61,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   rtcSetSceneBuildQuality(volume_scene, RTC_BUILD_QUALITY_HIGH);
   this->volume_to_scene_map_[volume_id] = volume_scene;
 
-  TriangleRef* tri_ref_ptr = triangle_storage.data();
+  PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
   // compute the bounding box of the volume
   auto volume_bounding_box = mesh_manager->volume_bounding_box(volume_id);
@@ -86,14 +85,15 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     GeometryUserData surface_data;
+    surface_data.surface_id = surface;
     surface_data.mesh_manager = mesh_manager.get();
-    surface_data.tri_ref_buffer = tri_ref_ptr + buffer_start;
+    surface_data.prim_ref_buffer = tri_ref_ptr + buffer_start;
     user_data_map_[surface_geometry] = surface_data;
 
     rtcSetGeometryUserData(surface_geometry, &user_data_map_[surface_geometry]);
 
     for (int i = 0; i < surface_triangles.size(); ++i) {
-      auto& triangle_ref = surface_data.tri_ref_buffer[i];
+      auto& triangle_ref = surface_data.prim_ref_buffer[i];
       // triangle_ref.embree_surface = embree_surface;
     }
     buffer_start += surface_triangles.size();
@@ -175,7 +175,7 @@ RayTracer::ray_fire(MeshID volume,
 void RayTracer::closest(MeshID volume,
                         const Position& point,
                         double& distance,
-                        TriangleRef& triangle_ref)
+                        MeshID& triangle)
 {
   RTCScene scene = volume_to_scene_map_[volume];
 
@@ -193,15 +193,15 @@ void RayTracer::closest(MeshID volume,
   }
 
   distance = query.dradius;
-  triangle_ref = *query.tri_ref;
+  triangle = query.primitive_ref->primitive_id;
 }
 
 void RayTracer::closest(MeshID volume,
                         const Position& point,
                         double& distance)
 {
-  TriangleRef triangle_ref;
-  closest(volume, point, distance, triangle_ref);
+  MeshID triangle;
+  closest(volume, point, distance, triangle);
 }
 
 bool RayTracer::occluded(MeshID volume,
@@ -252,13 +252,12 @@ Direction RayTracer::get_normal(MeshID surface,
     point_query.set_point(point);
     point_query.set_radius(INFTY);
 
-    TriangleRef triangle_ref;
-    closest(surface_vols.first, point, dist, triangle_ref);
+    closest(surface_vols.first, point, dist, element);
 
-    if (triangle_ref.surface_id != surface) {
-      fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, triangle_ref.surface_id, surface, surface_vols.first);
-    }
-    element = triangle_ref.triangle_id;
+    // TODO: bring this back when we have a better way to handle this
+    // if (geom_data.surface_id != surface) {
+    //   fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, geom_data.surface_id, surface, surface_vols.first);
+    // }
   }
 
   // return the normal of the selected triangle

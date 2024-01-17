@@ -23,6 +23,10 @@ public:
     ray_tracing_interface_->register_all_volumes(mesh_manager_);
   }
 
+// Geometric Queries
+MeshID find_volume(const Position& point,
+                   const Direction& direction) const;
+
   // Geometric Measurements
   double measure_volume(MeshID volume) const;
   double measure_surface_area(MeshID surface) const;
@@ -34,8 +38,8 @@ public:
   }
 
 // Accessors
-  const RayTracer* ray_tracing_interface() const {
-    return ray_tracing_interface_.get();
+  const std::shared_ptr<RayTracer> ray_tracing_interface() const {
+    return ray_tracing_interface_;
   }
 
   const MeshManager* mesh_manager() const {
@@ -44,8 +48,8 @@ public:
 
 // Private methods
 private:
-  double _triangle_volume_contribution(const TriangleRef& triangle) const;
-  double _triangle_area_contribution(const TriangleRef& triangle) const;
+  double _triangle_volume_contribution(const PrimitiveRef& triangle) const;
+  double _triangle_area_contribution(const PrimitiveRef& triangle) const;
 
 private:
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};

@@ -89,7 +89,7 @@ struct RTCDHit : RTCHit {
   }
 
   // data members
-  const TriangleRef* tri_ref {nullptr}; //!< Pointer to the triangle reference for this hit
+  const PrimitiveRef* primitive_ref {nullptr}; //!< Pointer to the primitive reference for this hit
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 
@@ -133,7 +133,7 @@ struct RTCDPointQuery : RTCPointQuery {
   unsigned int primID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest primitive
   unsigned int geomID = RTC_INVALID_GEOMETRY_ID; //<! ID of the nearest geometry
   double dblx, dbly, dblz; //<! Double precision version of the query location
-  const TriangleRef* tri_ref {nullptr}; //!< Pointer to the triangle reference for this hit
+  const PrimitiveRef* primitive_ref {nullptr}; //!< Pointer to the primitive reference for this hit
   double dradius; //!< Double precision version of the query distance
 };
 
