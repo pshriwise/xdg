@@ -21,7 +21,6 @@ TEST_CASE("Test Point in Volume")
     volume_to_scene_map[volume]= rti->register_volume(mm, volume);
   }
   MeshID volume = mm->volumes()[0];
-  TreeID tree = volume_to_scene_map[volume];
 
   Position point {0.0, 0.0, 0.0};
   bool result = rti->point_in_volume(volume, point);
