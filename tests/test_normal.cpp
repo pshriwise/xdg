@@ -4,8 +4,8 @@
 
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/ray_tracing_interface.h"
 #include "xdg/primitive_ref.h"
+#include "xdg/xdg.h"
 
 #include "mesh_mock.h"
 
@@ -16,9 +16,8 @@ TEST_CASE("Test Get Normal")
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing, but its good practice to call it
 
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
-
-  rti->register_all_volumes(mm);
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
+  xdg->prepare_raytracer();
 
   MeshID volume = mm->volumes()[0];
 
@@ -28,19 +27,19 @@ TEST_CASE("Test Get Normal")
   // move the point closer to the positive x surface
   origin = {4.0, 0.0, 0.0};
   MeshID triangle;
-  rti->closest(volume, origin, nearest_distance, triangle);
+  xdg->closest(volume, origin, nearest_distance, triangle);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(1.0, 1e-6));
 
   MeshID surface {mm->surfaces()[3]};
 
   // call for the normal w/o a triangle, it should be the same as the returned triangle from the closest call
-  Direction normal = rti->get_normal(surface, origin);
+  Direction normal = xdg->surface_normal(surface, origin);
   REQUIRE(normal == mm->triangle_normal(triangle));
 
   // move the origin, but pass the triangle
   // This should result in the same normal as well b/c the triangle is used intead of a call to 'closest'
   origin = {-2.0, 0.0, 0.0};
   std::vector<MeshID> exclude_primitives {triangle};
-  normal = rti->get_normal(surface, origin, &exclude_primitives);
+  normal = xdg->surface_normal(surface, origin, &exclude_primitives);
   REQUIRE(normal == mm->triangle_normal(triangle));
 }

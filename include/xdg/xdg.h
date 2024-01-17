@@ -19,13 +19,40 @@ public:
     mesh_manager_(mesh_manager) {}
 
 // Methods
-  void prepare_raytracer() {
-    ray_tracing_interface_->register_all_volumes(mesh_manager_);
-  }
+  void prepare_raytracer();
 
 // Geometric Queries
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;
+
+bool point_in_volume(MeshID volume,
+                     const Position& point,
+                     const Direction* direction = nullptr,
+                     const std::vector<MeshID>* exclude_primitives = nullptr) const;
+
+void ray_fire(MeshID volume,
+              const Position& origin,
+              const Direction& direction,
+              double& distance,
+              const std::vector<MeshID>* exclude_primitives = nullptr) const;
+
+void closest(MeshID volume,
+              const Position& origin,
+              double& dist,
+              MeshID& triangle) const;
+
+void closest(MeshID volume,
+              const Position& origin,
+              double& dist) const;
+
+bool occluded(MeshID volume,
+              const Position& origin,
+              const Direction& direction,
+              double& dist) const;
+
+Direction surface_normal(MeshID surface,
+                         Position point,
+                         const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
   // Geometric Measurements
   double measure_volume(MeshID volume) const;
@@ -54,6 +81,12 @@ private:
 private:
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
+
+  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
+  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
+  TreeID gloabal_scene_;
+
 };
 
 }
