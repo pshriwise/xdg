@@ -23,8 +23,7 @@ int main(int argc, char** argv) {
 // create a mesh manager
 std::shared_ptr<MeshManager> mm = std::make_shared<MOABMeshManager>();
 
-std::shared_ptr<AcceleratedDiscretizedGeometry> xdg =
-  std::make_shared<AcceleratedDiscretizedGeometry>();
+std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
 xdg->set_mesh_manager_interface(mm);
 
 std::string filename {argv[1]};
