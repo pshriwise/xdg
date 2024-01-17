@@ -9,13 +9,13 @@
 namespace xdg {
 
 
-class AcceleratedDiscretizedGeometry {
+class XDG {
 
 public:
 // Constructors
-  AcceleratedDiscretizedGeometry() = default;
+  XDG() = default;
 
-  AcceleratedDiscretizedGeometry(std::shared_ptr<MeshManager> mesh_manager) :
+  XDG(std::shared_ptr<MeshManager> mesh_manager) :
     mesh_manager_(mesh_manager) {}
 
 // Methods

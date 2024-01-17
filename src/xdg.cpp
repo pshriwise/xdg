@@ -6,7 +6,7 @@
 #include "xdg/geometry/measure.h"
 namespace xdg {
 
-double AcceleratedDiscretizedGeometry::measure_volume(MeshID volume) const
+double XDG::measure_volume(MeshID volume) const
 {
   double volume_total {0.0};
 
@@ -31,7 +31,7 @@ double AcceleratedDiscretizedGeometry::measure_volume(MeshID volume) const
   return volume_total / 6.0;
 }
 
-double AcceleratedDiscretizedGeometry::measure_surface_area(MeshID surface) const
+double XDG::measure_surface_area(MeshID surface) const
 {
   double area {0.0};
   for (auto triangle : mesh_manager()->get_surface_elements(surface)) {
@@ -40,7 +40,7 @@ double AcceleratedDiscretizedGeometry::measure_surface_area(MeshID surface) cons
   return area;
 }
 
-double AcceleratedDiscretizedGeometry::measure_volume_area(MeshID volume) const
+double XDG::measure_volume_area(MeshID volume) const
 {
   double area {0.0};
   for (auto surface : mesh_manager()->get_volume_surfaces(volume)) {
