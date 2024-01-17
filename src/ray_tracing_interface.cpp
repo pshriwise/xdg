@@ -10,7 +10,6 @@ void error(void* dum, RTCError code, const char* str) {
     fatal_error("Embree error: {}", str);
 }
 
-
 RayTracer::RayTracer()
 {
   device_ = rtcNewDevice(nullptr);
