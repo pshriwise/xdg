@@ -28,14 +28,20 @@ void RayTracer::init()
 
 }
 
-void
+TreeID
 RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                                      MeshID volume_id)
 {
+
+  auto volume_scene = rtcNewScene(device_);
+  rtcSetSceneFlags(volume_scene, RTC_SCENE_FLAG_ROBUST);
+  rtcSetSceneBuildQuality(volume_scene, RTC_BUILD_QUALITY_HIGH);
+  this->volume_to_scene_map_[volume_id] = volume_scene;
+
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);
-  this->primitive_ref_storage_[volume_id].resize(volume_elements.size());
-  auto& triangle_storage = this->primitive_ref_storage_[volume_id];
+  this->primitive_ref_storage_[volume_scene].resize(volume_elements.size());
+  auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
   int storage_offset {0};
@@ -55,11 +61,6 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     }
     storage_offset += surface_elements.size();
  }
-
-  auto volume_scene = rtcNewScene(device_);
-  rtcSetSceneFlags(volume_scene, RTC_SCENE_FLAG_ROBUST);
-  rtcSetSceneBuildQuality(volume_scene, RTC_BUILD_QUALITY_HIGH);
-  this->volume_to_scene_map_[volume_id] = volume_scene;
 
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
@@ -106,6 +107,8 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     rtcCommitGeometry(surface_geometry);
   }
   rtcCommitScene(volume_scene);
+
+  return volume_scene;
 }
 
 bool RayTracer::point_in_volume(MeshID volume,

@@ -25,14 +25,7 @@ public:
 // Methods
   void init();
 
-  void register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
-
-  void register_all_volumes(const std::shared_ptr<MeshManager> mesh_manager) {
-    for (auto volume : mesh_manager->volumes()) {
-      this->register_volume(mesh_manager, volume);
-    }
-  }
-
+  TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
   // Query Methods
 
@@ -74,6 +67,9 @@ public:
 private:
   // Embree members
   RTCDevice device_;
+  std::vector<RTCScene> scenes_; //<! All scenes created by this ray tracer
+  std::vector<RTCGeometry> geometries_; //<! All geometries created by this ray tracer
+
   // Mesh-to-Scene maps
   std::map<MeshID, RTCScene> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
   std::map<MeshID, RTCScene> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
@@ -87,7 +83,7 @@ private:
   double numerical_precision_ {1e-3};
 
   // storage
-  std::unordered_map<MeshID, std::vector<PrimitiveRef>> primitive_ref_storage_;
+  std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
 };
 
 } // namespace xdg

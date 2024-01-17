@@ -79,8 +79,10 @@ TEST_CASE("Test Ray Fire MOAB")
   REQUIRE(mesh_manager->mesh_library() == MeshLibrary::MOAB);
 
   std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
-
-  rti->register_all_volumes(mesh_manager);
+  std::unordered_map<MeshID, TreeID> volume_to_scene_map;
+  for (auto volume: mesh_manager->volumes()) {
+    volume_to_scene_map[volume]= rti->register_volume(mesh_manager, volume);
+  }
 
   MeshID volume = mesh_manager->volumes()[0];
 

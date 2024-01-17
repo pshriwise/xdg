@@ -17,6 +17,13 @@ MeshID XDG::find_volume(const Position& point,
   return ID_NONE;
 }
 
+void XDG::prepare_raytracer()
+{
+  for (auto volume : mesh_manager()->volumes()) {
+    TreeID tree = ray_tracing_interface_->register_volume(mesh_manager_, volume);
+    volume_to_scene_map_[volume] = tree;
+  }
+}
 
 double XDG::measure_volume(MeshID volume) const
 {

@@ -21,7 +21,10 @@ TEST_CASE("Test Mesh BVH")
 
   std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
 
-  rti->register_all_volumes(mm);
+  std::unordered_map<MeshID, TreeID> volume_to_scene_map;
+  for (auto volume: mm->volumes()) {
+    volume_to_scene_map[volume]= rti->register_volume(mm, volume);
+  }
 
   REQUIRE(rti->num_registered_volumes() == 1);
 }

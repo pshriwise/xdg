@@ -19,9 +19,7 @@ public:
     mesh_manager_(mesh_manager) {}
 
 // Methods
-  void prepare_raytracer() {
-    ray_tracing_interface_->register_all_volumes(mesh_manager_);
-  }
+  void prepare_raytracer();
 
 // Geometric Queries
 MeshID find_volume(const Position& point,
@@ -54,6 +52,12 @@ private:
 private:
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
+
+  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
+  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
+  TreeID gloabal_scene_;
+
 };
 
 }

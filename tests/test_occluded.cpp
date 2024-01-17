@@ -16,7 +16,11 @@ TEST_CASE("Test Occluded")
   mm->init(); // this should do nothing, just good practice to call it
 
   std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
-  rti->register_all_volumes(mm);
+
+  std::unordered_map<MeshID, TreeID> volume_to_scene_map;
+  for (auto volume: mm->volumes()) {
+    volume_to_scene_map[volume]= rti->register_volume(mm, volume);
+  }
 
   // setup ray to fire that won't hit the mock model
   Position r {-100.0, 0.0, 0.0};
