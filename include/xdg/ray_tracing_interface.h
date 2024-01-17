@@ -8,7 +8,7 @@
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/triangle_ref.h"
+#include "xdg/primitive_ref.h"
 #include "xdg/geometry_data.h"
 
 namespace xdg
@@ -50,7 +50,7 @@ public:
   void closest(MeshID volume,
                const Position& origin,
                double& dist,
-               TriangleRef& triangle);
+               PrimitiveRef& triangle);
 
   void closest(MeshID volume,
                const Position& origin,
@@ -87,7 +87,7 @@ private:
   double numerical_precision_ {1e-3};
 
   // storage
-  std::unordered_map<MeshID, std::vector<TriangleRef>> triangle_storage_map_;
+  std::unordered_map<MeshID, std::vector<PrimitiveRef>> primitive_ref_storage_;
 };
 
 } // namespace xdg

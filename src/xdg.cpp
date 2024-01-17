@@ -6,6 +6,18 @@
 #include "xdg/geometry/measure.h"
 namespace xdg {
 
+MeshID XDG::find_volume(const Position& point,
+                                                   const Direction& direction) const
+{
+  for (auto volume : mesh_manager()->volumes()) {
+    if (ray_tracing_interface()->point_in_volume(volume, point, &direction)) {
+      return volume;
+    }
+  }
+  return ID_NONE;
+}
+
+
 double XDG::measure_volume(MeshID volume) const
 {
   double volume_total {0.0};

@@ -1,7 +1,7 @@
 #include <algorithm> // for find
 
 #include "xdg/geometry/closest.h"
-#include "xdg/triangle_ref.h"
+#include "xdg/primitive_ref.h"
 #include "xdg/geometry_data.h"
 #include "xdg/geometry/plucker.h"
 #include "xdg/ray.h"
@@ -38,8 +38,8 @@ void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
   const GeometryUserData* user_data = (const GeometryUserData*)args->geometryUserPtr;
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
-  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
-  BoundingBox bounds = mesh_manager->element_bounding_box(tri_ref.triangle_id);
+  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
+  BoundingBox bounds = mesh_manager->element_bounding_box(primitive_ref.primitive_id);
 
   args->bounds_o->lower_x = bounds.min_x - user_data->box_bump;
   args->bounds_o->lower_y = bounds.min_y - user_data->box_bump;
@@ -53,9 +53,9 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*)args->geometryUserPtr;
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
-  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
+  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
-  auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
+  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
 
   RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
   RTCDRay& ray = rayhit->ray;
@@ -72,9 +72,10 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   if (plucker_dist > rayhit->ray.dtfar) return;
 
-  Direction normal = mesh_manager->triangle_normal(tri_ref.triangle_id);
+  Direction normal = mesh_manager->triangle_normal(primitive_ref.primitive_id);
   // if this is a normal ray fire, flip the normal as needed
-  if (tri_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME) normal = -normal;
+  if (primitive_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+    normal = -normal;
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
    if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
@@ -89,7 +90,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   // set the hit information
   rayhit->hit.geomID = args->geomID;
   rayhit->hit.primID = args->primID;
-  rayhit->hit.tri_ref = &tri_ref;
+  rayhit->hit.primitive_ref = &primitive_ref;
 
   rayhit->hit.dNg = normal;
 }
@@ -101,8 +102,8 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
 
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
-  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
-  auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
+  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
+  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
 
   RTCDPointQuery* query = (RTCDPointQuery*) args->query;
   Position p {query->dblx, query->dbly, query->dblz};
@@ -113,7 +114,7 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   if ( dist < query->dradius) {
     query->radius = dist;
     query->dradius = dist;
-    query->tri_ref = &tri_ref;
+    query->primitive_ref = &primitive_ref;
     query->primID = args->primID;
     query->geomID = args->geomID;
     return true;
@@ -125,9 +126,9 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
 void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*) args->geometryUserPtr;
   const MeshManager* mesh_manager = user_data->mesh_manager;
-  const TriangleRef& tri_ref = user_data->tri_ref_buffer[args->primID];
+  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
-  auto vertices = mesh_manager->triangle_vertices(tri_ref.triangle_id);
+  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
 
   // get the double precision ray from the args
   RTCDRay* ray = (RTCDRay*) args->ray;

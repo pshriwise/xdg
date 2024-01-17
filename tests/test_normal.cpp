@@ -27,20 +27,20 @@ TEST_CASE("Test Get Normal")
 
   // move the point closer to the positive x surface
   origin = {4.0, 0.0, 0.0};
-  TriangleRef triangle_ref;
-  rti->closest(volume, origin, nearest_distance, triangle_ref);
+  PrimitiveRef primitive_ref;
+  rti->closest(volume, origin, nearest_distance, primitive_ref);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(1.0, 1e-6));
 
   MeshID surface {mm->surfaces()[3]};
 
   // call for the normal w/o a triangle, it should be the same as the returned triangle from the closest call
   Direction normal = rti->get_normal(surface, origin);
-  REQUIRE(normal == mm->triangle_normal(triangle_ref.triangle_id));
+  REQUIRE(normal == mm->triangle_normal(primitive_ref.primitive_id));
 
   // move the origin, but pass the triangle
   // This should result in the same normal as well b/c the triangle is used intead of a call to 'closest'
   origin = {-2.0, 0.0, 0.0};
-  std::vector<MeshID> exclude_primitives {triangle_ref.triangle_id};
+  std::vector<MeshID> exclude_primitives {primitive_ref.primitive_id};
   normal = rti->get_normal(surface, origin, &exclude_primitives);
-  REQUIRE(normal == mm->triangle_normal(triangle_ref.triangle_id));
+  REQUIRE(normal == mm->triangle_normal(primitive_ref.primitive_id));
 }
