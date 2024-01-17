@@ -50,7 +50,7 @@ public:
   void closest(MeshID volume,
                const Position& origin,
                double& dist,
-               PrimitiveRef& triangle);
+               MeshID& triangle);
 
   void closest(MeshID volume,
                const Position& origin,

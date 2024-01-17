@@ -175,7 +175,7 @@ RayTracer::ray_fire(MeshID volume,
 void RayTracer::closest(MeshID volume,
                         const Position& point,
                         double& distance,
-                        PrimitiveRef& triangle_ref)
+                        MeshID& triangle)
 {
   RTCScene scene = volume_to_scene_map_[volume];
 
@@ -193,15 +193,15 @@ void RayTracer::closest(MeshID volume,
   }
 
   distance = query.dradius;
-  triangle_ref = *query.primitive_ref;
+  triangle = query.primitive_ref->primitive_id;
 }
 
 void RayTracer::closest(MeshID volume,
                         const Position& point,
                         double& distance)
 {
-  PrimitiveRef triangle_ref;
-  closest(volume, point, distance, triangle_ref);
+  MeshID triangle;
+  closest(volume, point, distance, triangle);
 }
 
 bool RayTracer::occluded(MeshID volume,
@@ -252,14 +252,12 @@ Direction RayTracer::get_normal(MeshID surface,
     point_query.set_point(point);
     point_query.set_radius(INFTY);
 
-    PrimitiveRef primitive_ref;
-    closest(surface_vols.first, point, dist, primitive_ref);
+    closest(surface_vols.first, point, dist, element);
 
     // TODO: bring this back when we have a better way to handle this
     // if (geom_data.surface_id != surface) {
     //   fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, geom_data.surface_id, surface, surface_vols.first);
     // }
-    element = primitive_ref.primitive_id;
   }
 
   // return the normal of the selected triangle
