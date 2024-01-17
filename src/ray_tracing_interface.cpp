@@ -51,7 +51,6 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     for (int i = 0; i < surface_elements.size(); ++i) {
       auto& triangle_ref = triangle_storage[i + storage_offset];
       triangle_ref.triangle_id = surface_elements[i];
-      triangle_ref.surface_id = surface_id;
       triangle_ref.sense = triangle_sense;
     }
     storage_offset += surface_elements.size();
@@ -86,6 +85,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     GeometryUserData surface_data;
+    surface_data.surface_id = surface;
     surface_data.mesh_manager = mesh_manager.get();
     surface_data.tri_ref_buffer = tri_ref_ptr + buffer_start;
     user_data_map_[surface_geometry] = surface_data;
@@ -255,9 +255,10 @@ Direction RayTracer::get_normal(MeshID surface,
     TriangleRef triangle_ref;
     closest(surface_vols.first, point, dist, triangle_ref);
 
-    if (triangle_ref.surface_id != surface) {
-      fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, triangle_ref.surface_id, surface, surface_vols.first);
-    }
+    // TODO: bring this back when we have a better way to handle this
+    // if (geom_data.surface_id != surface) {
+    //   fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, geom_data.surface_id, surface, surface_vols.first);
+    // }
     element = triangle_ref.triangle_id;
   }
 

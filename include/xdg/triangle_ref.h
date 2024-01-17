@@ -12,7 +12,6 @@ struct TriangleRef; // Forward declaration
 // TODO: could be a more generic primitive ref?
 struct TriangleRef {
   MeshID triangle_id {ID_NONE};
-  MeshID surface_id {ID_NONE};
   Sense sense {Sense::UNSET};
 };
 

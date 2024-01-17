@@ -14,6 +14,8 @@
 namespace xdg
 {
 
+using TreeID = RTCScene;
+
 class RayTracer {
 // Constructors
 public:
