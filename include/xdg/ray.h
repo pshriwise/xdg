@@ -3,6 +3,7 @@
 #define _XDG_RAY_H
 
 #include <set>
+#include <vector>
 
 #include "xdg/vec3da.h"
 
@@ -12,6 +13,9 @@
 #include "xdg/embree_interface.h"
 
 namespace xdg {
+
+// forward declaration
+class TriangleRef;
 
 // TO-DO: there should be a few more double elements here (barycentric coords)
 

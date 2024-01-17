@@ -118,7 +118,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 bool RayTracer::point_in_volume(TreeID scene,
                                 const Position& point,
                                 const Direction* direction,
-                                const std::vector<MeshID>* exclude_primitives)
+                                const std::vector<MeshID>* exclude_primitives) const
 {
   RTCDRayHit rayhit;
   rayhit.ray.set_org(point);

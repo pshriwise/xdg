@@ -5,6 +5,7 @@ option(XDG_ENABLE_MOAB    "Enable support for the MOAB mesh library"    ON)
 option(XDG_ENABLE_MFEM    "Enable support for the MFEM mesh library"    OFF)
 option(XDG_ENABLE_LIBMESH "Enable support for the libMesh mesh library" OFF)
 option(XDG_BUILD_TESTS    "Enable C++ unit testing"                     ON)
+option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                   ON)
 
 # Set version numbers
 set(XDG_VERSION_MAJOR 0)
@@ -78,6 +79,10 @@ endif()
 
 if (XDG_BUILD_TESTS)
   add_subdirectory("tests")
+endif()
+
+if (XDG_BUILD_TOOLS)
+  add_subdirectory("tools")
 endif()
 
 target_include_directories(xdg

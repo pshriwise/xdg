@@ -57,6 +57,10 @@ Direction surface_normal(MeshID surface,
                          Position point,
                          const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
+  MeshID find_volume(const Position& point,
+                     const Direction& direction) const;
+
+
   // Geometric Measurements
   double measure_volume(MeshID volume) const;
   double measure_surface_area(MeshID surface) const;

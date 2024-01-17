@@ -150,7 +150,7 @@ __forceinline std::ostream& operator <<(std::ostream &os, Vec3da  const& v) {
 inline bool lower(const Vec3da& a, const Vec3da& b)
 {
   for (int i = 0; i < 3; i++)
-    if (a[i] != b[i])
+  if (a[i] != b[i])
       return a[i] < b[i];
   return false;
 }

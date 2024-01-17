@@ -30,11 +30,10 @@ public:
   TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
   // Query Methods
-
   bool point_in_volume(TreeID scene,
                        const Position& point,
                        const Direction* direction = nullptr,
-                       const std::vector<MeshID>* exclude_primitives = nullptr);
+                       const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
   void ray_fire(TreeID scene,
                 const Position& origin,
