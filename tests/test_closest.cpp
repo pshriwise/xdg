@@ -6,7 +6,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "xdg/geometry/closest.h"
-#include "xdg/ray_tracing_interface.h"
+#include "xdg/xdg.h"
 
 // xdg test includes
 #include "mesh_mock.h"
@@ -18,29 +18,25 @@ TEST_CASE("Test Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing, but its good practice to call it
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
+  xdg->prepare_raytracer();
 
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
-
-  std::unordered_map<MeshID, TreeID> volume_to_scene_map;
-  for (auto volume: mm->volumes()) {
-    volume_to_scene_map[volume]= rti->register_volume(mm, volume);
-  }
   MeshID volume = mm->volumes()[0];
 
   Position origin {0.0, 0.0, 0.0};
   double nearest_distance {0.0};
 
-  rti->closest(volume, origin, nearest_distance);
+  xdg->closest(volume, origin, nearest_distance);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(2.0, 1e-6));
 
   // move the point closer to the positive x surface
   origin = {4.0, 0.0, 0.0};
-  rti->closest(volume, origin, nearest_distance);
+  xdg->closest(volume, origin, nearest_distance);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(1.0, 1e-6));
 
   // move the point outside of the volume, the same should apply
   origin = {10.0, 0.0, 0.0};
-  rti->closest(volume, origin, nearest_distance);
+  xdg->closest(volume, origin, nearest_distance);
   REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
   BoundingBox volume_box = mm->volume_bounding_box(volume);
@@ -50,7 +46,7 @@ TEST_CASE("Test Mesh Mock")
   Position p = box_center;
   for (int i = 0; i < samples; ++i) {
     p[0] = rand_double(-10.0, 10.0);
-    rti->closest(volume, p, nearest_distance);
+    xdg->closest(volume, p, nearest_distance);
     if (p[0] < box_center[0]) {
       REQUIRE_THAT(nearest_distance, Catch::Matchers::WithinAbs(abs(p[0] - volume_box[0]), 1e-6));
     } else {

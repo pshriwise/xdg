@@ -2,7 +2,6 @@
 #include "xdg/geometry_data.h"
 #include "xdg/ray_tracing_interface.h"
 #include "xdg/ray.h"
-#include "xdg/primitive_ref.h"
 
 namespace xdg {
 
@@ -28,15 +27,21 @@ void RayTracer::init()
 
 }
 
+RTCScene RayTracer::create_scene() {
+  RTCScene scene = rtcNewScene(device_);
+  rtcSetSceneFlags(scene, RTC_SCENE_FLAG_ROBUST);
+  rtcSetSceneBuildQuality(scene, RTC_BUILD_QUALITY_HIGH);
+  scenes_.push_back(scene);
+  return scene;
+
+}
+
 TreeID
 RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
-                                     MeshID volume_id)
+                           MeshID volume_id)
 {
 
-  auto volume_scene = rtcNewScene(device_);
-  rtcSetSceneFlags(volume_scene, RTC_SCENE_FLAG_ROBUST);
-  rtcSetSceneBuildQuality(volume_scene, RTC_BUILD_QUALITY_HIGH);
-  this->volume_to_scene_map_[volume_id] = volume_scene;
+  auto volume_scene = this->create_scene();
 
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);
@@ -111,13 +116,11 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   return volume_scene;
 }
 
-bool RayTracer::point_in_volume(MeshID volume,
+bool RayTracer::point_in_volume(TreeID scene,
                                 const Position& point,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives)
 {
-  RTCScene scene = volume_to_scene_map_[volume];
-
   RTCDRayHit rayhit;
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
@@ -141,14 +144,12 @@ bool RayTracer::point_in_volume(MeshID volume,
 }
 
 void
-RayTracer::ray_fire(MeshID volume,
+RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
                     double& distance,
                     const std::vector<MeshID>* exclude_primitves)
 {
-  RTCScene scene = volume_to_scene_map_[volume];
-
   RTCDRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
@@ -175,13 +176,11 @@ RayTracer::ray_fire(MeshID volume,
     distance = rayhit.ray.dtfar;
 }
 
-void RayTracer::closest(MeshID volume,
+void RayTracer::closest(TreeID scene,
                         const Position& point,
                         double& distance,
                         MeshID& triangle)
 {
-  RTCScene scene = volume_to_scene_map_[volume];
-
   RTCDPointQuery query;
   query.set_point(point);
 
@@ -199,21 +198,19 @@ void RayTracer::closest(MeshID volume,
   triangle = query.primitive_ref->primitive_id;
 }
 
-void RayTracer::closest(MeshID volume,
+void RayTracer::closest(TreeID scene,
                         const Position& point,
                         double& distance)
 {
   MeshID triangle;
-  closest(volume, point, distance, triangle);
+  closest(scene, point, distance, triangle);
 }
 
-bool RayTracer::occluded(MeshID volume,
+bool RayTracer::occluded(TreeID scene,
                          const Position& origin,
                          const Direction& direction,
                          double& distance) const
 {
-  RTCScene scene = volume_to_scene_map_.at(volume);
-
   RTCDRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);
@@ -231,40 +228,6 @@ bool RayTracer::occluded(MeshID volume,
 
   distance = ray.dtfar;
   return distance != INFTY;
-}
-
-Direction RayTracer::get_normal(MeshID surface,
-                                Position point,
-                                const std::vector<MeshID>* exclude_primitives)
-{
-  auto geom_data = geometry_data(surface);
-  const MeshManager* mesh_manager = geom_data.mesh_manager;
-
-  MeshID element;
-  // use the last element hit if the information is provided
-  if (exclude_primitives != nullptr) {
-    element = exclude_primitives->back();
-
-  } else {
-    // get one of the volumes for this surface
-    auto surface_vols = mesh_manager->get_parent_volumes(surface);
-
-    double dist;
-
-    RTCDPointQuery point_query;
-    point_query.set_point(point);
-    point_query.set_radius(INFTY);
-
-    closest(surface_vols.first, point, dist, element);
-
-    // TODO: bring this back when we have a better way to handle this
-    // if (geom_data.surface_id != surface) {
-    //   fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, geom_data.surface_id, surface, surface_vols.first);
-    // }
-  }
-
-  // return the normal of the selected triangle
-  return mesh_manager->triangle_normal(element);
 }
 
 } // namespace xdg

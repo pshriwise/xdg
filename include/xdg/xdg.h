@@ -25,6 +25,35 @@ public:
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;
 
+bool point_in_volume(MeshID volume,
+                     const Position& point,
+                     const Direction* direction = nullptr,
+                     const std::vector<MeshID>* exclude_primitives = nullptr) const;
+
+void ray_fire(MeshID volume,
+              const Position& origin,
+              const Direction& direction,
+              double& distance,
+              const std::vector<MeshID>* exclude_primitives = nullptr) const;
+
+void closest(MeshID volume,
+              const Position& origin,
+              double& dist,
+              MeshID& triangle) const;
+
+void closest(MeshID volume,
+              const Position& origin,
+              double& dist) const;
+
+bool occluded(MeshID volume,
+              const Position& origin,
+              const Direction& direction,
+              double& dist) const;
+
+Direction surface_normal(MeshID surface,
+                         Position point,
+                         const std::vector<MeshID>* exclude_primitives = nullptr) const;
+
   // Geometric Measurements
   double measure_volume(MeshID volume) const;
   double measure_surface_area(MeshID surface) const;

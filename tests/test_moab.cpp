@@ -9,7 +9,7 @@
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
-#include "xdg/ray_tracing_interface.h"
+#include "xdg/xdg.h"
 
 using namespace xdg;
 
@@ -67,7 +67,7 @@ TEST_CASE("Test BVH Build")
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_volumes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
 }
 
 TEST_CASE("Test Ray Fire MOAB")
@@ -77,12 +77,8 @@ TEST_CASE("Test Ray Fire MOAB")
   mesh_manager->load_file("cube.h5m");
   mesh_manager->init();
   REQUIRE(mesh_manager->mesh_library() == MeshLibrary::MOAB);
-
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
-  std::unordered_map<MeshID, TreeID> volume_to_scene_map;
-  for (auto volume: mesh_manager->volumes()) {
-    volume_to_scene_map[volume]= rti->register_volume(mesh_manager, volume);
-  }
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mesh_manager);
+  xdg->prepare_raytracer();
 
   MeshID volume = mesh_manager->volumes()[0];
 
@@ -90,16 +86,16 @@ TEST_CASE("Test Ray Fire MOAB")
   Direction direction {1.0, 0.0, 0.0};
   double intersection_distance {0.0};
 
-  rti->ray_fire(volume, origin, direction, intersection_distance);
+  xdg->ray_fire(volume, origin, direction, intersection_distance);
 
   // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
   REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
   origin = {3.0, 0.0, 0.0};
-  rti->ray_fire(volume, origin, direction, intersection_distance);
+  xdg->ray_fire(volume, origin, direction, intersection_distance);
   REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(2.0, 1e-6));
 
   origin = {-10.0, 0.0, 0.0};
-  rti->ray_fire(volume, origin, direction, intersection_distance);
+  xdg->ray_fire(volume, origin, direction, intersection_distance);
   REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(15.0, 1e-6));
 }
