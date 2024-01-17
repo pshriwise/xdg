@@ -10,7 +10,7 @@ using namespace xdg;
 
 TEST_CASE("XDG Interface")
 {
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
+  std::shared_ptr<AcceleratedDiscretizedGeometry> xdg = std::make_shared<AcceleratedDiscretizedGeometry>();
   REQUIRE(xdg->ray_tracing_interface() != nullptr);
   REQUIRE(xdg->mesh_manager() == nullptr);
 }
