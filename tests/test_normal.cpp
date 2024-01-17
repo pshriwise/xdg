@@ -5,7 +5,7 @@
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
-#include "xdg/triangle_ref.h"
+#include "xdg/primitive_ref.h"
 
 #include "mesh_mock.h"
 
