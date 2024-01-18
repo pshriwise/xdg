@@ -100,8 +100,6 @@ TEST_CASE("Test Ray Fire MOAB")
   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(15.0, 1e-6));
 
   origin = {0.0, 0.0, 0.0};
-  TreeID scene = xdg->volume_to_scene_map_[volume];
-  REQUIRE(xdg->ray_tracing_interface()->point_in_volume(scene, origin));
   REQUIRE(xdg->point_in_volume(volume, origin));
 
 }

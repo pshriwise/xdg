@@ -40,7 +40,7 @@ MeshID MeshManager::next_surface_id() const
     return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 }
 
-MeshID MeshManager::next_volume(MeshID surface, MeshID current_volume) const
+MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
 {
   auto parent_vols = this->get_parent_volumes(surface);
 

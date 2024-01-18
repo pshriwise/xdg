@@ -34,15 +34,14 @@ Particle p{ {0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {ID_NONE}, {}};
 
 // determine what volume this particle is in
 p.volume = xdg->find_volume(p.r, p.u);
-p.volume = 1;
+
 std::cout << "Particle starts in volume " << p.volume << std::endl;
 
 std::pair<double, MeshID> intersection;
-// TreeID scene = xdg->volume_to_scene_map_[p.volume];
-// intersection = xdg->ray_tracing_interface()->ray_fire(scene, p.r, p.u, &p.history);
+
 intersection = xdg->ray_fire(p.volume, p.r, p.u, &p.history);
 
-std::cout << "Intersected volume " << intersection.second << " at distance " << intersection.first << std::endl;
+std::cout << "Intersected surface " << intersection.second << " at distance " << intersection.first << std::endl;
 
 p.volume = xdg->mesh_manager()->next_volume(p.volume, intersection.second);
 p.r += intersection.first * p.u;

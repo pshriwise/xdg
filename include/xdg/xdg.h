@@ -28,14 +28,10 @@ public:
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;
 
-inline bool point_in_volume(MeshID volume,
+bool point_in_volume(MeshID volume,
                           const Position point,
                           const Direction* direction = nullptr,
-                          const std::vector<MeshID>* exclude_primitives = nullptr) const
-{
-  TreeID scene = volume_to_scene_map_.at(volume);
-  return ray_tracing_interface()->point_in_volume(scene, point, direction, exclude_primitives);
-}
+                          const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
 std::pair<double, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
@@ -80,19 +76,18 @@ Direction surface_normal(MeshID surface,
     return mesh_manager_;
   }
 // Private methods
-  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
 private:
   double _triangle_volume_contribution(const PrimitiveRef& triangle) const;
   double _triangle_area_contribution(const PrimitiveRef& triangle) const;
 
-private:
+// Data members
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
+  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
   std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
   std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   TreeID gloabal_scene_;
-
 };
 
 }

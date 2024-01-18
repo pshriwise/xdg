@@ -33,6 +33,15 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary library)
   return xdg;
 }
 
+bool XDG::point_in_volume(MeshID volume,
+                          const Position point,
+                          const Direction* direction,
+                          const std::vector<MeshID>* exclude_primitives) const
+{
+  TreeID scene = volume_to_scene_map_.at(volume);
+  return ray_tracing_interface()->point_in_volume(scene, point, direction, exclude_primitives);
+}
+
 MeshID XDG::find_volume(const Position& point,
                                                    const Direction& direction) const
 {
