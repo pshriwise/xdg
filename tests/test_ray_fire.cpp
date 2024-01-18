@@ -23,41 +23,41 @@ TEST_CASE("Test Ray Fire Mesh Mock")
 
   Position origin {0.0, 0.0, 0.0};
   Direction direction {1.0, 0.0, 0.0};
-  double intersection_distance {0.0};
+  std::pair<double, MeshID> intersection;
 
   // fire from the origin toward each face, ensuring that the intersection distances are correct
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
   direction *= -1;
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(2.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(2.0, 1e-6));
 
   direction = {0.0, 1.0, 0.0};
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(6.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(6.0, 1e-6));
 
   direction *= -1;
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(3.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(3.0, 1e-6));
 
   direction = {0.0, 0.0, 1.0};
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(7.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(7.0, 1e-6));
 
   direction *= -1;
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(4.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(4.0, 1e-6));
 
   // fire from the outside of the cube toward each face, ensuring that the intersection distances are correct
   // rays should skip entering intersections and intersect with the far side of the cube
   origin = {-10.0, 0.0, 0.0};
   direction = {1.0, 0.0, 0.0};
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(15.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(15.0, 1e-6));
 
   origin = {10.0, 0.0, 0.0};
   direction = {-1.0, 0.0, 0.0};
-  rti->ray_fire(volume_tree, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(12.0, 1e-6));
+  intersection = rti->ray_fire(volume_tree, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(12.0, 1e-6));
 }

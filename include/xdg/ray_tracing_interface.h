@@ -35,11 +35,10 @@ public:
                        const Direction* direction = nullptr,
                        const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
-  void ray_fire(TreeID scene,
-                const Position& origin,
-                const Direction& direction,
-                double& distance,
-                const std::vector<MeshID>* exclude_primitives = nullptr);
+  std::pair<double, MeshID>ray_fire(TreeID scene,
+                                      const Position& origin,
+                                      const Direction& direction,
+                                      const std::vector<MeshID>* exclude_primitives = nullptr);
 
   void closest(TreeID scene,
                const Position& origin,

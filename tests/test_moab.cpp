@@ -84,20 +84,26 @@ TEST_CASE("Test Ray Fire MOAB")
 
   Position origin {0.0, 0.0, 0.0};
   Direction direction {1.0, 0.0, 0.0};
-  double intersection_distance {0.0};
+  std::pair<double, MeshID> intersection;
 
-  xdg->ray_fire(volume, origin, direction, intersection_distance);
+  intersection = xdg->ray_fire(volume, origin, direction);
 
   // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(5.0, 1e-6));
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
   origin = {3.0, 0.0, 0.0};
-  xdg->ray_fire(volume, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(2.0, 1e-6));
+  intersection = xdg->ray_fire(volume, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(2.0, 1e-6));
 
   origin = {-10.0, 0.0, 0.0};
-  xdg->ray_fire(volume, origin, direction, intersection_distance);
-  REQUIRE_THAT(intersection_distance, Catch::Matchers::WithinAbs(15.0, 1e-6));
+  intersection = xdg->ray_fire(volume, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(15.0, 1e-6));
+
+  origin = {0.0, 0.0, 0.0};
+  TreeID scene = xdg->volume_to_scene_map_[volume];
+  REQUIRE(xdg->ray_tracing_interface()->point_in_volume(scene, origin));
+  REQUIRE(xdg->point_in_volume(volume, origin));
+
 }
 
 TEST_CASE("TEST XDG Factory Method")

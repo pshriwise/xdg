@@ -91,6 +91,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   rayhit->hit.geomID = args->geomID;
   rayhit->hit.primID = args->primID;
   rayhit->hit.primitive_ref = &primitive_ref;
+  rayhit->hit.surface = user_data->surface_id;
 
   rayhit->hit.dNg = normal;
 }

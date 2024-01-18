@@ -5,7 +5,6 @@
 
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
-#include "xdg/triangle_ref.h"
 #include "xdg/vec3da.h"
 #include "xdg/xdg.h"
 
@@ -15,22 +14,19 @@ struct Particle {
   Position r;
   Direction u;
   MeshID volume;
-  std::vector<TriangleRef> history;
+  std::vector<MeshID> history;
 };
 
 int main(int argc, char** argv) {
 
 // create a mesh manager
-std::shared_ptr<MeshManager> mm = std::make_shared<MOABMeshManager>();
-
-std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
-xdg->set_mesh_manager_interface(mm);
+std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+const auto& mm = xdg->mesh_manager();
 
 std::string filename {argv[1]};
 
 mm->load_file(filename);
 mm->init();
-
 xdg->prepare_raytracer();
 
 // create a new particle
@@ -38,8 +34,20 @@ Particle p{ {0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {ID_NONE}, {}};
 
 // determine what volume this particle is in
 p.volume = xdg->find_volume(p.r, p.u);
-
+p.volume = 1;
 std::cout << "Particle starts in volume " << p.volume << std::endl;
+
+std::pair<double, MeshID> intersection;
+// TreeID scene = xdg->volume_to_scene_map_[p.volume];
+// intersection = xdg->ray_tracing_interface()->ray_fire(scene, p.r, p.u, &p.history);
+intersection = xdg->ray_fire(p.volume, p.r, p.u, &p.history);
+
+std::cout << "Intersected volume " << intersection.second << " at distance " << intersection.first << std::endl;
+
+p.volume = xdg->mesh_manager()->next_volume(p.volume, intersection.second);
+p.r += intersection.first * p.u;
+
+std::cout << "Particle enters volume " << p.volume << " at position " << p.r << std::endl;
 
 return 0;
 

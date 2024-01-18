@@ -28,16 +28,19 @@ public:
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;
 
-bool point_in_volume(MeshID volume,
-                     const Position& point,
-                     const Direction* direction = nullptr,
-                     const std::vector<MeshID>* exclude_primitives = nullptr) const;
+inline bool point_in_volume(MeshID volume,
+                          const Position point,
+                          const Direction* direction = nullptr,
+                          const std::vector<MeshID>* exclude_primitives = nullptr) const
+{
+  TreeID scene = volume_to_scene_map_.at(volume);
+  return ray_tracing_interface()->point_in_volume(scene, point, direction, exclude_primitives);
+}
 
-void ray_fire(MeshID volume,
-              const Position& origin,
-              const Direction& direction,
-              double& distance,
-              const std::vector<MeshID>* exclude_primitives = nullptr) const;
+std::pair<double, MeshID> ray_fire(MeshID volume,
+                                   const Position& origin,
+                                   const Direction& direction,
+                                   const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
 void closest(MeshID volume,
               const Position& origin,
@@ -56,9 +59,6 @@ bool occluded(MeshID volume,
 Direction surface_normal(MeshID surface,
                          Position point,
                          const std::vector<MeshID>* exclude_primitives = nullptr) const;
-
-  MeshID find_volume(const Position& point,
-                     const Direction& direction) const;
 
 
   // Geometric Measurements
@@ -79,8 +79,8 @@ Direction surface_normal(MeshID surface,
   const std::shared_ptr<MeshManager>& mesh_manager() const {
     return mesh_manager_;
   }
-
 // Private methods
+  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
 private:
   double _triangle_volume_contribution(const PrimitiveRef& triangle) const;
   double _triangle_area_contribution(const PrimitiveRef& triangle) const;
@@ -89,7 +89,6 @@ private:
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
-  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
   std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
   std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   TreeID gloabal_scene_;

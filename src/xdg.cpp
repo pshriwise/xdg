@@ -46,23 +46,14 @@ MeshID XDG::find_volume(const Position& point,
   return ID_NONE;
 }
 
-bool XDG::point_in_volume(MeshID volume,
-                          const Position& point,
-                          const Direction* direction,
-                          const std::vector<MeshID>* exclude_primitives) const
-{
-  TreeID scene = volume_to_scene_map_.at(volume);
-  return ray_tracing_interface()->point_in_volume(scene, point, direction, exclude_primitives);
-}
-
-void XDG::ray_fire(MeshID volume,
+std::pair<double, MeshID>
+XDG::ray_fire(MeshID volume,
               const Position& origin,
               const Direction& direction,
-              double& distance,
               const std::vector<MeshID>* exclude_primitives) const
 {
   TreeID scene = volume_to_scene_map_.at(volume);
-  ray_tracing_interface()->ray_fire(scene, origin, direction, distance, exclude_primitives);
+  return ray_tracing_interface()->ray_fire(scene, origin, direction, exclude_primitives);
 }
 
 void XDG::closest(MeshID volume,

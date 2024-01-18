@@ -94,6 +94,7 @@ struct RTCDHit : RTCHit {
 
   // data members
   const PrimitiveRef* primitive_ref {nullptr}; //!< Pointer to the primitive reference for this hit
+  MeshID surface; //!< ID of the surface this hit belongs to
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 

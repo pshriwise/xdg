@@ -142,11 +142,10 @@ bool RayTracer::point_in_volume(TreeID scene,
   return rayhit.ray.ddir.dot(rayhit.hit.dNg) > 0.0;
 }
 
-void
+std::pair<double, MeshID>
 RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
-                    double& distance,
                     const std::vector<MeshID>* exclude_primitves)
 {
   RTCDRayHit rayhit;
@@ -170,9 +169,9 @@ RayTracer::ray_fire(TreeID scene,
   }
 
   if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
-    distance = INFTY;
+    return {INFTY, ID_NONE};
   else
-    distance = rayhit.ray.dtfar;
+    return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 
 void RayTracer::closest(TreeID scene,
