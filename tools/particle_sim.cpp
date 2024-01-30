@@ -10,48 +10,63 @@
 
 using namespace xdg;
 
+static double mfp {1.0};
+
 struct Particle {
 
-  Particle(std::shared_ptr<XDG> xdg) : xdg_(xdg) {}
+Particle(std::shared_ptr<XDG> xdg) : xdg_(xdg) {}
 
-  void initialize() {
-    // TODO: replace with sampling
-    r_ = {0.0, 0.0, 0.0};
-    u_ = {1.0, 0.0, 0.0};
+void initialize() {
+  // TODO: replace with sampling
+  r_ = {0.0, 0.0, 0.0};
+  u_ = {1.0, 0.0, 0.0};
 
-    volume_ = xdg_->find_volume(r_, u_);
+  volume_ = xdg_->find_volume(r_, u_);
+}
+
+void surf_dist() {
+  surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, &history_);
+  if (surface_intersection_.second == ID_NONE) {
+    std::cerr << "Particle lost in volume " << volume_ << std::endl;
+    alive_ = false;
+    return;
   }
+  std::cout << "Intersected surface " << surface_intersection_.second << " at distance " << surface_intersection_.first << std::endl;
+}
 
-  void surf_dist() {
-    surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, &history_);
-    if (surface_intersection_.second == ID_NONE) {
-      std::cerr << "Particle lost in volume " << volume_ << std::endl;
-      alive_ = false;
-      return;
-    }
-    std::cout << "Intersected surface " << surface_intersection_.second << " at distance " << surface_intersection_.first << std::endl;
-  }
+void sample_collision_distance() {
+  collision_distance_ = -std::log(1.0 - drand48()) / mfp;
+}
 
-  void sample_collision_distance() { collision_distance_ = INFTY; }
+void collide() {
+  n_events_++;
+  u_ = rand_dir();
+  std::cout << "Particle collides with material at position " << r_ << ", new direction is " << u_ << std::endl;
+  history_.clear();
+}
 
-  void collide() {
-    n_events_++;
+void advance()
+{
+  if (collision_distance_ < surface_intersection_.first) {
+    r_ += collision_distance_ * u_;
     std::cout << "Particle collides with material at position " << r_ << std::endl;
+  } else {
+    r_ += surface_intersection_.first * u_;
+    std::cout << "Particle advances to surface " << surface_intersection_.second << " at position " << r_ << std::endl;
   }
+}
 
-  void advance() {
-    if (collision_distance_ < surface_intersection_.first) {
-      r_ += collision_distance_ * u_;
-      std::cout << "Particle collides with material at position " << r_ << std::endl;
-    } else {
-      std::cout << "Particle advances to surface " << surface_intersection_.second << " at position " << r_ << std::endl;
-      r_ += surface_intersection_.first * u_;
-    }
-  }
-
-  void cross_surface() {
-    n_events_++;
-
+void cross_surface()
+{
+  n_events_++;
+  // check for the surface boundary condition
+  if (xdg_->mesh_manager()->get_surface_property(surface_intersection_.second, PropertyType::BOUNDARY_CONDITION).value == "reflecting") {
+    std::cout << "Particle reflects off surface " << surface_intersection_.second << std::endl;
+    Direction normal = xdg_->surface_normal(surface_intersection_.second, r_, &history_);
+    u_ = u_ - 2.0 * dot(u_, normal) * normal;
+    u_ = u_.normalize();
+    if (history_.size() > 0) history_ = {history_.back()}; // reset to last intersection
+  } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
     std::cout << "Particle enters volume " << volume_ << std::endl;
     if (volume_ == ID_NONE) {
@@ -59,20 +74,21 @@ struct Particle {
       return;
     }
   }
+}
 
-  // Data Members
-  std::shared_ptr<XDG> xdg_;
+// Data Members
+std::shared_ptr<XDG> xdg_;
 
-  Position r_;
-  Direction u_;
-  MeshID volume_ {ID_NONE};
-  std::vector<MeshID> history_{};
+Position r_;
+Direction u_;
+MeshID volume_ {ID_NONE};
+std::vector<MeshID> history_{};
 
-  std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
-  double collision_distance_ {INFTY};
+std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
+double collision_distance_ {INFTY};
 
-  int32_t n_events_ {0};
-  bool alive_ {true};
+int32_t n_events_ {0};
+bool alive_ {true};
 };
 
 int main(int argc, char** argv) {
@@ -85,14 +101,15 @@ std::string filename {argv[1]};
 
 mm->load_file(filename);
 mm->init();
+mm->parse_metadata();
 xdg->prepare_raytracer();
 
 // create a new particle
 Particle p(xdg);
 
-const int max_events {10};
+const int max_events {100};
 p.initialize();
-while (p.n_events_ < max_events) {
+while (true) {
   p.surf_dist();
   // terminate for leakage
   if (!p.alive_) break;
@@ -103,6 +120,11 @@ while (p.n_events_ < max_events) {
   else
     p.collide();
   if (!p.alive_) break;
+
+  if (p.n_events_ > max_events) {
+    std::cout << "Maximum number of events (" << max_events << ") reached" << std::endl;
+    break;
+  }
 }
 
 return 0;

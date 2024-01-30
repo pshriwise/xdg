@@ -40,6 +40,32 @@ MeshID MeshManager::next_surface_id() const
     return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 }
 
+bool
+MeshManager::volume_has_property(MeshID volume, PropertyType type) const
+{
+  return volume_metadata_.count({volume, type}) > 0;
+}
+
+bool
+MeshManager::surface_has_property(MeshID surface, PropertyType type) const
+{
+  return surface_metadata_.count({surface, type}) > 0;
+}
+
+Property
+MeshManager::get_volume_property(MeshID volume, PropertyType type) const
+{
+  return volume_metadata_.at({volume, type});
+}
+
+Property
+MeshManager::get_surface_property(MeshID surface, PropertyType type) const
+{
+  if (surface_metadata_.count({surface, type}) == 0)
+    return {PropertyType::BOUNDARY_CONDITION, "transmission"};
+  return surface_metadata_.at({surface, type});
+}
+
 MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
 {
   auto parent_vols = this->get_parent_volumes(surface);

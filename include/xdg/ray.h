@@ -27,7 +27,7 @@ struct RTCDRay: RTCRay {
 
   RTCDRay() {
     this->tnear = 0.0;
-    this->tfar = INFTY;
+    this->tfar = INFTYF;
   }
 
   //! \brief Set both the single and double precision versions of the ray origin
@@ -68,7 +68,7 @@ struct RTCDRay: RTCRay {
 
   //! \brief Set both the single and double precision versions of the ray max distance
   void set_tfar(double d) {
-    tfar = d;
+    tfar = std::min(d, INFTYF);
     dtfar = d;
   }
 
@@ -90,6 +90,9 @@ struct RTCDHit : RTCHit {
   RTCDHit() {
     this->geomID = RTC_INVALID_GEOMETRY_ID;
     this->primID = RTC_INVALID_GEOMETRY_ID;
+    this->Ng_x = 0.0;
+    this->Ng_y = 0.0;
+    this->Ng_z = 0.0;
   }
 
   // data members
@@ -120,7 +123,7 @@ struct RTCDPointQuery : RTCPointQuery {
 
   //! \brief Set both the single and double precision versions of the query radius
   void set_radius(double rad) {
-    radius = rad;
+    radius = std::min(rad, INFTYF);
     dradius = rad;
   }
 

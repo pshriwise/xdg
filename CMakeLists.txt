@@ -26,7 +26,7 @@ find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 endif()
 
 # use Embree for CPU ray tracing
-find_package(embree 3.6.1 REQUIRED)
+find_package(embree 4.0.0 REQUIRED)
 if (NOT ${EMBREE_VERSION} VERSION_GREATER 3.6.0)
   message(FATAL_ERROR "XDG requires Embree v3.6.1 or higher.")
 endif()
@@ -75,6 +75,10 @@ if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
   target_compile_definitions(xdg PUBLIC XDG_EMBREE4)
 else()
   target_compile_definitions(xdg PUBLIC XDG_EMBREE3)
+endif()
+
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  target_compile_definitions(xdg PUBLIC XDG_DEBUG)
 endif()
 
 if (XDG_BUILD_TESTS)

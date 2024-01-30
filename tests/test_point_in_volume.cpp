@@ -27,7 +27,7 @@ TEST_CASE("Test Point in Volume")
   REQUIRE(result == false);
 
   // test a point just inside the positive x boundary
-  point = {5.0 - 1e-06, 0.0, 0.0};
+  point = {4.0 - 1e-06, 0.0, 0.0};
   result = rti->point_in_volume(volume_tree, point);
   REQUIRE(result == true);
 

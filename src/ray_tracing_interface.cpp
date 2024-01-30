@@ -79,6 +79,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 
   double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
   double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
+  bump = std::max(bump, 1e-03);
 
   // create a new geometry for each surface
   int buffer_start = 0;
