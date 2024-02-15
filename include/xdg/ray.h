@@ -28,6 +28,7 @@ struct RTCDRay: RTCRay {
   RTCDRay() {
     this->tnear = 0.0;
     this->tfar = INFTYF;
+    this->mask = -1;
   }
 
   //! \brief Set both the single and double precision versions of the ray origin
@@ -97,7 +98,7 @@ struct RTCDHit : RTCHit {
 
   // data members
   const PrimitiveRef* primitive_ref {nullptr}; //!< Pointer to the primitive reference for this hit
-  MeshID surface; //!< ID of the surface this hit belongs to
+  MeshID surface {ID_NONE}; //!< ID of the surface this hit belongs to
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 
