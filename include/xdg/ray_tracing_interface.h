@@ -37,10 +37,10 @@ public:
                        const Direction* direction = nullptr,
                        const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
-  std::pair<double, MeshID>ray_fire(TreeID scene,
-                                      const Position& origin,
-                                      const Direction& direction,
-                                      const std::vector<MeshID>* exclude_primitives = nullptr);
+  std::pair<double, MeshID> ray_fire(TreeID scene,
+                                     const Position& origin,
+                                     const Direction& direction,
+                                     const std::vector<MeshID>* exclude_primitives = nullptr);
 
   void closest(TreeID scene,
                const Position& origin,
@@ -59,7 +59,7 @@ public:
 // Accessors
   int num_registered_scenes() const { return scenes_.size(); }
 
-  const GeometryUserData& geometry_data(MeshID surface) const { return user_data_map_.at(surface_to_geometry_map_.at(surface)); }
+  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const { return user_data_map_.at(surface_to_geometry_map_.at(surface)); }
 
 // Data members
 private:
@@ -74,7 +74,7 @@ private:
   RTCScene gloabal_scene_;
 
   // Internal Embree Mappings
-  std::unordered_map<RTCGeometry, GeometryUserData> user_data_map_;
+  std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
 
   // Internal parameters
   double numerical_precision_ {1e-3};
