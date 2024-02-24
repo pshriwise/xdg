@@ -26,7 +26,7 @@ find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 endif()
 
 # use Embree for CPU ray tracing
-find_package(embree 4.0.0 REQUIRED)
+find_package(embree 3.0.0...4.0.0 REQUIRED)
 if (NOT ${EMBREE_VERSION} VERSION_GREATER 3.6.0)
   message(FATAL_ERROR "XDG requires Embree v3.6.1 or higher.")
 endif()
