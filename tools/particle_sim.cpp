@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
 #include "xdg/vec3da.h"
@@ -14,7 +15,13 @@ static double mfp {1.0};
 
 struct Particle {
 
-Particle(std::shared_ptr<XDG> xdg, uint32_t id) : xdg_(xdg), id_(id) {}
+Particle(std::shared_ptr<XDG> xdg, uint32_t id, bool verbose=true) : verbose_(verbose), xdg_(xdg), id_(id) {}
+
+template<typename... Params>
+void log (const std::string& msg, const Params&... fmt_args) {
+  if (!verbose_) return;
+  write_message(msg, fmt_args...);
+}
 
 void initialize() {
   // TODO: replace with sampling
@@ -26,12 +33,17 @@ void initialize() {
 
 void surf_dist() {
   surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, &history_);
+  if (surface_intersection_.first == 0.0) {
+    fatal_error("Particle {} stuck at position ({}, {}, {}) on surfacce {}", id_, r_.x, r_.y, r_.z, surface_intersection_.second);
+    alive_ = false;
+    return;
+  }
   if (surface_intersection_.second == ID_NONE) {
     std::cerr << "Particle " << id_ << " lost in volume " << volume_ << std::endl;
     alive_ = false;
     return;
   }
-  std::cout << "Intersected surface " << surface_intersection_.second << " at distance " << surface_intersection_.first << std::endl;
+  log("Intersected surface {} at distance {} ", surface_intersection_.second, surface_intersection_.first);
 }
 
 void sample_collision_distance() {
@@ -41,7 +53,7 @@ void sample_collision_distance() {
 void collide() {
   n_events_++;
   u_ = rand_dir();
-  std::cout << "Particle " << id_ << " collides with material at position " << r_ << ", new direction is " << u_ << std::endl;
+  log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.z, u_.y, u_.z);
   history_.clear();
 }
 
@@ -49,10 +61,11 @@ void advance()
 {
   if (collision_distance_ < surface_intersection_.first) {
     r_ += collision_distance_ * u_;
-    std::cout << "Particle " << id_ << " collides with material at position " << r_ << std::endl;
+    log("Particle {} collides with material at position ({}, {}, {}) ", id_, r_.x, r_.y, r_.z);
+
   } else {
     r_ += surface_intersection_.first * u_;
-    std::cout << "Particle " << id_ << " advances to surface " << surface_intersection_.second << " at position " << r_ << std::endl;
+    log("Particle {} advances to surface {} at position ({}, {}, {}) ", id_, surface_intersection_.second, r_.x, r_.y, r_.z);
   }
 }
 
@@ -61,14 +74,15 @@ void cross_surface()
   n_events_++;
   // check for the surface boundary condition
   if (xdg_->mesh_manager()->get_surface_property(surface_intersection_.second, PropertyType::BOUNDARY_CONDITION).value == "reflecting") {
-    std::cout << "Particle " << id_ << " reflects off surface " << surface_intersection_.second << std::endl;
+    log("Particle {} reflects off surface {}", id_, surface_intersection_.second);
+
     Direction normal = xdg_->surface_normal(surface_intersection_.second, r_, &history_);
     u_ = u_ - 2.0 * dot(u_, normal) * normal;
     u_ = u_.normalize();
     if (history_.size() > 0) history_ = {history_.back()}; // reset to last intersection
   } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
-    std::cout << "Particle " << id_ << " enters volume " << volume_ << std::endl;
+    log("Particle {} enters volume {}", id_, volume_);
     if (volume_ == ID_NONE) {
       alive_ = false;
       return;
@@ -77,6 +91,7 @@ void cross_surface()
 }
 
 // Data Members
+bool verbose_ {true};
 std::shared_ptr<XDG> xdg_;
 uint32_t id_ {0};
 Position r_;
@@ -107,27 +122,35 @@ mm->parse_metadata();
 xdg->prepare_raytracer();
 
 // create a new particle
-Particle p(xdg, 1);
 
-const int max_events {100};
-p.initialize();
-while (true) {
-  p.surf_dist();
-  // terminate for leakage
-  if (!p.alive_) break;
-  p.sample_collision_distance();
-  p.advance();
-  if (p.surface_intersection_.first < p.collision_distance_)
-    p.cross_surface();
-  else
-    p.collide();
-  if (!p.alive_) break;
+const int n_particles {100};
 
-  if (p.n_events_ > max_events) {
-    std::cout << "Maximum number of events (" << max_events << ") reached" << std::endl;
-    break;
-  }
-}
+const int max_events {1000};
 
-return 0;
+bool verbose = false;
+
+ for (int i = 0; i < n_particles; i++) {
+ write_message("Starting particle {}", i);
+ Particle p(xdg, i, verbose);
+ p.initialize();
+ while (true) {
+   p.surf_dist();
+   // terminate for leakage
+   if (!p.alive_) break;
+   p.sample_collision_distance();
+   p.advance();
+   if (p.surface_intersection_.first < p.collision_distance_)
+     p.cross_surface();
+   else
+     p.collide();
+   if (!p.alive_) break;
+
+   if (p.n_events_ > max_events) {
+     write_message("Maximum number of events ({}) reached", max_events);
+     break;
+   }
+ }
+ }
+
+ return 0;
 }
