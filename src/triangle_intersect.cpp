@@ -87,11 +87,14 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   // zero-out barycentric coords
   rayhit->hit.u = 0.0;
   rayhit->hit.v = 0.0;
+  rayhit->hit.Ng_x = 0.0;
+  rayhit->hit.Ng_y = 0.0;
+  rayhit->hit.Ng_z = 0.0;
   // set the hit information
   rayhit->hit.geomID = args->geomID;
   rayhit->hit.primID = args->primID;
   rayhit->hit.primitive_ref = &primitive_ref;
-
+  rayhit->hit.surface = user_data->surface_id;
   rayhit->hit.dNg = normal;
 }
 

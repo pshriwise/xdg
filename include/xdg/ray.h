@@ -3,6 +3,7 @@
 #define _XDG_RAY_H
 
 #include <set>
+#include <vector>
 
 #include "xdg/vec3da.h"
 
@@ -12,6 +13,9 @@
 #include "xdg/embree_interface.h"
 
 namespace xdg {
+
+// forward declaration
+class TriangleRef;
 
 // TO-DO: there should be a few more double elements here (barycentric coords)
 
@@ -23,7 +27,8 @@ struct RTCDRay: RTCRay {
 
   RTCDRay() {
     this->tnear = 0.0;
-    this->tfar = INFTY;
+    this->tfar = INFTYF;
+    this->mask = -1;
   }
 
   //! \brief Set both the single and double precision versions of the ray origin
@@ -64,7 +69,7 @@ struct RTCDRay: RTCRay {
 
   //! \brief Set both the single and double precision versions of the ray max distance
   void set_tfar(double d) {
-    tfar = d;
+    tfar = std::min(d, INFTYF);
     dtfar = d;
   }
 
@@ -86,10 +91,14 @@ struct RTCDHit : RTCHit {
   RTCDHit() {
     this->geomID = RTC_INVALID_GEOMETRY_ID;
     this->primID = RTC_INVALID_GEOMETRY_ID;
+    this->Ng_x = 0.0;
+    this->Ng_y = 0.0;
+    this->Ng_z = 0.0;
   }
 
   // data members
   const PrimitiveRef* primitive_ref {nullptr}; //!< Pointer to the primitive reference for this hit
+  MeshID surface {ID_NONE}; //!< ID of the surface this hit belongs to
   Vec3da dNg; //!< Double precision version of the primitive normal
 };
 
@@ -115,7 +124,7 @@ struct RTCDPointQuery : RTCPointQuery {
 
   //! \brief Set both the single and double precision versions of the query radius
   void set_radius(double rad) {
-    radius = rad;
+    radius = std::min(rad, INFTYF);
     dradius = rad;
   }
 

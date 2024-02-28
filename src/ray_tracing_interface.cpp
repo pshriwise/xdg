@@ -79,6 +79,8 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 
   double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
   double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
+  bump = std::max(bump, 1e-03);
+  bump = 1.0;
 
   // create a new geometry for each surface
   int buffer_start = 0;
@@ -89,16 +91,17 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
-    GeometryUserData surface_data;
-    surface_data.surface_id = surface;
-    surface_data.mesh_manager = mesh_manager.get();
-    surface_data.prim_ref_buffer = tri_ref_ptr + buffer_start;
+    std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
+    surface_data->surface_id = surface;
+    surface_data->mesh_manager = mesh_manager.get();
+    surface_data->prim_ref_buffer = tri_ref_ptr + buffer_start;
     user_data_map_[surface_geometry] = surface_data;
 
-    rtcSetGeometryUserData(surface_geometry, &user_data_map_[surface_geometry]);
+    // TODO: This could be a problem if user_data_map_ is reallocated?
+    rtcSetGeometryUserData(surface_geometry, user_data_map_[surface_geometry].get());
 
     for (int i = 0; i < surface_triangles.size(); ++i) {
-      auto& triangle_ref = surface_data.prim_ref_buffer[i];
+      auto& triangle_ref = surface_data->prim_ref_buffer[i];
       // triangle_ref.embree_surface = embree_surface;
     }
     buffer_start += surface_triangles.size();
@@ -118,7 +121,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 bool RayTracer::point_in_volume(TreeID scene,
                                 const Position& point,
                                 const Direction* direction,
-                                const std::vector<MeshID>* exclude_primitives)
+                                const std::vector<MeshID>* exclude_primitives) const
 {
   RTCDRayHit rayhit;
   rayhit.ray.set_org(point);
@@ -128,6 +131,7 @@ bool RayTracer::point_in_volume(TreeID scene,
   rayhit.ray.orientation = HitOrientation::ANY;
   rayhit.ray.set_tfar(INFTY);
   rayhit.ray.set_tnear(0.0);
+
   if (exclude_primitives != nullptr) rayhit.ray.exclude_primitives = exclude_primitives;
 
   {
@@ -142,12 +146,11 @@ bool RayTracer::point_in_volume(TreeID scene,
   return rayhit.ray.ddir.dot(rayhit.hit.dNg) > 0.0;
 }
 
-void
+std::pair<double, MeshID>
 RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
-                    double& distance,
-                    const std::vector<MeshID>* exclude_primitves)
+                    std::vector<MeshID>* const exclude_primitves)
 {
   RTCDRayHit rayhit;
   // set ray data
@@ -170,9 +173,10 @@ RayTracer::ray_fire(TreeID scene,
   }
 
   if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
-    distance = INFTY;
+    return {INFTY, ID_NONE};
   else
-    distance = rayhit.ray.dtfar;
+    if (exclude_primitves) exclude_primitves->push_back(rayhit.hit.primitive_ref->primitive_id);
+    return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 
 void RayTracer::closest(TreeID scene,

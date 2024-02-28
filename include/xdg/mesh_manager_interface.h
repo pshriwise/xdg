@@ -62,7 +62,7 @@ public:
 
   virtual void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) = 0;
 
-  MeshID next_volume(MeshID surface, MeshID current_volume) const;
+  MeshID next_volume(MeshID current_volume, MeshID surface) const;
 
   // Methods
   MeshID next_volume_id() const;
@@ -74,8 +74,11 @@ public:
   // Metadata methods
   virtual void parse_metadata() = 0;
 
-  virtual Property get_volume_property(MeshID volume, PropertyType type) const = 0;
-  virtual Property get_surface_property(MeshID surface, PropertyType type) const = 0;
+  bool volume_has_property(MeshID volume, PropertyType type) const;
+  bool surface_has_property(MeshID surface, PropertyType type) const;
+
+  Property get_volume_property(MeshID volume, PropertyType type) const;
+  Property get_surface_property(MeshID surface, PropertyType type) const;
 
   // Accessors
   const std::vector<MeshID>& volumes() const { return volumes_; }

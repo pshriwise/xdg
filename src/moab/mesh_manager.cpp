@@ -299,18 +299,6 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
   return surface_ids;
 }
 
-Property
-MOABMeshManager::get_volume_property(MeshID volume, PropertyType type) const
-{
-  return volume_metadata_.at({volume, type});
-}
-
-Property
-MOABMeshManager::get_surface_property(MeshID surface, PropertyType type) const
-{
-  return surface_metadata_.at({surface, type});
-}
-
 void
 MOABMeshManager::parse_metadata()
 {

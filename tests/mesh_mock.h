@@ -120,16 +120,6 @@ public:
     fatal_error("MockMesh does not support parse_metadata()");
   }
 
-  virtual Property get_volume_property(MeshID volume, PropertyType type) const override {
-    fatal_error("MockMesh does not support get_volume_property()");
-    return Property();
-  }
-
-  virtual Property get_surface_property(MeshID surface, PropertyType type) const override {
-    fatal_error("MockMesh does not support get_surface_property()");
-    return Property();
-  }
-
   // Other
   virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERNAL; }
 
