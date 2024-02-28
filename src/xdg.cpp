@@ -59,7 +59,7 @@ std::pair<double, MeshID>
 XDG::ray_fire(MeshID volume,
               const Position& origin,
               const Direction& direction,
-              const std::vector<MeshID>* exclude_primitives) const
+              std::vector<MeshID>* const exclude_primitives) const
 {
   TreeID scene = volume_to_scene_map_.at(volume);
   return ray_tracing_interface()->ray_fire(scene, origin, direction, exclude_primitives);

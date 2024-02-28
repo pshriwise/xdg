@@ -150,7 +150,7 @@ std::pair<double, MeshID>
 RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
-                    const std::vector<MeshID>* exclude_primitves)
+                    std::vector<MeshID>* const exclude_primitves)
 {
   RTCDRayHit rayhit;
   // set ray data
@@ -175,6 +175,7 @@ RayTracer::ray_fire(TreeID scene,
   if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     return {INFTY, ID_NONE};
   else
+    if (exclude_primitves) exclude_primitves->push_back(rayhit.hit.primitive_ref->primitive_id);
     return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 

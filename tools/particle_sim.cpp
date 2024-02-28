@@ -39,7 +39,7 @@ void surf_dist() {
     return;
   }
   if (surface_intersection_.second == ID_NONE) {
-    std::cerr << "Particle " << id_ << " lost in volume " << volume_ << std::endl;
+    fatal_error("Particle {} lost in volume {}", id_, volume_);
     alive_ = false;
     return;
   }
@@ -52,6 +52,7 @@ void sample_collision_distance() {
 
 void collide() {
   n_events_++;
+  log("Event {} for particle {}", n_events_, id_);
   u_ = rand_dir();
   log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.z, u_.y, u_.z);
   history_.clear();
@@ -59,6 +60,7 @@ void collide() {
 
 void advance()
 {
+  log("Comparing surface intersection distance {} to collision distance {}", surface_intersection_.first, collision_distance_);
   if (collision_distance_ < surface_intersection_.first) {
     r_ += collision_distance_ * u_;
     log("Particle {} collides with material at position ({}, {}, {}) ", id_, r_.x, r_.y, r_.z);
@@ -72,14 +74,26 @@ void advance()
 void cross_surface()
 {
   n_events_++;
+  log("Event {} for particle {}", n_events_, id_);
   // check for the surface boundary condition
   if (xdg_->mesh_manager()->get_surface_property(surface_intersection_.second, PropertyType::BOUNDARY_CONDITION).value == "reflecting") {
     log("Particle {} reflects off surface {}", id_, surface_intersection_.second);
+    log("Direction before reflection: ({}, {}, {})", u_.x, u_.y, u_.z);
 
     Direction normal = xdg_->surface_normal(surface_intersection_.second, r_, &history_);
-    u_ = u_ - 2.0 * dot(u_, normal) * normal;
+    log("Normal to surface: ({}, {}, {})", normal.x, normal.y, normal.z);
+
+    double proj = dot(normal, u_);
+    double mag = normal.length();
+    normal = normal * (2.0 * proj/mag);
+    u_ = u_ - normal;
     u_ = u_.normalize();
-    if (history_.size() > 0) history_ = {history_.back()}; // reset to last intersection
+    log("Direction after reflection: ({}, {}, {})", u_.x, u_.y, u_.z);
+    // reset to last intersection
+    if (history_.size() > 0) {
+      log("Resetting particle history to last intersection");
+      history_ = {history_.back()};
+    }
   } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
     log("Particle {} enters volume {}", id_, volume_);
@@ -127,7 +141,7 @@ const int n_particles {100};
 
 const int max_events {1000};
 
-bool verbose = false;
+bool verbose = true;
 
  for (int i = 0; i < n_particles; i++) {
  write_message("Starting particle {}", i);
