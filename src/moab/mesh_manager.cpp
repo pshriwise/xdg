@@ -186,8 +186,8 @@ MOABMeshManager::get_surface_elements(MeshID surface) const
 std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
   moab::EntityHandle element_handle;
-  moab::ErrorCode rval = this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
-  if (rval == moab::MB_ENTITY_NOT_FOUND) fatal_error("Could not find entity with ID in the mesh database {}", element);
+  this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
+  // if (rval == moab::MB_ENTITY_NOT_FOUND) fatal_error("Could not find entity with ID in the mesh database {}", element);
   auto out = this->mb_direct()->get_mb_coords(element_handle);
   return std::vector<Vertex>(out.begin(), out.end());
 }
