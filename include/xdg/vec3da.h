@@ -2,20 +2,20 @@
 #ifndef _XDG_VEC3DA_H
 #define _XDG_VEC3DA_H
 
+#include <array>
 #include <assert.h>
 #include <iostream>
 #include <math.h>
 #include <immintrin.h>
 #include <xmmintrin.h>
 #include <limits>
+#include <vector>
 
 #ifndef NDEBUG
 #define __forceinline inline
 #else
 #define __forceinline inline __attribute__((always_inline))
 #endif
-
-#include <array>
 
 #include "xdg/constants.h"
 
@@ -29,6 +29,11 @@ struct Vec3da {
 #endif
     struct{ double x,y,z;  size_t a;};
   };
+
+  __forceinline Vec3da(std::vector<double> const& vec) : x(vec[0]), y(vec[1]), z(vec[2]), a(0) {
+    if (vec.size() != 3)
+      throw std::runtime_error("Vec3da constructor from std::vector<double> requires a vector of size 3");
+  }
 
   __forceinline Vec3da(std::array<double, 3> const& arr) : x(arr[0]), y(arr[1]), z(arr[2]), a(0) { }
 

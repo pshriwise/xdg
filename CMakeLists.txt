@@ -47,6 +47,9 @@ if (NOT fmt_FOUND)
   add_subdirectory(vendor/fmt)
 endif()
 
+# argparse
+add_subdirectory(vendor/argparse)
+
 list(APPEND xdg_sources
 src/geometry/measure.cpp
 src/geometry/plucker.cpp
