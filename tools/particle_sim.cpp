@@ -141,30 +141,31 @@ const int n_particles {100};
 
 const int max_events {1000};
 
-bool verbose = true;
+bool verbose = false;
 
- for (int i = 0; i < n_particles; i++) {
- write_message("Starting particle {}", i);
- Particle p(xdg, i, verbose);
- p.initialize();
- while (true) {
-   p.surf_dist();
-   // terminate for leakage
-   if (!p.alive_) break;
-   p.sample_collision_distance();
-   p.advance();
-   if (p.surface_intersection_.first < p.collision_distance_)
-     p.cross_surface();
-   else
-     p.collide();
-   if (!p.alive_) break;
+for (int i = 0; i < n_particles; i++) {
+  int particle_id = i+1;
+  write_message("Starting particle {}", particle_id);
+  Particle p(xdg, particle_id, verbose);
+  p.initialize();
+  while (true) {
+    p.surf_dist();
+    // terminate for leakage
+    if (!p.alive_) break;
+    p.sample_collision_distance();
+    p.advance();
+    if (p.surface_intersection_.first < p.collision_distance_)
+      p.cross_surface();
+    else
+      p.collide();
+    if (!p.alive_) break;
 
-   if (p.n_events_ > max_events) {
-     write_message("Maximum number of events ({}) reached", max_events);
-     break;
-   }
- }
- }
+    if (p.n_events_ > max_events) {
+      write_message("Maximum number of events ({}) reached", max_events);
+      break;
+    }
+  }
+}
 
- return 0;
+return 0;
 }

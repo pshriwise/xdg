@@ -187,6 +187,7 @@ std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
   moab::EntityHandle element_handle;
   this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
+  // if (rval == moab::MB_ENTITY_NOT_FOUND) fatal_error("Could not find entity with ID in the mesh database {}", element);
   auto out = this->mb_direct()->get_mb_coords(element_handle);
   return std::vector<Vertex>(out.begin(), out.end());
 }
@@ -206,11 +207,7 @@ Direction MOABMeshManager::triangle_normal(MeshID element) const
 BoundingBox MOABMeshManager::element_bounding_box(MeshID element) const
 {
   auto vertices = this->element_vertices(element);
-  BoundingBox bb;
-  for (const auto& v : vertices) {
-    bb.update(v);
-  }
-  return bb;
+  return BoundingBox::from_points(vertices);
 }
 
 BoundingBox
