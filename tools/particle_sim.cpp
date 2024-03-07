@@ -9,9 +9,11 @@
 #include "xdg/vec3da.h"
 #include "xdg/xdg.h"
 
+#include "argparse/argparse.hpp"
+
 using namespace xdg;
 
-static double mfp {1.0};
+static double MFP {1.0};
 
 struct Particle {
 
@@ -47,7 +49,7 @@ void surf_dist() {
 }
 
 void sample_collision_distance() {
-  collision_distance_ = -std::log(1.0 - drand48()) / mfp;
+  collision_distance_ = -std::log(1.0 - drand48()) * MFP;
 }
 
 void collide() {
@@ -122,31 +124,55 @@ bool alive_ {true};
 
 int main(int argc, char** argv) {
 
+// argument parsing
+argparse::ArgumentParser args("XDG Particle Pseudo-Simulation", "1.0", argparse::default_arguments::help);
+
+args.add_argument("filename")
+    .help("Path to the input file");
+
+args.add_argument("-v", "--verbose")
+    .default_value(false)
+    .implicit_value(true)
+    .help("Enable verbose output of particle events");
+
+args.add_argument("-m", "--mfp")
+    .default_value(MFP)
+    .help("Mean free path of the particles").scan<'g', double>();
+
+  try {
+    args.parse_args(argc, argv);
+  }
+  catch (const std::runtime_error& err) {
+    std::cout << err.what() << std::endl;
+    std::cout << args;
+    exit(0);
+  }
+
+// Problem Setup
 srand48(42);
 
 // create a mesh manager
 std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
 const auto& mm = xdg->mesh_manager();
 
-std::string filename {argv[1]};
-
-mm->load_file(filename);
+mm->load_file(args.get<std::string>("filename"));
 mm->init();
 mm->parse_metadata();
 xdg->prepare_raytracer();
 
-// create a new particle
+// update the mean free path
+MFP = args.get<double>("--mfp");
 
 const int n_particles {100};
 
 const int max_events {1000};
 
-bool verbose = false;
+bool verbose_particles = args.get<bool>("--verbose");
 
 for (int i = 0; i < n_particles; i++) {
   int particle_id = i+1;
   write_message("Starting particle {}", particle_id);
-  Particle p(xdg, particle_id, verbose);
+  Particle p(xdg, particle_id, verbose_particles);
   p.initialize();
   while (true) {
     p.surf_dist();
