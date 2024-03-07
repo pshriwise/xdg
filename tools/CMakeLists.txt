@@ -5,6 +5,7 @@ set(TOOL_NAMES
 particle_sim
 ray_fire
 find_volume
+point_in_volume
 )
 
 foreach(tool ${TOOL_NAMES})
