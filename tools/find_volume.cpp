@@ -15,22 +15,19 @@ using namespace xdg;
 
 int main(int argc, char** argv) {
 
-  argparse::ArgumentParser args("XDG Ray Fire Tool", "1.0", argparse::default_arguments::help);
+  argparse::ArgumentParser args("XDG Find Volume Tool", "1.0", argparse::default_arguments::help);
 
   args.add_argument("filename")
     .help("Path to the input file");
-
-  args.add_argument("volume")
-    .help("Volume ID to query").scan<'i', int>();
 
   args.add_argument("-l", "--list")
     .default_value(false)
     .implicit_value(true)
     .help("List all volumes in the file and exit");
 
-  args.add_argument("-o", "-p", "--origin", "--position")
+  args.add_argument("-p",  "--position")
     .default_value(std::vector<double>{0.0, 0.0, 0.0})
-    .help("Ray origin/position").scan<'g', double>().nargs(3);
+    .help("Ray origin").scan<'g', double>().nargs(3);
 
   args.add_argument("-d", "--direction")
     .default_value(std::vector<double>{0.0, 0.0, 1.0})
@@ -44,7 +41,6 @@ int main(int argc, char** argv) {
     std::cout << args;
     exit(0);
   }
-
 
   // create a mesh manager
   std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
@@ -62,14 +58,16 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  MeshID volume = args.get<int>("volume");
-  Position origin = args.get<std::vector<double>>("--origin");
+  Position position = args.get<std::vector<double>>("--position");
   Direction direction = args.get<std::vector<double>>("--direction");
 
-  auto result = xdg->ray_fire(volume, origin, direction);
+  MeshID volume = xdg->find_volume(position, direction);
 
-  std::cout << "Distance: " << result.first << std::endl;
-  std::cout << "Surface: " << result.second << std::endl;
+  if (volume == ID_NONE) {
+    std::cout << "No volume found for position " << position << std::endl;
+  } else {
+    std::cout << "Point " << position << " is in Volume " << volume << std::endl;
+  }
 
   return 0;
 }
