@@ -80,6 +80,7 @@ public:
 
   // Metadata
   void parse_metadata() override;
+  void apply_graveyard_bcs();
 
   // Other
   MeshLibrary mesh_library() const override {return MeshLibrary::MOAB; }

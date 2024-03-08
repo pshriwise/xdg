@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "xdg/error.h"
+#include "xdg/util/str_utils.h"
 
 namespace xdg {
 
@@ -22,6 +23,7 @@ MeshManager::create_implicit_complement()
       this->add_surface_to_volume(ipc_volume, surface, Sense::REVERSE);
   }
 
+  implicit_complement_ = ipc_volume;
   // insert the ipc volume into volume sets if it isn't present already
   if (std::find(volumes().begin(), volumes().end(), ipc_volume) == volumes().end())
     volumes().push_back(ipc_volume);
@@ -64,6 +66,29 @@ MeshManager::get_surface_property(MeshID surface, PropertyType type) const
   if (surface_metadata_.count({surface, type}) == 0)
     return {PropertyType::BOUNDARY_CONDITION, "transmission"};
   return surface_metadata_.at({surface, type});
+}
+
+std::vector<MeshID>
+MeshManager::property_match(PropertyType type, const std::string& value) const {
+  std::vector<MeshID> matches;
+
+  if (type == PropertyType::MATERIAL || type == PropertyType::DENSITY || type == PropertyType::TEMPERATURE) {
+    for (auto volume : volumes()) {
+      if (!volume_has_property(volume, type)) continue;
+      auto property_value = get_volume_property(volume, type).value;
+      if (value == to_lower(property_value)) matches.push_back(volume);
+    }
+  }
+
+  if (type == PropertyType::BOUNDARY_CONDITION){
+    for (auto surface : surfaces()) {
+      if (!surface_has_property(surface, type)) continue;
+      auto property_value = get_surface_property(surface, type).value;
+      if (value == to_lower(property_value)) matches.push_back(surface);
+    }
+  }
+
+  return matches;
 }
 
 MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const

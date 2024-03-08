@@ -30,6 +30,8 @@ struct Vec3da {
     struct{ double x,y,z;  size_t a;};
   };
 
+  __forceinline Vec3da(double v[3]) { x = v[0]; y = v[1]; z = v[2]; a = 0; }
+
   __forceinline Vec3da(std::vector<double> const& vec) : x(vec[0]), y(vec[1]), z(vec[2]), a(0) {
     if (vec.size() != 3)
       throw std::runtime_error("Vec3da constructor from std::vector<double> requires a vector of size 3");

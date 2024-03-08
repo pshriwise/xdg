@@ -296,6 +296,23 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
   return surface_ids;
 }
 
+void MOABMeshManager::apply_graveyard_bcs() {
+
+  // search for any volumes with the material "graveyard"
+  auto graveyard_volumes = this->property_match(PropertyType::BOUNDARY_CONDITION, "graveyard");
+
+  for (auto graveyard_volume : graveyard_volumes) {
+    // update value of this volume's material to void
+    volume_metadata_[{graveyard_volume, PropertyType::MATERIAL}] = {PropertyType::MATERIAL, "void"};
+
+    // assign a vacuum boundary condition to all of the volume's surfaces
+    auto surfaces = get_volume_surfaces(graveyard_volume);
+    for (auto surface : surfaces) {
+      surface_metadata_[{surface, PropertyType::BOUNDARY_CONDITION}] = {PropertyType::MATERIAL, "vacuum"};
+    }
+  }
+}
+
 void
 MOABMeshManager::parse_metadata()
 {

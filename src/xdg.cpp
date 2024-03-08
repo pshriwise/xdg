@@ -45,23 +45,50 @@ bool XDG::point_in_volume(MeshID volume,
 MeshID XDG::find_volume(const Position& point,
                                                    const Direction& direction) const
 {
+  MeshID ipc = mesh_manager()->implicit_complement();
   for (auto volume_scene_pair : volume_to_scene_map_) {
     MeshID volume = volume_scene_pair.first;
+    // skip the implicit complement for now in case it's not in the back of the volumes vector
+    if (volume == ipc) continue;
     TreeID scene = volume_scene_pair.second;
     if (ray_tracing_interface()->point_in_volume(scene, point, &direction)) {
       return volume;
     }
   }
+  // finally, check the implicit complement volume for point containment
+  if (ipc != ID_NONE && ray_tracing_interface()->point_in_volume(volume_to_scene_map_.at(ipc), point, &direction))
+    return ipc;
+
   return ID_NONE;
 }
 
+// TODO: possibly remove in favor of ray_fire_volume????
 std::pair<double, MeshID>
 XDG::ray_fire(MeshID volume,
               const Position& origin,
               const Direction& direction,
               std::vector<MeshID>* const exclude_primitives) const
 {
+  return ray_fire_volume(volume, origin, direction, exclude_primitives);
+}
+
+std::pair<double, MeshID>
+XDG::ray_fire_volume(MeshID volume,
+                     const Position& origin,
+                     const Direction& direction,
+                     std::vector<MeshID>* const exclude_primitives) const
+{
   TreeID scene = volume_to_scene_map_.at(volume);
+  return ray_tracing_interface()->ray_fire(scene, origin, direction, exclude_primitives);
+}
+
+std::pair<double, MeshID>
+XDG::ray_fire_surface(MeshID surface,
+                     const Position& origin,
+                     const Direction& direction,
+                     std::vector<MeshID>* const exclude_primitives) const
+{
+  TreeID scene = volume_to_scene_map_.at(surface);
   return ray_tracing_interface()->ray_fire(scene, origin, direction, exclude_primitives);
 }
 
@@ -89,6 +116,11 @@ bool XDG::occluded(MeshID volume,
 {
   TreeID scene = volume_to_scene_map_.at(volume);
   return ray_tracing_interface()->occluded(scene, origin, direction, dist);
+}
+
+MeshID XDG::next_volume(MeshID current_volume, MeshID surface) const
+{
+  return mesh_manager()->next_volume(current_volume, surface);
 }
 
 Direction XDG::surface_normal(MeshID surface,

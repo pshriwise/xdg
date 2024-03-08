@@ -18,7 +18,7 @@ public:
   XDG(std::shared_ptr<MeshManager> mesh_manager) :
     mesh_manager_(mesh_manager) {}
 
-  // factor method that allows for specification of a backend mesh library
+  // factory method that allows for specification of a backend mesh library
   static std::shared_ptr<XDG> create(MeshLibrary library);
 
 // Methods
@@ -37,6 +37,16 @@ std::pair<double, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
                                    std::vector<MeshID>* const exclude_primitives = nullptr) const;
+
+std::pair<double, MeshID> ray_fire_volume(MeshID volume,
+                                          const Position& origin,
+                                          const Direction& direction,
+                                          std::vector<MeshID>* exclude_primitives = nullptr) const;
+
+std::pair<double, MeshID> ray_fire_surface(MeshID surface,
+                                           const Position& origin,
+                                           const Direction& direction,
+                                           std::vector<MeshID>* exclude_primitives = nullptr) const;
 
 void closest(MeshID volume,
               const Position& origin,
@@ -57,24 +67,28 @@ Direction surface_normal(MeshID surface,
                          const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
 
-  // Geometric Measurements
-  double measure_volume(MeshID volume) const;
-  double measure_surface_area(MeshID surface) const;
-  double measure_volume_area(MeshID surface) const;
+MeshID next_volume(MeshID current_volume, MeshID surface) const
+{
+  return mesh_manager()->next_volume(current_volume, surface);
+}
+
+// Geometric Measurements
+double measure_volume(MeshID volume) const;
+double measure_surface_area(MeshID surface) const;
+double measure_volume_area(MeshID surface) const;
 
 // Mutators
-  void set_mesh_manager_interface(std::shared_ptr<MeshManager> mesh_manager) {
-    mesh_manager_ = mesh_manager;
-  }
+void set_mesh_manager_interface(std::shared_ptr<MeshManager> mesh_manager) { mesh_manager_ = mesh_manager; }
 
 // Accessors
-  const std::shared_ptr<RayTracer> ray_tracing_interface() const {
-    return ray_tracing_interface_;
-  }
+const std::shared_ptr<RayTracer> ray_tracing_interface() const {
+  return ray_tracing_interface_;
+}
 
-  const std::shared_ptr<MeshManager>& mesh_manager() const {
-    return mesh_manager_;
-  }
+const std::shared_ptr<MeshManager>& mesh_manager() const {
+  return mesh_manager_;
+}
+
 // Private methods
 private:
   double _triangle_volume_contribution(const PrimitiveRef& triangle) const;

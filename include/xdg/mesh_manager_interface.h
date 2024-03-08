@@ -80,6 +80,10 @@ public:
   Property get_volume_property(MeshID volume, PropertyType type) const;
   Property get_surface_property(MeshID surface, PropertyType type) const;
 
+  std::vector<MeshID> property_match(PropertyType type, const std::string& property_value) const;
+
+  MeshID implicit_complement() { return implicit_complement_; }
+
   // Accessors
   const std::vector<MeshID>& volumes() const { return volumes_; }
   std::vector<MeshID>& volumes() { return volumes_; }
@@ -96,7 +100,7 @@ protected:
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
 
-
+  MeshID implicit_complement_{ID_NONE};
 };
 
 } // namespace xdg

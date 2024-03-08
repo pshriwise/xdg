@@ -97,7 +97,7 @@ void cross_surface()
       history_ = {history_.back()};
     }
   } else {
-    volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
+    volume_ = xdg_->next_volume(volume_, surface_intersection_.second);
     log("Particle {} enters volume {}", id_, volume_);
     if (volume_ == ID_NONE) {
       alive_ = false;

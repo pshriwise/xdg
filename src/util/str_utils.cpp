@@ -38,4 +38,11 @@ std::string& strtrim(std::string& s, std::string symbols)
   return s;
 }
 
+std::string& to_lower(std::string& str)
+{
+  for (int i = 0; i < str.size(); i++)
+    str[i] = std::tolower(str[i]);
+  return str;
+}
+
 } // namespace xdg
