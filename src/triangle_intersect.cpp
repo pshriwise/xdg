@@ -23,14 +23,14 @@ bool orientation_cull(const Direction& ray_dir, const Direction& normal, HitOrie
   return false;
 }
 
-bool primitive_mask_cull(RTCDRayHit* rayhit) {
+  bool primitive_mask_cull(RTCDRayHit* rayhit, const PrimitiveRef& primitive_ref) {
   if (!rayhit->ray.exclude_primitives) return false;
 
   RTCDRay& ray = rayhit->ray;
   RTCDHit& hit = rayhit->hit;
 
   // if the primitive mask is set, cull if the primitive is not in the mask
-  return std::find(ray.exclude_primitives->begin(), ray.exclude_primitives->end(), hit.primID) != ray.exclude_primitives->end();
+  return std::find(ray.exclude_primitives->begin(), ray.exclude_primitives->end(), primitive_ref.primitive_id) != ray.exclude_primitives->end();
 }
 
 void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
@@ -79,7 +79,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
    if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
-   if (primitive_mask_cull(rayhit)) return;
+   if (primitive_mask_cull(rayhit, primitive_ref)) return;
   }
 
   // if we've gotten through all of the filters, set the ray information
@@ -143,5 +143,3 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
 }
 
 } // namespace xdg
-
-
