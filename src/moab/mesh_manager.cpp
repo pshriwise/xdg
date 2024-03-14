@@ -66,6 +66,8 @@ void MOABMeshManager::init() {
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
     surfaces_.push_back(moab_surface_ids[i]);
   }
+
+  create_implicit_complement();
 }
 
 // Methods
@@ -112,7 +114,7 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
 {
   moab::EntityHandle vol_handle = volume_id_map_.at(volume);
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
-  this->moab_interface()->add_parent_child(volume, surface);
+  this->moab_interface()->add_parent_child(vol_handle, surf_handle);
 
   // insert new volume into sense data
   auto sense_data = this->surface_senses(surface);
@@ -299,7 +301,7 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 void MOABMeshManager::apply_graveyard_bcs() {
 
   // search for any volumes with the material "graveyard"
-  auto graveyard_volumes = this->property_match(PropertyType::BOUNDARY_CONDITION, "graveyard");
+  auto graveyard_volumes = this->property_match(PropertyType::MATERIAL, "graveyard");
 
   for (auto graveyard_volume : graveyard_volumes) {
     // update value of this volume's material to void
@@ -339,8 +341,10 @@ MOABMeshManager::parse_metadata()
 
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
-    if (tokens.size() % 2 != 0)
-      fatal_error("Group name tokens are of incorrect size: {}", tokens.size());
+    if (tokens.size() % 2 != 0) {
+      // warning("Group name tokens are of incorrect size: {}", tokens.size());
+      continue;
+    }
 
     std::vector<Property> group_properties;
     // iterate over tokens by 2 and setup property objects
@@ -378,5 +382,5 @@ MOABMeshManager::parse_metadata()
       }
     }
   }
-
+  apply_graveyard_bcs();
 }
