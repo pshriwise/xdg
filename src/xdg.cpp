@@ -118,11 +118,6 @@ bool XDG::occluded(MeshID volume,
   return ray_tracing_interface()->occluded(scene, origin, direction, dist);
 }
 
-MeshID XDG::next_volume(MeshID current_volume, MeshID surface) const
-{
-  return mesh_manager()->next_volume(current_volume, surface);
-}
-
 Direction XDG::surface_normal(MeshID surface,
                               Position point,
                               const std::vector<MeshID>* exclude_primitives) const
