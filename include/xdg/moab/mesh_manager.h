@@ -21,7 +21,8 @@ static const std::map<std::string, PropertyType> MOAB_PROPERTY_MAP
 {
   {"mat", PropertyType::MATERIAL},
   {"material", PropertyType::MATERIAL},
-  {"boundary", PropertyType::BOUNDARY_CONDITION}
+  {"boundary", PropertyType::BOUNDARY_CONDITION},
+  {"temp", PropertyType::TEMPERATURE}
 };
 
 
@@ -122,4 +123,3 @@ private:
 } // namespace xdg
 
 #endif
-
