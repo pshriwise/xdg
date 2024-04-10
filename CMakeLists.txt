@@ -74,6 +74,12 @@ src/util/str_utils.cpp
 src/xdg.cpp
 )
 
+if (XDG_ENABLE_LIBMESH)
+list(APPEND xdg_sources
+src/libmesh/mesh_manager.cpp
+)
+endif()
+
 if (XDG_ENABLE_MOAB)
 list(APPEND xdg_sources
 # MOAB
