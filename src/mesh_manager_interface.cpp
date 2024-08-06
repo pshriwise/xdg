@@ -84,4 +84,46 @@ MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
   return ID_NONE;
 }
 
+Direction MeshManager::triangle_normal(MeshID element) const
+{
+  auto vertices = this->triangle_vertices(element);
+  return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
+}
+
+BoundingBox
+MeshManager::element_bounding_box(MeshID element) const
+{
+  auto vertices = this->element_vertices(element);
+  return BoundingBox::from_points(vertices);
+}
+
+BoundingBox
+MeshManager::volume_bounding_box(MeshID volume) const
+{
+  BoundingBox bb;
+  auto surfaces = this->get_volume_surfaces(volume);
+  for (auto surface : surfaces) {
+    bb.update(this->surface_bounding_box(surface));
+  }
+  return bb;
+}
+
+BoundingBox
+MeshManager::surface_bounding_box(MeshID surface) const
+{
+  auto elements = this->get_surface_elements(surface);
+  BoundingBox bb;
+  for (const auto& element : elements) {
+    bb.update(this->element_bounding_box(element));
+  }
+  return bb;
+}
+
+std::pair<MeshID, MeshID>
+MeshManager::get_parent_volumes(MeshID surface) const
+{
+  return this->surface_senses(surface);
+}
+
+
 } // namespace xdg

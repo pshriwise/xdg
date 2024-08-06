@@ -200,40 +200,6 @@ std::array<Vertex, 3> MOABMeshManager::triangle_vertices(MeshID element) const
   return {vertices[0], vertices[1], vertices[2]};
 }
 
-Direction MOABMeshManager::triangle_normal(MeshID element) const
-{
-  auto vertices = this->triangle_vertices(element);
-  return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
-}
-
-BoundingBox MOABMeshManager::element_bounding_box(MeshID element) const
-{
-  auto vertices = this->element_vertices(element);
-  return BoundingBox::from_points(vertices);
-}
-
-BoundingBox
-MOABMeshManager::volume_bounding_box(MeshID volume) const
-{
-  BoundingBox bb;
-  auto surfaces = this->get_volume_surfaces(volume);
-  for (auto surface : surfaces) {
-    bb.update(this->surface_bounding_box(surface));
-  }
-  return bb;
-}
-
-BoundingBox
-MOABMeshManager::surface_bounding_box(MeshID surface) const
-{
-  auto elements = this->_surface_elements(surface);
-  BoundingBox bb;
-  for (const auto& element : elements) {
-    bb.update(this->element_bounding_box(element));
-  }
-  return bb;
-}
-
 std::pair<MeshID, MeshID>
 MOABMeshManager::surface_senses(MeshID surface) const
 {
@@ -249,12 +215,6 @@ MOABMeshManager::surface_senses(MeshID surface) const
   this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data()+1, 1, mesh_ids.data()+1);
 
   return {mesh_ids[0], mesh_ids[1]};
-}
-
-std::pair<MeshID, MeshID>
-MOABMeshManager::get_parent_volumes(MeshID surface) const
-{
-  return this->surface_senses(surface);
 }
 
 Sense
