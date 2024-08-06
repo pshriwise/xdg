@@ -59,12 +59,23 @@ jobs:
           make -j4
           make install
 
+      - name: Build libMesh
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/libMesh/libmesh.git
+          cd libmesh
+          git checkout v1.6.0
+          mkdir build
+          ../configure --prefix=/usr/local --enable-netcdf --enable-optimize --disable-mpi
+          make -j2
+          sudo make install
       - name: Build
         shell: bash
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=$HOME/MOAB -DCMAKE_INSTALL_PREFIX=$HOME/opt
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
           make -j4 install
 
       - name: Test
@@ -77,3 +88,7 @@ jobs:
         shell: bash
         run: |
           ~/opt/bin/tools/find-volume
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
