@@ -66,6 +66,7 @@ jobs:
           git clone https://github.com/libMesh/libmesh.git
           cd libmesh
           git checkout v1.6.0
+          git submodule update --init --recursive
           mkdir build
           cd build
           ../configure --prefix=/usr/local --enable-netcdf --enable-optimize --disable-mpi
