@@ -67,6 +67,7 @@ jobs:
           cd libmesh
           git checkout v1.6.0
           mkdir build
+          cd build
           ../configure --prefix=/usr/local --enable-netcdf --enable-optimize --disable-mpi
           make -j2
           sudo make install
