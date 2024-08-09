@@ -24,6 +24,7 @@ jobs:
           sudo apt install -y libgcc-9-dev \
                               libstdc++-9-dev \
                               libembree-dev \
+                              libnetcdf-dev \
                               libhdf5-dev \
                               libeigen3-dev \
                               cmake
