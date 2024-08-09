@@ -69,8 +69,8 @@ jobs:
           git submodule update --init --recursive
           mkdir build
           cd build
-          ../configure --prefix=/usr/local --enable-exodus --disable-netcdf-4 --enable-optimize --disable-mpi
-          make -j2
+          ../configure --prefix=/usr/local --enable-exodus --enable-optimize --disable-mpi --enable-shared --disable-metaphysicl
+          make -j4
           sudo make install
       - name: Build
         shell: bash
