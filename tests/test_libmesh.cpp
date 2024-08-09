@@ -13,10 +13,13 @@
 
 using namespace xdg;
 
-TEST_CASE("Test MOAB Initialization")
+TEST_CASE("Test libMesh Initialization")
 {
-  std::unique_ptr<MeshManager> mesh_manager = std::make_unique<LibMeshMeshManager>();
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
+  mesh_manager->load_file("cyl-block.exo");
+
+  mesh_manager.reset();
   // mesh_manager->load_file("pwr_pincell.h5m");
   // mesh_manager->init();
 

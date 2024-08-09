@@ -1,6 +1,5 @@
 #include "xdg/libmesh/mesh_manager.h"
 
-
 #include "xdg/error.h"
 
 #include "libmesh/elem.h"
@@ -8,14 +7,7 @@
 #include "libmesh/mesh_tools.h"
 #include "libmesh/boundary_info.h"
 
-using namespace xdg;
-
-// libMesh mesh manager
-void initialize_libmesh() {
-  int argc = 0;
-  const char **argv = nullptr;
-  libmesh_init = std::make_unique<libMesh::LibMeshInit>(argc, nullptr);
-}
+namespace xdg {
 
 // Constructors
 LibMeshMeshManager::LibMeshMeshManager(void* ptr) {
@@ -24,12 +16,29 @@ LibMeshMeshManager::LibMeshMeshManager(void* ptr) {
 
 }
 
-LibMeshMeshManager::LibMeshMeshManager() : MeshManager() {}
+LibMeshMeshManager::LibMeshMeshManager() : MeshManager() {
+      if (libmesh_init == nullptr) { initialize_libmesh(); }
+}
 
 void
 LibMeshMeshManager::load_file(const std::string& filepath) {
-  mesh_ = std::make_unique<libMesh::Mesh>(libmesh_init->comm());
+  mesh_ = std::make_unique<libMesh::Mesh>(libmesh_init->comm(), 3);
   mesh_->read(filepath);
+}
+
+
+LibMeshMeshManager::~LibMeshMeshManager() {
+  mesh_->clear();
+  libmesh_init.reset();
+}
+
+// libMesh mesh manager
+void LibMeshMeshManager::initialize_libmesh() {
+  // libmesh requires the program name, so at least one argument is needed
+  int argc = 1;
+  const std::string argv {"XDG"};
+  const char *argv_cstr = argv.c_str();
+  libmesh_init = std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0));
 }
 
 void
@@ -54,6 +63,10 @@ LibMeshMeshManager::init() {
     surfaces_.push_back(entry.first);
   }
 
+  for (auto entry : boundary_info.get_sideset_map()) {
+    auto side_id = entry.first->side_ptr(entry.second.first)->id();
+    sideset_element_map_[entry.second.second].push_back(side_id);
+  }
 }
 
 void
@@ -131,10 +144,35 @@ LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
 
 std::pair<MeshID, MeshID>
 LibMeshMeshManager::surface_senses(MeshID surface) const {
-  return {ID_NONE, ID_NONE};
+
+  std::pair<MeshID, MeshID> senses {ID_NONE, ID_NONE};
+
+  // get one of the sides for this surface
+  auto side = mesh()->elem_ptr(sideset_element_map_.at(surface).at(0));
+
+  // if (!side->is_face()) {
+  //   fatal_error("Surface element is not a face");
+  // }
+
+  // get the parent of this side elmenet
+  auto parent = side->parent();
+  // determine what subdomain this parent element is in
+  auto subdomain_id = parent->subdomain_id();
+  senses.first = subdomain_id;
+
+  // get the subdomain on the other side of this face
+  if (!side->on_boundary()) {
+    auto side_number = side->which_side_am_i(parent);
+    auto other_element = parent->neighbor_ptr(side_number);
+    senses.second = other_element->subdomain_id();
+  }
+
+  return senses;
 }
 
 Sense
 LibMeshMeshManager::surface_sense(MeshID surface, MeshID volume) const {
   return Sense::FORWARD;
 }
+
+} // namespace xdg
