@@ -38,6 +38,7 @@ overlap.h5m
 small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
+cyl-block.exo
 )
 
 foreach(file ${TEST_FILES})

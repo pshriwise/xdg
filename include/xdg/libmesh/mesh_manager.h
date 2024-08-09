@@ -10,7 +10,6 @@
 #include "libmesh/mesh.h"
 namespace xdg {
 
-std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
 
 class LibMeshMeshManager : public MeshManager {
 
@@ -19,9 +18,13 @@ public:
 
   LibMeshMeshManager();
 
+  ~LibMeshMeshManager();
+
   MeshLibrary mesh_library() const override { return MeshLibrary::LIBMESH; }
 
   void load_file(const std::string& filepath) override;
+
+  void initialize_libmesh();
 
   void init() override;
 
@@ -71,7 +74,11 @@ public:
   const libMesh::Mesh* mesh() const { return mesh_.get(); }
 
   private:
-    std::unique_ptr<libMesh::Mesh> mesh_;
+    std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
+    // TODO: make this global so it isn't owned by a single mesh manager
+    std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
+
+    std::unordered_map<MeshID, std::vector<MeshID>> sideset_element_map_;
 };
 
 } // namespace xdg
