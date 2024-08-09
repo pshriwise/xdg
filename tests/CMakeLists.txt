@@ -32,6 +32,7 @@ set(
 TEST_FILES
 pwr_pincell.h5m
 cube.h5m
+cyl-block.exo
 )
 
 foreach(file ${TEST_FILES})

@@ -321,5 +321,4 @@ MOABMeshManager::parse_metadata()
       }
     }
   }
-
 }
