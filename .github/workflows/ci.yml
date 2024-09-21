@@ -70,15 +70,16 @@ jobs:
           git submodule update --init --recursive
           mkdir build
           cd build
-          ../configure --prefix=/usr/local --enable-exodus --enable-optimize --disable-mpi --enable-shared --disable-metaphysicl
+          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
           make -j4
           sudo make install
+
       - name: Build
         shell: bash
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
+          cmake .. -DCMAKE_PREFIX_PATH="$HOME/LIBMESH;$HOME/MOAB" -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
           make -j4 install
 
       - name: Test
