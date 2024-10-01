@@ -1,4 +1,5 @@
 // stl includes
+#include <iostream>
 #include <memory>
 
 // testing includes
@@ -17,18 +18,18 @@ TEST_CASE("Test libMesh Initialization")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
-  mesh_manager->load_file("cyl-block.exo");
+  mesh_manager->load_file("demo.exo");
 
+  mesh_manager->init();
+
+  REQUIRE(mesh_manager->num_volumes() == 2);
+  REQUIRE(mesh_manager->num_surfaces() == 12);
   mesh_manager.reset();
-  // mesh_manager->load_file("pwr_pincell.h5m");
-  // mesh_manager->init();
 
-  // REQUIRE(mesh_manager->num_volumes() == 3);
-  // REQUIRE(mesh_manager->num_surfaces() == 12);
 
-  // // create the implicit complement volume
+  // create the implicit complement volume
   // mesh_manager->create_implicit_complement();
-  // REQUIRE(mesh_manager->num_volumes() == 4);
+  // REQUIRE(mesh_manager->num_volumes() == 3);
 
   // // parse metadata
   // mesh_manager->parse_metadata();

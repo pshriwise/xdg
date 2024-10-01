@@ -58,15 +58,20 @@ LibMeshMeshManager::init() {
     volumes_.push_back(id);
   }
 
+  std::set<MeshID> boundary_ids;
+
   auto boundary_info = mesh()->get_boundary_info();
   for (auto entry : boundary_info.get_sideset_name_map()) {
-    surfaces_.push_back(entry.first);
+    boundary_ids.insert(entry.first);
   }
 
   for (auto entry : boundary_info.get_sideset_map()) {
     auto side_id = entry.first->side_ptr(entry.second.first)->id();
     sideset_element_map_[entry.second.second].push_back(side_id);
+    boundary_ids.insert(entry.second.second);
   }
+
+  surfaces_ = std::vector<MeshID>(boundary_ids.begin(), boundary_ids.end());
 }
 
 void
