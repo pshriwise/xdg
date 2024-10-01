@@ -18,7 +18,7 @@ TEST_CASE("Test libMesh Initialization")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
-  mesh_manager->load_file("demo.exo");
+  mesh_manager->load_file("cyl-block.exo");
 
   mesh_manager->init();
 
