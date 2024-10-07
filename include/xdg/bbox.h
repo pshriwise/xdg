@@ -5,12 +5,12 @@
 namespace xdg {
 union BoundingBox {
 struct {
-  double min_x;
-  double min_y;
-  double min_z;
-  double max_x;
-  double max_y;
-  double max_z;
+  double min_x {0.0};
+  double min_y {0.0};
+  double min_z {0.0};
+  double max_x {0.0};
+  double max_y {0.0};
+  double max_z {0.0};
 };
 double bounds[6];
 
@@ -55,9 +55,7 @@ void update(const BoundingBox& other) {
 }
 
 Position center() const {
-  return Position {(min_x + max_x) / 2.0,
-                   (min_y + max_y) / 2.0,
-                   (min_z + max_z) / 2.0};
+  return Position {(min_x + max_x), (min_y + max_y), (min_z + max_z)} * 0.5;
 }
 
 static BoundingBox from_points(const std::vector<Position>& points) {
