@@ -21,15 +21,15 @@ TEST_CASE("Test libMesh Initialization")
   mesh_manager->load_file("cyl-block.exo");
 
   mesh_manager->init();
+  // mesh_manager->create_volume();
 
   REQUIRE(mesh_manager->num_volumes() == 2);
   REQUIRE(mesh_manager->num_surfaces() == 12);
-  mesh_manager.reset();
 
 
   // create the implicit complement volume
-  // mesh_manager->create_implicit_complement();
-  // REQUIRE(mesh_manager->num_volumes() == 3);
+  mesh_manager->create_implicit_complement();
+  REQUIRE(mesh_manager->num_volumes() == 3);
 
   // // parse metadata
   // mesh_manager->parse_metadata();
