@@ -50,6 +50,8 @@ public:
     return mesh()->n_elem();
   }
 
+  void discover_surface_elements();
+
   std::vector<MeshID> get_volume_elements(MeshID volume) const override;
 
   std::vector<MeshID> get_surface_elements(MeshID surface) const override;
@@ -60,7 +62,7 @@ public:
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
-  MeshID create_volume() override { throw std::runtime_error("Create volume not implemented for libMesh"); }
+  MeshID create_volume() override;
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override {
     throw std::runtime_error("Add surface to volume not implemented for libMesh");
@@ -78,7 +80,25 @@ public:
     // TODO: make this global so it isn't owned by a single mesh manager
     std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
 
-    std::unordered_map<MeshID, std::vector<MeshID>> sideset_element_map_;
+    // sideset face mapping, stores the element and the side number
+    // for each face in the mesh that lies on a boundary
+    std::unordered_map<MeshID, std::vector<std::pair<const libMesh::Elem*, MeshID>>> sideset_element_map_;
+
+  struct MeshIDPairHash {
+    std::size_t operator()(const std::pair<MeshID, MeshID>& p) const
+    {
+      return 4096 * p.first + p.second;
+    }
+  };
+
+  std::unordered_map<std::pair<MeshID, MeshID>, std::vector<std::pair<const libMesh::Elem*, int>>, MeshIDPairHash>
+  subdomain_interface_map_;
+
+  // TODO: store proper data types here
+  std::unordered_map<MeshID, std::vector<std::pair<const libMesh::Elem*, int>>> surface_map_;
+
+  std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
+
 };
 
 } // namespace xdg
