@@ -77,9 +77,8 @@ void LibMeshMeshManager::init() {
 
   discover_surface_elements();
 
-  mesh()->print_info(std::cout, 2);
-
-  surfaces_ = std::vector<MeshID>(boundary_ids.begin(), boundary_ids.end());
+  mesh()->prepare_for_use();
+  // surfaces_ = std::vector<MeshID>(boundary_ids.begin(), boundary_ids.end());
 }
 
 MeshID LibMeshMeshManager::create_volume() {
@@ -89,9 +88,26 @@ MeshID LibMeshMeshManager::create_volume() {
   // for (auto elem : mesh()->element_ptr_range()) {
   //   std::cout << elem->subdomain_id() << std::endl;
   // }
-  return -1;
+  MeshID next_volume_id = *std::max_element(volumes_.begin(), volumes_.end()) + 1;
+  return next_volume_id;
   //  throw std::runtime_error("Not implemented");
 }
+
+void LibMeshMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite) {
+    auto senses = surface_senses(surface);
+    if (sense == Sense::FORWARD) {
+      if (!overwrite && senses.first != ID_NONE) {
+        fatal_error("Surface already has a forward sense");
+      }
+      surface_senses_[surface] = {volume, senses.second};
+    } else {
+      if (!overwrite && senses.second != ID_NONE) {
+        fatal_error("Surface already has a reverse sense");
+      }
+      surface_senses_[surface] = {senses.first, volume};
+    }
+}
+
 
 void LibMeshMeshManager::parse_metadata() {
   // surface metadata
@@ -112,6 +128,16 @@ void LibMeshMeshManager::parse_metadata() {
   }
 }
 
+template<typename T>
+bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
+  for (const auto& elem : set2) {
+    if (set1.count(elem) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void LibMeshMeshManager::discover_surface_elements() {
   for (const auto *elem : mesh()->active_local_element_ptr_range()) {
     auto subdomain_id = elem->subdomain_id();
@@ -128,11 +154,65 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
   }
 
+  // replace interface surfaces with sideset surfaces as needed
+  for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
+    if (sideset_elems.size() == 0) continue;
+
+    // determine the subdomain IDs for this sideset
+    // (possible that the face is the boundary of the mesh)
+    std::pair<MeshID, MeshID> subdomain_pair {ID_NONE, ID_NONE};
+    auto sense = Sense::FORWARD;
+    auto elem_pair = sideset_elems.at(0);
+    subdomain_pair.first = elem_pair.first->subdomain_id();
+    auto neighbor = elem_pair.first->neighbor_ptr(elem_pair.second);
+    if (neighbor)
+      subdomain_pair.second = neighbor->subdomain_id();
+    else
+      subdomain_pair.second = ID_NONE;
+
+    if(subdomain_interface_map_.count(subdomain_pair) == 0) {
+      auto sense = Sense::REVERSE;
+      subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
+    }
+    if (subdomain_interface_map_.count(subdomain_pair) == 0) {
+      fatal_error("No interface elements found for sideset");
+    }
+
+    // replace the interface elements with the sideset elements
+    auto interface_elems = subdomain_interface_map_[subdomain_pair];
+    std::set<std::pair<const libMesh::Elem*, int>> interface_set(interface_elems.begin(), interface_elems.end());
+    std::set<std::pair<const libMesh::Elem*, int>> sideset_set(sideset_elems.begin(), sideset_elems.end());
+
+    // if the interface set contains the sideset set, then remove the sideset
+    // elements from the interface elements
+    if (contains_set(interface_set, sideset_set)) {
+      for (const auto& elem : sideset_elems) {
+        interface_set.erase(elem);
+      }
+      subdomain_interface_map_[subdomain_pair] = std::vector<std::pair<const libMesh::Elem*, int>>(interface_set.begin(), interface_set.end());
+    } else {
+      fatal_error("Partial match for sideset elements in a subdomain interface");
+    }
+
+    // add this sideset to the list of surfaces
+    surfaces_.push_back(sideset_id);
+    // set the surface senses -- I don't love this part....
+    // TODO: streamline this
+    if (sense == Sense::REVERSE) {
+      subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
+    }
+    surface_senses_[sideset_id] = subdomain_pair;
+    surface_map_[sideset_id] = sideset_elems;
+  }
+
+
   MeshID surface_id = 1000;
 
   std::set<std::pair<MeshID, MeshID>> visited_interfaces;
 
   for (auto &[pair, elements] : subdomain_interface_map_) {
+    if (elements.size() == 0) continue;
+
     // if we've already visited this interface, but going the other direction,
     // skip it
     if (visited_interfaces.count({pair.second, pair.first}) > 0)
@@ -142,24 +222,24 @@ void LibMeshMeshManager::discover_surface_elements() {
     surface_senses_[surface_id] = pair;
     for (const auto &elem : elements) {
       surface_map_[surface_id].push_back(elem);
-      surfaces().push_back(surface_id);
     }
-    surface_id++;
+    surfaces().push_back(surface_id++);
   }
 
   auto& boundary_info = mesh_->get_boundary_info();
+
+
+  int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(), boundary_info.get_boundary_ids().end()) + 1;
+
   // put all boundary elements in a special sideset
   for (auto &[id, elem_side] : subdomain_interface_map_) {
     if (id.first == ID_NONE || id.second == ID_NONE) {
       for (const auto &elem : elem_side) {
-        boundary_info.add_side(elem.first, elem.second, 1);
+        boundary_info.add_side(elem.first, elem.second, next_boundary_id);
       }
     }
   }
-  boundary_info.sideset_name(1) = "boundary";
-
-  mesh_->prepare_for_use();
-  mesh_->write("test.e");
+  boundary_info.sideset_name(next_boundary_id) = "boundary";
 }
 
 std::vector<MeshID>
@@ -222,7 +302,6 @@ LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
 
 std::pair<MeshID, MeshID>
 LibMeshMeshManager::surface_senses(MeshID surface) const {
-
   return surface_senses_.at(surface);
 }
 //   std::pair<MeshID, MeshID> senses {ID_NONE, ID_NONE};
