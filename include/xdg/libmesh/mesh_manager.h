@@ -64,9 +64,7 @@ public:
 
   MeshID create_volume() override;
 
-  void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override {
-    throw std::runtime_error("Add surface to volume not implemented for libMesh");
-  }
+  void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 
@@ -74,6 +72,7 @@ public:
 
   // Accessors
   const libMesh::Mesh* mesh() const { return mesh_.get(); }
+  libMesh::Mesh* mesh() { return mesh_.get(); }
 
   private:
     std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};

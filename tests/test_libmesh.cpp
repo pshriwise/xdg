@@ -24,15 +24,18 @@ TEST_CASE("Test libMesh Initialization")
   // mesh_manager->create_volume();
 
   REQUIRE(mesh_manager->num_volumes() == 2);
-  REQUIRE(mesh_manager->num_surfaces() == 12);
 
+  // This correct based on geometry topology (provided sidesets)
+  REQUIRE(mesh_manager->num_surfaces() == 13);
+  // This is correct based on mesh topology
+  // REQUIRE(mesh_manager->num_surfaces() == 3);
 
   // create the implicit complement volume
   mesh_manager->create_implicit_complement();
   REQUIRE(mesh_manager->num_volumes() == 3);
 
-  // // parse metadata
-  // mesh_manager->parse_metadata();
+  // parse metadata
+  mesh_manager->parse_metadata();
 
   // std::map<MeshID, std::string> material_exp_results =
   //   {
