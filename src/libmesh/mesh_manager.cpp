@@ -123,8 +123,11 @@ void LibMeshMeshManager::parse_metadata() {
   // volume metadata
   for (auto volume : volumes_) {
     std::string subdomain_name = mesh()->subdomain_name(volume);
-    volume_metadata_[{volume, PropertyType::MATERIAL}] = {
-        PropertyType::MATERIAL, subdomain_name};
+    if (subdomain_name.empty()) {
+      volume_metadata_[{volume, PropertyType::MATERIAL}] = VOID_MATERIAL;
+    } else {
+      volume_metadata_[{volume, PropertyType::MATERIAL}] = {PropertyType::MATERIAL, subdomain_name};
+    }
   }
 }
 
@@ -257,14 +260,12 @@ LibMeshMeshManager::get_volume_elements(MeshID volume) const {
 
 std::vector<MeshID>
 LibMeshMeshManager::get_surface_elements(MeshID surface) const {
-  std::vector<MeshID> faces;
-  for (auto &[elem, side_info] :
-       mesh()->get_boundary_info().get_sideset_map()) {
-    if (side_info.second == surface) {
-      faces.push_back(elem->side_ptr(side_info.first)->id());
-    }
+  const auto& elems = surface_map_.at(surface);
+  std::vector<MeshID> elements;
+  for (const auto& elem : elems) {
+    elements.push_back(elem.first->id());
   }
-  return faces;
+  return elements;
 }
 
 std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
@@ -290,11 +291,13 @@ LibMeshMeshManager::triangle_vertices(MeshID element) const {
 
 std::vector<MeshID>
 LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
+
+  // walk the surface senses and return the surfaces that have this volume
+  // as an entry
   std::vector<MeshID> surfaces;
-  for (auto &[elem, side_info] :
-       mesh()->get_boundary_info().get_sideset_map()) {
-    if (side_info.first == volume) {
-      surfaces.push_back(side_info.second);
+  for (const auto& [surface, senses] : surface_senses_) {
+    if (senses.first == volume || senses.second == volume) {
+      surfaces.push_back(surface);
     }
   }
   return surfaces;
