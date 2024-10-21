@@ -37,23 +37,47 @@ TEST_CASE("Test libMesh Initialization")
   // parse metadata
   mesh_manager->parse_metadata();
 
-  // std::map<MeshID, std::string> material_exp_results =
-  //   {
-  //     {1, "UO2 (2.4%)"},
-  //     {2, "Zircaloy"},
-  //     {3, "Hot borated water"},
-  //     {4, "void"}
-  //   };
+  std::map<MeshID, std::string> material_exp_results =
+    {
+      {1, "mat:steel"},
+      {2, "mat:iron"},
+      {3, "void"}
+    };
+    //   {1, "UO2 (2.4%)"},
+    //   {2, "Zircaloy"},
+    //   {3, "Hot borated water"},
+    //   {4, "void"}
+    // };
 
-  // for (auto volume : mesh_manager->volumes()) {
-  //   auto prop = mesh_manager->get_volume_property(volume, PropertyType::MATERIAL);
-  //   REQUIRE(prop.type == PropertyType::MATERIAL);
-  //   REQUIRE(material_exp_results[volume] == prop.value);
-  // }
+  for (auto volume : mesh_manager->volumes()) {
+    auto prop = mesh_manager->get_volume_property(volume, PropertyType::MATERIAL);
+    REQUIRE(prop.type == PropertyType::MATERIAL);
+    REQUIRE(material_exp_results[volume] == prop.value);
+  }
 
-  // std::vector reflecting_surface_ids {2, 3, 14, 15, 17, 18};
-  // for (auto surface : reflecting_surface_ids) {
-  //   auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
-  //   REQUIRE(prop.value == "reflecting");
-  // }
+  std::vector reflecting_surface_ids {1};
+  for (auto surface : reflecting_surface_ids) {
+    auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
+    REQUIRE(prop.value == "boundary:reflective");
+  }
+}
+
+
+TEST_CASE("Test BVH Build")
+{
+  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshMeshManager>();
+
+  mesh_manager->load_file("cyl-block.exo");
+  mesh_manager->init();
+
+  REQUIRE(mesh_manager->num_volumes() == 2);
+  REQUIRE(mesh_manager->num_surfaces() == 13);
+
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+
+  for (auto volume : mesh_manager->volumes()) {
+    ray_tracing_interface->register_volume(mesh_manager, volume);
+  }
+
+  REQUIRE(ray_tracing_interface->num_registered_scenes() == 2);
 }
