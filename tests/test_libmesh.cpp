@@ -63,7 +63,7 @@ TEST_CASE("Test libMesh Initialization")
 }
 
 
-TEST_CASE("Test BVH Build")
+TEST_CASE("Test BVH Build LibMesh")
 {
   std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshMeshManager>();
 
@@ -81,3 +81,28 @@ TEST_CASE("Test BVH Build")
 
   REQUIRE(ray_tracing_interface->num_registered_scenes() == 2);
 }
+
+// TEST_CASE("Test Ray Fire LibMesh")
+// {
+//   std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+//   xdg->mesh_manager()->mesh_library();
+//   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+//   const auto& mesh_manager = xdg->mesh_manager();
+//   mesh_manager->load_file("cyl-block.exo");
+//   mesh_manager->init();
+//   xdg->prepare_raytracer();
+
+//   MeshID volume = 2;
+
+//   Position origin {0.0, 0.0, 10.0};
+//   Direction direction {0.0, 0.0, 1.0};
+//   std::pair<double, MeshID> intersection;
+
+//   intersection = xdg->ray_fire(volume, origin, direction);
+
+//   // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
+//   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+//   origin = {0.0, 0.0, 10.0};
+//   REQUIRE(xdg->point_in_volume(volume, origin));
+// }

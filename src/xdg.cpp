@@ -1,9 +1,11 @@
 #include <vector>
 
 #include "xdg/xdg.h"
+#include "xdg/error.h"
 
 // mesh manager concrete implementations
 #include "xdg/moab/mesh_manager.h"
+#include "xdg/libmesh/mesh_manager.h"
 
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
@@ -17,19 +19,22 @@ void XDG::prepare_raytracer()
   }
 }
 
-
 std::shared_ptr<XDG> XDG::create(MeshLibrary library)
 {
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
 
   switch (library)
   {
-  case MeshLibrary::MOAB:
-    xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
-    break;
-  default:
-    break;
+    case MeshLibrary::MOAB:
+      xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
+      break;
+    case MeshLibrary::LIBMESH:
+      xdg->set_mesh_manager_interface(std::make_shared<LibMeshMeshManager>());
+      break;
+    default:
+      break;
   }
+
   return xdg;
 }
 
