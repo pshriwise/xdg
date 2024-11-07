@@ -21,7 +21,6 @@ TEST_CASE("Test libMesh Initialization")
   mesh_manager->load_file("cyl-block.exo");
 
   mesh_manager->init();
-  // mesh_manager->create_volume();
 
   REQUIRE(mesh_manager->num_volumes() == 2);
 
