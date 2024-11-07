@@ -166,8 +166,8 @@ void LibMeshMeshManager::discover_surface_elements() {
     std::pair<MeshID, MeshID> subdomain_pair {ID_NONE, ID_NONE};
     auto sense = Sense::FORWARD;
     auto elem_pair = sideset_elems.at(0);
-    subdomain_pair.first = elem_pair.first->subdomain_id();
-    auto neighbor = elem_pair.first->neighbor_ptr(elem_pair.second);
+    subdomain_pair.first = elem_pair.first()->subdomain_id();
+    auto neighbor = elem_pair.second();
     if (neighbor)
       subdomain_pair.second = neighbor->subdomain_id();
     else
@@ -183,8 +183,8 @@ void LibMeshMeshManager::discover_surface_elements() {
 
     // replace the interface elements with the sideset elements
     auto interface_elems = subdomain_interface_map_[subdomain_pair];
-    std::set<std::pair<const libMesh::Elem*, int>> interface_set(interface_elems.begin(), interface_elems.end());
-    std::set<std::pair<const libMesh::Elem*, int>> sideset_set(sideset_elems.begin(), sideset_elems.end());
+    std::set<SidePair> interface_set(interface_elems.begin(), interface_elems.end());
+    std::set<SidePair> sideset_set(sideset_elems.begin(), sideset_elems.end());
 
     // if the interface set contains the sideset set, then remove the sideset
     // elements from the interface elements
@@ -192,7 +192,7 @@ void LibMeshMeshManager::discover_surface_elements() {
       for (const auto& elem : sideset_elems) {
         interface_set.erase(elem);
       }
-      subdomain_interface_map_[subdomain_pair] = std::vector<std::pair<const libMesh::Elem*, int>>(interface_set.begin(), interface_set.end());
+      subdomain_interface_map_[subdomain_pair] = std::vector<SidePair>(interface_set.begin(), interface_set.end());
     } else {
       fatal_error("Partial match for sideset elements in a subdomain interface");
     }
@@ -238,7 +238,7 @@ void LibMeshMeshManager::discover_surface_elements() {
   for (auto &[id, elem_side] : subdomain_interface_map_) {
     if (id.first == ID_NONE || id.second == ID_NONE) {
       for (const auto &elem : elem_side) {
-        boundary_info.add_side(elem.first, elem.second, next_boundary_id);
+        boundary_info.add_side(elem.first(), elem.first_to_second_side(), next_boundary_id);
       }
     }
   }
@@ -263,7 +263,7 @@ LibMeshMeshManager::get_surface_elements(MeshID surface) const {
   const auto& elems = surface_map_.at(surface);
   std::vector<MeshID> elements;
   for (const auto& elem : elems) {
-    elements.push_back(elem.first->id());
+    elements.push_back(elem.first()->id());
   }
   return elements;
 }
