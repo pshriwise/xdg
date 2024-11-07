@@ -7,6 +7,7 @@
 #include "xdg/mesh_manager_interface.h"
 
 #include "libmesh/libmesh.h"
+#include "libmesh/elem.h"
 #include "libmesh/mesh.h"
 namespace xdg {
 
@@ -75,13 +76,65 @@ public:
   libMesh::Mesh* mesh() { return mesh_.get(); }
 
   private:
+
+  struct SidePair {
+
+    SidePair(std::pair<const libMesh::Elem*, int> old_side) {
+      side.first = old_side.first;
+      side.second = old_side.first->neighbor_ptr(old_side.second);
+    }
+
+    SidePair(const libMesh::Elem* elem, int side_num) {
+      side.first = elem;
+      side.second = elem->neighbor_ptr(side_num);
+    }
+
+    SidePair(const libMesh::Elem* elem1, const libMesh::Elem* elem2) {
+      side.first = elem1;
+      side.second = elem2;
+    }
+
+    SidePair(std::pair<const libMesh::Elem*, const libMesh::Elem*> side_pair) : side(side_pair) {}
+
+    std::pair<const libMesh::Elem*, const libMesh::Elem*> side;
+
+    bool operator==(const SidePair& other) const
+    {
+      return side == other.side || side == std::make_pair(other.side.second, other.side.first);
+    }
+
+    bool operator<(const SidePair& other) const
+    {
+      return side < other.side;
+    }
+
+    const libMesh::Elem* first() const { return side.first; }
+    const libMesh::Elem* second() const { return side.second; }
+
+    MeshID first_to_second_side() const {
+      for (int i = 0; i < first()->n_sides(); i++) {
+        if (first()->neighbor_ptr(i) == second()) {
+          return i;
+        }
+      }
+    }
+
+    MeshID second_to_first_side() const {
+      for (int i = 0; i < second()->n_sides(); i++) {
+        if (second()->neighbor_ptr(i) == first()) {
+          return i;
+        }
+      }
+    }
+  };
+
     std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
     // TODO: make this global so it isn't owned by a single mesh manager
     std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
 
     // sideset face mapping, stores the element and the side number
     // for each face in the mesh that lies on a boundary
-    std::unordered_map<MeshID, std::vector<std::pair<const libMesh::Elem*, MeshID>>> sideset_element_map_;
+    std::unordered_map<MeshID, std::vector<SidePair>> sideset_element_map_;
 
   struct MeshIDPairHash {
     std::size_t operator()(const std::pair<MeshID, MeshID>& p) const
@@ -90,11 +143,11 @@ public:
     }
   };
 
-  std::unordered_map<std::pair<MeshID, MeshID>, std::vector<std::pair<const libMesh::Elem*, int>>, MeshIDPairHash>
+  std::unordered_map<std::pair<MeshID, MeshID>, std::vector<SidePair>, MeshIDPairHash>
   subdomain_interface_map_;
 
   // TODO: store proper data types here
-  std::unordered_map<MeshID, std::vector<std::pair<const libMesh::Elem*, int>>> surface_map_;
+  std::unordered_map<MeshID, std::vector<SidePair>> surface_map_;
 
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
 
