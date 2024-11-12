@@ -44,7 +44,11 @@ int main(int argc, char* argv[]) {
 	mm->load_file(args.get<std::string>("filename"));
 	mm->init();
 
-  mm->parse_metadata();
+  /* 
+    No metadate to parse in overlap.h5m. Also I don't think we are
+    are concerned with metadata when chkecking for overlaps? 
+  */
+  //mm->parse_metadata();
 	
   xdg->prepare_raytracer();
 
