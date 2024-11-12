@@ -60,6 +60,7 @@ src/ray_tracing_interface.cpp
 src/triangle_intersect.cpp
 src/util/str_utils.cpp
 src/xdg.cpp
+src/overlap.cpp
 )
 
 if (XDG_ENABLE_MOAB)

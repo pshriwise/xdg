@@ -12,6 +12,7 @@ test_point_in_volume
 test_normal
 test_measure
 test_xdg_interface
+test_overlap_check
 )
 
 if (XDG_ENABLE_MOAB)
@@ -28,6 +29,9 @@ set(
 TEST_FILES
 pwr_pincell.h5m
 cube.h5m
+overlap.h5m
+no_overlap.h5m
+small_overlap.h5m
 )
 
 foreach(file ${TEST_FILES})
