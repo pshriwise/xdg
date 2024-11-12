@@ -1,4 +1,5 @@
 #include "xdg/overlap.h"
+#include "xdg/progressBar.h"
 
 using namespace xdg;
 
@@ -16,9 +17,6 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
 		bool pointInVol = false;
 		pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
 
-    // rval = GQT->point_in_volume(vol, loc.array(), result, dir.array());
-    // MB_CHK_SET_ERR(rval, "Failed point in volume for Vol with id "
-    //                          << GTT->global_id(vol) << " at location " << loc);
 		if (pointInVol) {
 			vols_found.insert(vol);
 		}
@@ -37,9 +35,6 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   for (const auto& vol : all_vols) {
 		bool pointInVol = false;
     pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
-
-    // MB_CHK_SET_ERR(rval, "Failed point in volume for Vol with id "
-    //                          << GTT->global_id(vol) << " at location " << loc);
 
     if (pointInVol) {
       vols_found.insert(vol);
@@ -77,7 +72,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
   Direction dir = xdg::rand_dir();
 
-  // ProgressBar prog_bar;
+  ProgressBar prog_bar;
 
 // first check all triangle vertex locations
 #pragma omp parallel shared(overlap_map, num_checked)
@@ -87,10 +82,8 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       Vertex vert = all_verts[i];
       check_location_for_overlap(xdg, all_vols, vert, dir, overlap_map);
 
-// #pragma omp critical
-//       prog_bar.set_value(100.0 * (double)num_checked++ / (double)num_locations);
-//     }
-
+#pragma omp critical
+      prog_bar.set_value(100.0 * (double)num_checked++ / (double)num_locations);
     }
   }
 }
