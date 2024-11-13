@@ -4,8 +4,13 @@
 #include "xdg/error.h"
 
 // mesh manager concrete implementations
+#ifdef XDG_ENABLE_MOAB
 #include "xdg/moab/mesh_manager.h"
+#endif
+
+#ifdef XDG_ENABLE_LIBMESH
 #include "xdg/libmesh/mesh_manager.h"
+#endif
 
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
@@ -25,12 +30,16 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary library)
 
   switch (library)
   {
+    #ifdef XDG_ENABLE_MOAB
     case MeshLibrary::MOAB:
       xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
       break;
+    #endif
+    #ifdef XDG_ENABLE_LIBMESH
     case MeshLibrary::LIBMESH:
       xdg->set_mesh_manager_interface(std::make_shared<LibMeshMeshManager>());
       break;
+    #endif
     default:
       break;
   }
