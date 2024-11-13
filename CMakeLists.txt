@@ -159,11 +159,22 @@ if (XDG_BUILD_TOOLS)
   add_subdirectory("tools")
 endif()
 
+message(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
+
 target_include_directories(xdg
   PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${LIBMESH_INCLUDE_DIRS}
 )
+
+if (XDG_ENABLE_MOAB)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_MOAB)
+endif()
+
+if (XDG_ENABLE_LIBMESH)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_LIBMESH)
+endif()
 
 target_link_libraries(xdg embree fmt::fmt)
 
