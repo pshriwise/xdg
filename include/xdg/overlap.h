@@ -15,4 +15,6 @@ using OverlapMap = std::map<std::set<int>, Position>;
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
                                  OverlapMap& overlap_map);
 
+Direction direction_between_verts(const xdg::Vertex& vert1, const xdg::Vertex& vert2);
+
 void report_overlaps(const OverlapMap& overlap_map);
