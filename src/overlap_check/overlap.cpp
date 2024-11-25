@@ -4,8 +4,8 @@
 using namespace xdg;
 
 void check_location_for_overlap(std::shared_ptr<XDG> xdg,
-                                     const std::vector<MeshID>& all_vols, Vertex loc,
-                                     Direction dir, OverlapMap& overlap_map) {
+                                const std::vector<MeshID>& all_vols, Vertex loc,
+                                Direction dir, OverlapMap& overlap_map) {
 
   std::set<MeshID> vols_found;
   double bump = 1E-9;
@@ -14,12 +14,12 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   loc += dir * bump;
 
   for (const auto& vol : all_vols) {
-		bool pointInVol = false;
-		pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
-
-		if (pointInVol) {
-			vols_found.insert(vol);
-		}
+    bool pointInVol = false;
+    pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
+    
+  if (pointInVol) {
+    vols_found.insert(vol);
+    }
   }
 
   if (vols_found.size() > 1) {
@@ -50,28 +50,27 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
                                  OverlapMap& overlap_map) {
   auto mm = xdg->mesh_manager();
-	auto all_vols = mm->volumes();
-	std::vector<Vertex> all_verts;
+  auto all_vols = mm->volumes();
+  std::vector<Vertex> all_verts;
 
   for (const auto& surf:mm->surfaces())
   {
-		auto elements_on_surf = mm->get_surface_elements(surf);
-		for (const auto& tri:elements_on_surf)
-		{
-			auto triVerts = mm->triangle_vertices(tri);
-    	// Push vertices in triangle to end of array
-			all_verts.push_back(triVerts[0]); 
-    	all_verts.push_back(triVerts[1]); 
-    	all_verts.push_back(triVerts[2]); 
-		}
-	}
+    auto elements_on_surf = mm->get_surface_elements(surf);
+    
+    for (const auto& tri:elements_on_surf)
+    {
+      auto triVerts = mm->triangle_vertices(tri);
+      // Push vertices in triangle to end of array
+      all_verts.push_back(triVerts[0]); 
+      all_verts.push_back(triVerts[1]); 
+      all_verts.push_back(triVerts[2]); 
+    }
+  }
 
   // number of locations we'll be checking
   int num_locations = all_verts.size(); // + pnts_per_edge * all_edges.size();
   int num_checked = 1;
-
   Direction dir = xdg::rand_dir();
-
   ProgressBar prog_bar;
 
 // first check all triangle vertex locations
