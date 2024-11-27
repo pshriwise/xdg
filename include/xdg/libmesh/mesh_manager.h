@@ -5,6 +5,7 @@
 
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
+#include "xdg/error.h"
 
 #include "libmesh/libmesh.h"
 #include "libmesh/elem.h"
@@ -79,28 +80,74 @@ public:
 
   struct SidePair {
 
+    SidePair() = default;
+
     SidePair(std::pair<const libMesh::Elem*, int> old_side) {
       side.first = old_side.first;
       side.second = old_side.first->neighbor_ptr(old_side.second);
+      set_order();
+      set_side_num();
     }
 
     SidePair(const libMesh::Elem* elem, int side_num) {
       side.first = elem;
       side.second = elem->neighbor_ptr(side_num);
+      set_order();
+      set_side_num();
     }
 
     SidePair(const libMesh::Elem* elem1, const libMesh::Elem* elem2) {
       side.first = elem1;
       side.second = elem2;
+      set_order();
+      set_side_num();
     }
 
-    SidePair(std::pair<const libMesh::Elem*, const libMesh::Elem*> side_pair) : side(side_pair) {}
+    SidePair(std::pair<const libMesh::Elem*, const libMesh::Elem*> side_pair) : side(side_pair) {
+      set_order();
+      set_side_num();
+    }
 
-    std::pair<const libMesh::Elem*, const libMesh::Elem*> side;
+    void set_order() {
+      if (side.first == nullptr && side.second == nullptr) {
+        fatal_error("SidePair created with null elements");
+      }
+
+      // null pointers come second always
+      if (side.first == nullptr) {
+        std::swap(side.first, side.second);
+        return;
+      }
+
+      if (side.second == nullptr) {
+        return;
+      }
+
+      if (side.first->id() == side.second->id()) {
+        fatal_error("SidePair created with same element on both sides");
+      }
+
+      if (side.first->id() > side.second->id()) {
+        std::swap(side.first, side.second);
+      }
+    }
+
+    void set_side_num() {
+      for (int i = 0; i < side.first->n_sides(); i++) {
+        if (side.first->neighbor_ptr(i) == side.second) {
+          side_num = i;
+          break;
+        }
+      }
+      if (side_num == -1) {
+        fatal_error("SidePair created with elements that are not neighbors");
+      }
+    }
+
 
     bool operator==(const SidePair& other) const
     {
-      return side == other.side || side == std::make_pair(other.side.second, other.side.first);
+      return side == other.side; // || side == std::make_pair(other.side.second, other.side.first);
     }
 
     bool operator<(const SidePair& other) const
@@ -119,6 +166,10 @@ public:
       }
     }
 
+    const std::unique_ptr<const libMesh::Elem> face_ptr() const {
+      return first()->side_ptr(side_num);
+    }
+
     MeshID second_to_first_side() const {
       for (int i = 0; i < second()->n_sides(); i++) {
         if (second()->neighbor_ptr(i) == first()) {
@@ -126,11 +177,56 @@ public:
         }
       }
     }
+
+    std::pair<const libMesh::Elem*, const libMesh::Elem*> side {nullptr, nullptr};
+    int32_t side_num {-1};
+  }; // SidePair
+
+  struct SidePairHash {
+
+    std::size_t operator()(const SidePair& p) const
+    {
+      auto hash1 = std::hash<const libMesh::Elem*>{}(p.first());
+      auto hash2 = std::hash<const libMesh::Elem*>{}(p.second());
+      // Combine the two hashes into a single hash value
+      // This can be done using a common technique that combines them with XOR and bit shifting
+      return hash1 ^ (hash2 + 0x9e3779b9 + (hash1 << 6) + (hash1 >> 2));
+    }
   };
+
+  MeshID sidepair_id(const SidePair& sidepair) {
+    if (sidepair_to_mesh_id_.count(sidepair) == 0) {
+      MeshID id = next_sidepair_id();
+      mesh_id_to_sidepair_[id] = sidepair;
+      sidepair_to_mesh_id_[sidepair] = id;
+      return id;
+    } else {
+      return sidepair_to_mesh_id_[sidepair];
+    }
+  }
+
+  MeshID sidepair_id(const libMesh::Elem* elem1, const libMesh::Elem* elem2) {
+    return sidepair_id(SidePair(elem1, elem2));
+  }
+
+  SidePair sidepair(MeshID sidepair) const {
+    return mesh_id_to_sidepair_.at(sidepair);
+  }
+
+  MeshID next_sidepair_id() const {
+    if (mesh_id_to_sidepair_.size() == 0) {
+      return 1;
+    }
+    return std::max_element(mesh_id_to_sidepair_.begin(), mesh_id_to_sidepair_.end())->first + 1;
+  }
 
     std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
     // TODO: make this global so it isn't owned by a single mesh manager
     std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
+
+    // Ugh, double mapping
+    std::unordered_map<MeshID, SidePair> mesh_id_to_sidepair_;
+    std::unordered_map<SidePair, MeshID, SidePairHash> sidepair_to_mesh_id_;
 
     // sideset face mapping, stores the element and the side number
     // for each face in the mesh that lies on a boundary
@@ -147,7 +243,7 @@ public:
   subdomain_interface_map_;
 
   // TODO: store proper data types here
-  std::unordered_map<MeshID, std::vector<SidePair>> surface_map_;
+  std::unordered_map<MeshID, std::vector<MeshID>> surface_map_;
 
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
 
