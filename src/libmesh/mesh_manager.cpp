@@ -71,8 +71,9 @@ void LibMeshMeshManager::init() {
 
   // invert the boundary info sideset map
   for (auto entry : boundary_info.get_sideset_map()) {
+    const libMesh::Elem* other_elem = entry.first->neighbor_ptr(entry.second.first);
     sideset_element_map_[entry.second.second].push_back(
-        {entry.first, entry.second.first});
+        {entry.first, other_elem});
   }
 
   discover_surface_elements();
@@ -132,6 +133,16 @@ void LibMeshMeshManager::parse_metadata() {
 }
 
 template<typename T>
+bool intersects_set(const std::set<T>& set1, const std::set<T>& set2) {
+  for (const auto& elem : set2) {
+    if (set1.count(elem) > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<typename T>
 bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
   for (const auto& elem : set2) {
     if (set1.count(elem) == 0) {
@@ -186,16 +197,28 @@ void LibMeshMeshManager::discover_surface_elements() {
     std::set<SidePair> interface_set(interface_elems.begin(), interface_elems.end());
     std::set<SidePair> sideset_set(sideset_elems.begin(), sideset_elems.end());
 
-    // if the interface set contains the sideset set, then remove the sideset
-    // elements from the interface elements
-    if (contains_set(interface_set, sideset_set)) {
-      for (const auto& elem : sideset_elems) {
-        interface_set.erase(elem);
-      }
-      subdomain_interface_map_[subdomain_pair] = std::vector<SidePair>(interface_set.begin(), interface_set.end());
-    } else {
-      fatal_error("Partial match for sideset elements in a subdomain interface");
+    // // if the discovered sideset elements don't overlap with this interface,
+    // // at all, move on
+    // if (!intersects_set(interface_set, sideset_set)) {
+    //   continue;
+    // }
+
+    // // if the discovered interface set is larger than the interface set,
+    // // move on
+    // if (interface_set.size() > sideset_set.size()) {
+    //   continue;
+    // }
+
+    // // if there is an intersection, but an incomplete one, then we have a problem
+    // if (!contains_set(sideset_set, interface_set)) {
+    //   fatal_error("Partial match for sideset elements in a subdomain interface");
+    // }
+
+    // remove the sideset lements from the interface elements
+    for (const auto& elem : sideset_elems) {
+      interface_set.erase(elem);
     }
+    subdomain_interface_map_[subdomain_pair] = std::vector<SidePair>(interface_set.begin(), interface_set.end());
 
     // add this sideset to the list of surfaces
     surfaces_.push_back(sideset_id);
@@ -205,7 +228,9 @@ void LibMeshMeshManager::discover_surface_elements() {
       subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
     }
     surface_senses_[sideset_id] = subdomain_pair;
-    surface_map_[sideset_id] = sideset_elems;
+    for (const auto& elem : sideset_elems) {
+      surface_map_[sideset_id].push_back(sidepair_id(elem));
+    }
   }
 
 
@@ -224,13 +249,12 @@ void LibMeshMeshManager::discover_surface_elements() {
 
     surface_senses_[surface_id] = pair;
     for (const auto &elem : elements) {
-      surface_map_[surface_id].push_back(elem);
+      surface_map_[surface_id].push_back(sidepair_id(elem));
     }
     surfaces().push_back(surface_id++);
   }
 
   auto& boundary_info = mesh_->get_boundary_info();
-
 
   int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(), boundary_info.get_boundary_ids().end()) + 1;
 
@@ -260,12 +284,7 @@ LibMeshMeshManager::get_volume_elements(MeshID volume) const {
 
 std::vector<MeshID>
 LibMeshMeshManager::get_surface_elements(MeshID surface) const {
-  const auto& elems = surface_map_.at(surface);
-  std::vector<MeshID> elements;
-  for (const auto& elem : elems) {
-    elements.push_back(elem.first()->id());
-  }
-  return elements;
+  return surface_map_.at(surface);
 }
 
 std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
@@ -280,10 +299,10 @@ std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
 
 std::array<Vertex, 3>
 LibMeshMeshManager::triangle_vertices(MeshID element) const {
-  auto elem = mesh()->elem_ptr(element);
+  auto face = sidepair(element).face_ptr();
   std::array<Vertex, 3> vertices;
   for (unsigned int i = 0; i < 3; ++i) {
-    auto node = elem->node_ref(i);
+    auto node = face->node_ref(i);
     vertices[i] = {node(0), node(1), node(2)};
   }
   return vertices;
