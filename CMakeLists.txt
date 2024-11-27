@@ -159,8 +159,6 @@ if (XDG_BUILD_TOOLS)
   add_subdirectory("tools")
 endif()
 
-message(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
-
 target_include_directories(xdg
   PUBLIC
   $<INSTALL_INTERFACE:include>
