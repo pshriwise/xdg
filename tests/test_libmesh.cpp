@@ -90,7 +90,7 @@ TEST_CASE("Test Ray Fire LibMesh Brick")
 
   MeshID volume = 1;
 
-  Position origin {0.0, 0.0, 0.0};
+  Position origin {0.1, 0.1, 0.0};
   Direction direction {0.0, 0.0, 1.0};
   std::pair<double, MeshID> intersection;
 

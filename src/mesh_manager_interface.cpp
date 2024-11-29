@@ -98,6 +98,13 @@ MeshManager::element_bounding_box(MeshID element) const
 }
 
 BoundingBox
+MeshManager::triangle_bounding_box(MeshID element) const
+{
+  auto vertices = this->triangle_vertices(element);
+  return BoundingBox::from_points(vertices);
+}
+
+BoundingBox
 MeshManager::volume_bounding_box(MeshID volume) const
 {
   BoundingBox bb;
