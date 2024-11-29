@@ -41,6 +41,8 @@ small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
 cyl-block.exo
+brick.exo
+brick-sidesets.exo
 )
 
 foreach(file ${TEST_FILES})
