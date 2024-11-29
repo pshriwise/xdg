@@ -299,8 +299,10 @@ std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
 
 std::array<Vertex, 3>
 LibMeshMeshManager::triangle_vertices(MeshID element) const {
-  auto face = sidepair(element).face_ptr();
+  auto side_pair = sidepair(element);
+  auto face = side_pair.face_ptr();
   std::array<Vertex, 3> vertices;
+  int n_nodes = face->n_nodes();
   for (unsigned int i = 0; i < 3; ++i) {
     auto node = face->node_ref(i);
     vertices[i] = {node(0), node(1), node(2)};
