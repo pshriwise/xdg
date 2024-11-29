@@ -44,6 +44,8 @@ public:
 
   BoundingBox element_bounding_box(MeshID element) const;
 
+  BoundingBox triangle_bounding_box(MeshID element) const;
+
   BoundingBox volume_bounding_box(MeshID volume) const;
 
   BoundingBox surface_bounding_box(MeshID surface) const;
