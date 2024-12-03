@@ -44,8 +44,6 @@ void LibMeshMeshManager::initialize_libmesh() {
 }
 
 void LibMeshMeshManager::init() {
-  // mesh_->prepare_for_use();
-
   // ensure that the mesh is 3-dimensional
   if (mesh_->mesh_dimension() != 3) {
     fatal_error("Mesh must be 3-dimensional");
@@ -79,19 +77,13 @@ void LibMeshMeshManager::init() {
   discover_surface_elements();
 
   mesh()->prepare_for_use();
-  // surfaces_ = std::vector<MeshID>(boundary_ids.begin(), boundary_ids.end());
 }
 
 MeshID LibMeshMeshManager::create_volume() {
   std::unique_ptr<libMesh::Mesh> submesh_ =
       std::make_unique<libMesh::Mesh>(mesh_->comm(), 3);
-  // start by makind a copy of the current mesh
-  // for (auto elem : mesh()->element_ptr_range()) {
-  //   std::cout << elem->subdomain_id() << std::endl;
-  // }
   MeshID next_volume_id = *std::max_element(volumes_.begin(), volumes_.end()) + 1;
   return next_volume_id;
-  //  throw std::runtime_error("Not implemented");
 }
 
 void LibMeshMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite) {
@@ -233,7 +225,6 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
   }
 
-
   MeshID surface_id = 1000;
 
   std::set<std::pair<MeshID, MeshID>> visited_interfaces;
@@ -312,7 +303,6 @@ LibMeshMeshManager::triangle_vertices(MeshID element) const {
 
 std::vector<MeshID>
 LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
-
   // walk the surface senses and return the surfaces that have this volume
   // as an entry
   std::vector<MeshID> surfaces;
@@ -328,33 +318,6 @@ std::pair<MeshID, MeshID>
 LibMeshMeshManager::surface_senses(MeshID surface) const {
   return surface_senses_.at(surface);
 }
-//   std::pair<MeshID, MeshID> senses {ID_NONE, ID_NONE};
-
-//   // get one of the sides for this surface
-//   auto map_entry = sideset_element_map_.at(surface).at(0);
-//   auto side = map_entry.first->side_ptr(map_entry.second);
-
-//   // if (!side->is_face()) {
-//   //   fatal_error("Surface element is not a face");
-//   // }
-
-//   // get the parent of this side elmenet
-//   auto parent = side->parent();
-//   // if (parent) {
-//     // determine what subdomain this parent element is in
-//     auto subdomain_id = map_entry.first->subdomain_id();
-//     senses.first = subdomain_id;
-//   // }
-
-//   // get the subdomain on the other side of this face
-//   if (!side->on_boundary()) {
-//     auto side_number = side->which_side_am_i(parent);
-//     auto other_element = parent->neighbor_ptr(side_number);
-//     senses.second = other_element->subdomain_id();
-//   }
-
-//   return senses;
-// }
 
 Sense LibMeshMeshManager::surface_sense(MeshID surface, MeshID volume) const {
   auto senses = surface_senses(surface);
