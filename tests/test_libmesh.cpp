@@ -110,7 +110,7 @@ TEST_CASE("Test Cylinder-Brick Initialization")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
-  mesh_manager->load_file("cyl-block.exo");
+  mesh_manager->load_file("cyl-brick.exo");
 
   mesh_manager->init();
 
@@ -150,7 +150,7 @@ TEST_CASE("Test Ray Fire Cylinder-Brick")
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
-  mesh_manager->load_file("cyl-block.exo");
+  mesh_manager->load_file("cyl-brick.exo");
   mesh_manager->init();
   xdg->prepare_raytracer();
 
@@ -199,7 +199,7 @@ TEST_CASE("Test Ray Fire Cylinder-Brick")
 // {
 //   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
-//   mesh_manager->load_file("cyl-block.exo");
+//   mesh_manager->load_file("cyl-brick.exo");
 
 //   mesh_manager->init();
 
