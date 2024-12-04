@@ -32,7 +32,7 @@ set(
 TEST_FILES
 pwr_pincell.h5m
 cube.h5m
-cyl-block.exo
+cyl-brick.exo
 brick.exo
 brick-sidesets.exo
 )
