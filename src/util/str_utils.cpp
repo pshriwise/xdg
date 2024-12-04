@@ -46,14 +46,6 @@ std::string& to_lower(std::string& str)
   return str;
 }
 
-std::string& rm_substring(std::string& str, const std::string& substr)
-{
-  size_t pos = str.find(substr);
-  if (pos != std::string::npos)
-    str.erase(pos, substr.size());
-  return str;
-}
-
 bool ends_with(const std::string& value, const std::string& ending)
 {
   if (ending.size() > value.size())
@@ -66,6 +58,13 @@ bool starts_with(const std::string& value, const std::string& beginning)
   if (beginning.size() > value.size())
     return false;
   return std::equal(beginning.begin(), beginning.end(), value.begin());
+  
+std::string& remove_substring(std::string& s, const std::string& sub)
+{
+  size_t pos = s.find(sub);
+  if (pos != std::string::npos)
+    s.erase(pos, sub.length());
+  return s;
 }
 
 } // namespace xdg
