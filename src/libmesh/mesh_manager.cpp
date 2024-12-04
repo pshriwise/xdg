@@ -1,6 +1,7 @@
 #include "xdg/libmesh/mesh_manager.h"
 
 #include "xdg/error.h"
+#include "xdg/util/str_utils.h"
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/elem.h"
@@ -108,14 +109,17 @@ void LibMeshMeshManager::parse_metadata() {
   auto sideset_name_map = boundary_info.get_sideset_name_map();
   for (auto surface : surfaces_) {
     if (sideset_name_map.find(surface) != sideset_name_map.end()) {
+      std::string sideset_name = sideset_name_map[surface];
+      remove_substring(sideset_name, "boundary:");
       surface_metadata_[{surface, PropertyType::BOUNDARY_CONDITION}] = {
-          PropertyType::BOUNDARY_CONDITION, sideset_name_map[surface]};
+          PropertyType::BOUNDARY_CONDITION, sideset_name};
     }
   }
 
   // volume metadata
   for (auto volume : volumes_) {
     std::string subdomain_name = mesh()->subdomain_name(volume);
+    remove_substring(subdomain_name, "mat:");
     if (subdomain_name.empty()) {
       volume_metadata_[{volume, PropertyType::MATERIAL}] = VOID_MATERIAL;
     } else {

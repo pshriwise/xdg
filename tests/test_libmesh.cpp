@@ -14,7 +14,11 @@
 
 using namespace xdg;
 
-TEST_CASE("Test libMesh Brick")
+void print_intersection(std::pair<double, MeshID> intersection) {
+  std::cout << "Intersection: " << intersection.first << " " << intersection.second << std::endl;
+}
+
+TEST_CASE("Test Brick")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
@@ -27,7 +31,7 @@ TEST_CASE("Test libMesh Brick")
   REQUIRE(mesh_manager->num_surfaces() == 1);
 }
 
-TEST_CASE("Test libMesh Brick w/ Sidesets")
+TEST_CASE("Test Brick w/ Sidesets")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
 
@@ -78,7 +82,7 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
   REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
 }
 
-TEST_CASE("Test Ray Fire LibMesh Brick")
+TEST_CASE("Test Ray Fire Brick")
 {
   std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
@@ -90,16 +94,104 @@ TEST_CASE("Test Ray Fire LibMesh Brick")
 
   MeshID volume = 1;
 
-  Position origin {0.1, 0.1, 0.0};
+  Position origin {0.0, 0.0, 0.0};
   Direction direction {0.0, 0.0, 1.0};
   std::pair<double, MeshID> intersection;
 
   intersection = xdg->ray_fire(volume, origin, direction);
-
   // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
 
   origin = {0.0, 0.0, 0.0};
+  REQUIRE(xdg->point_in_volume(volume, origin));
+}
+
+TEST_CASE("Test Cylinder-Brick Initialization")
+{
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
+
+  mesh_manager->load_file("cyl-block.exo");
+
+  mesh_manager->init();
+
+  REQUIRE(mesh_manager->num_volumes() == 2);
+
+  REQUIRE(mesh_manager->num_surfaces() == 13);
+
+  mesh_manager->parse_metadata();
+
+  xdg::Property prop;
+
+  // check the model's metadata
+  prop = mesh_manager->get_volume_property(1, PropertyType::MATERIAL);
+  REQUIRE(prop.type == PropertyType::MATERIAL);
+  REQUIRE(prop.value == "steel");
+
+  prop = mesh_manager->get_volume_property(2, PropertyType::MATERIAL);
+  REQUIRE(prop.type == PropertyType::MATERIAL);
+  REQUIRE(prop.value == "iron");
+
+  for (auto s : mesh_manager->surfaces()) {
+    prop = mesh_manager->get_surface_property(s, PropertyType::BOUNDARY_CONDITION);
+    REQUIRE(prop.type == PropertyType::BOUNDARY_CONDITION);
+    if (s == 1) {
+      REQUIRE(prop.value == "reflective");
+
+    } else {
+      REQUIRE(prop.value == "transmission");
+    }
+  }
+}
+
+
+TEST_CASE("Test Ray Fire Cylinder-Brick")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("cyl-block.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 2;
+
+  // fire ray from the center of the cube
+  Position origin {0.0, 0.0, 10.0};
+  Direction direction {0.0, 0.0, 1.0};
+  std::pair<double, MeshID> intersection;
+  intersection = xdg->ray_fire(volume, origin, direction);
+  // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+  // fire ray in the opposite direction
+  direction = {0.0, 0.0, -1.0};
+  intersection = xdg->ray_fire(volume, origin, direction);
+  // this cube is 10 cm on a side, so the ray should hit the surface at 5 cm
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+  // fire ray from the center of the cylinder in the negative z direction
+  volume = 1;
+  origin = {0.0, 0.0, 0.0};
+  intersection = xdg->ray_fire(volume, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+  // fire a ray from the center of the cylinder in the positive z direction
+  direction = {0.0, 0.0, 1.0};
+  intersection = xdg->ray_fire(volume, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+  // fire a ray from the center of the cylinder in the positive x direction
+  direction = {1.0, 0.0, 0.0};
+  intersection = xdg->ray_fire(volume, origin, direction);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-3));
+
+  volume = 1;
+  origin = {0.0, 0.0, 0.0};
+  REQUIRE(xdg->point_in_volume(volume, origin));
+
+  volume = 2;
+  origin = {0.0, 0.0, 10.0};
   REQUIRE(xdg->point_in_volume(volume, origin));
 }
 
