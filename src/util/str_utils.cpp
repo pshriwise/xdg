@@ -38,4 +38,12 @@ std::string& strtrim(std::string& s, std::string symbols)
   return s;
 }
 
+std::string& remove_substring(std::string& s, const std::string& sub)
+{
+  size_t pos = s.find(sub);
+  if (pos != std::string::npos)
+    s.erase(pos, sub.length());
+  return s;
+}
+
 } // namespace xdg

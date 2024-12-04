@@ -24,6 +24,7 @@ jobs:
           sudo apt install -y libgcc-9-dev \
                               libstdc++-9-dev \
                               libembree-dev \
+                              libnetcdf-dev \
                               libhdf5-dev \
                               libeigen3-dev \
                               cmake
@@ -41,12 +42,25 @@ jobs:
           make -j4
           sudo make install
 
+      - name: Build libMesh
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/libMesh/libmesh.git
+          cd libmesh
+          git checkout v1.7.0
+          git submodule update --init --recursive
+          mkdir build
+          cd build
+          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
+          make -j4
+          sudo make install
       - name: Build
         shell: bash
         run: |
           mkdir build
           cd build
-          cmake ..
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/LIBMESH -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
           make -j4
 
       - name: Test
@@ -54,3 +68,7 @@ jobs:
         run: |
           cd build
           ctest -j4 --output-on-failure
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3

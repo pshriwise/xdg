@@ -12,6 +12,8 @@ std::vector<std::string> tokenize(const std::string& str,
 
 std::string& strtrim(std::string& s, std::string symbols=" \t\n\r\f\v");
 
+std::string& remove_substring(std::string& s, const std::string& sub);
+
 
 } // namespace xdg
 

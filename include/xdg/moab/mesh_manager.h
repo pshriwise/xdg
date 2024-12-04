@@ -61,18 +61,8 @@ public:
 
   std::array<Vertex, 3> triangle_vertices(MeshID element) const override;
 
-  Direction triangle_normal(MeshID element) const override;
-
-  BoundingBox element_bounding_box(MeshID element) const override;
-
-  BoundingBox volume_bounding_box(MeshID volume) const override;
-
-  BoundingBox surface_bounding_box(MeshID surface) const override;
-
   // Topology
-  std::pair<MeshID, MeshID> surface_senses(MeshID surface) const;
-
-  std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override;
+  std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
@@ -82,7 +72,7 @@ public:
   void parse_metadata() override;
 
   // Other
-  MeshLibrary mesh_library() const override {return MeshLibrary::MOAB; }
+  MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
 
 private:
   // Internal MOAB methods

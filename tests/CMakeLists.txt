@@ -18,6 +18,10 @@ if (XDG_ENABLE_MOAB)
     list(APPEND TEST_NAMES test_moab)
 endif()
 
+if (XDG_ENABLE_LIBMESH)
+    list(APPEND TEST_NAMES test_libmesh)
+endif()
+
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
     target_link_libraries(${test} xdg Catch2::Catch2WithMain)
@@ -28,6 +32,9 @@ set(
 TEST_FILES
 pwr_pincell.h5m
 cube.h5m
+cyl-brick.exo
+brick.exo
+brick-sidesets.exo
 )
 
 foreach(file ${TEST_FILES})
