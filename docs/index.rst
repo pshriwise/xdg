@@ -10,8 +10,6 @@ XDG is an open-source ray tracing toolkit providing robust ray tracing
 for particle transport operations in scientific simulations.
 
 
-**Please see the** :ref:`dagmc-intro` **section for more information on DAGMC and its role in Monte Carlo particle transport.**
-
 .. .. carousel::
 ..     :show_controls:
 ..     :show_fade:
