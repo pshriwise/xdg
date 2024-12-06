@@ -6,6 +6,7 @@ particle_sim
 ray_fire
 find_volume
 point_in_volume
+overlap_check
 )
 
 foreach(tool ${TOOL_NAMES})
