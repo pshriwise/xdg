@@ -149,6 +149,7 @@ bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
 }
 
 void LibMeshMeshManager::discover_surface_elements() {
+
   for (const auto *elem : mesh()->active_local_element_ptr_range()) {
     auto subdomain_id = elem->subdomain_id();
     for (int i = 0; i < elem->n_sides(); i++) {
@@ -156,7 +157,7 @@ void LibMeshMeshManager::discover_surface_elements() {
       MeshID neighbor_id = ID_NONE;
       if (neighbor)
         neighbor_id = neighbor->subdomain_id();
-      // if these IDs are different, then this is a surface element
+      // if these IDs are different, then this is an interface element
       if (neighbor_id != subdomain_id) {
         subdomain_interface_map_[{subdomain_id, neighbor_id}].push_back(
             {elem, i});
@@ -210,10 +211,11 @@ void LibMeshMeshManager::discover_surface_elements() {
     //   fatal_error("Partial match for sideset elements in a subdomain interface");
     // }
 
-    // remove the sideset lements from the interface elements
+    // remove the sideset elements from the interface elements
     for (const auto& elem : sideset_elems) {
       interface_set.erase(elem);
     }
+
     subdomain_interface_map_[subdomain_pair] = std::vector<SidePair>(interface_set.begin(), interface_set.end());
 
     // add this sideset to the list of surfaces
@@ -229,10 +231,12 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
   }
 
+  // if surfaces are populated by sideset data at all, dont use discovered interfaces
+  if (surfaces().size() > 0) return;
+
   MeshID surface_id = 1000;
 
   std::set<std::pair<MeshID, MeshID>> visited_interfaces;
-
   for (auto &[pair, elements] : subdomain_interface_map_) {
     if (elements.size() == 0) continue;
 
