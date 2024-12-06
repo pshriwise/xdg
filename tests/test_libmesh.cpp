@@ -116,7 +116,7 @@ TEST_CASE("Test Cylinder-Brick Initialization")
 
   REQUIRE(mesh_manager->num_volumes() == 2);
 
-  REQUIRE(mesh_manager->num_surfaces() == 13);
+  REQUIRE(mesh_manager->num_surfaces() == 12);
 
   mesh_manager->parse_metadata();
 
@@ -133,12 +133,14 @@ TEST_CASE("Test Cylinder-Brick Initialization")
 
   for (auto s : mesh_manager->surfaces()) {
     prop = mesh_manager->get_surface_property(s, PropertyType::BOUNDARY_CONDITION);
+    std::cout << s << ", " << prop.value << std::endl;
     REQUIRE(prop.type == PropertyType::BOUNDARY_CONDITION);
-    if (s == 1) {
-      REQUIRE(prop.value == "reflective");
-
-    } else {
+    if (s == 3) {
       REQUIRE(prop.value == "transmission");
+    } else if (s == 4) {
+      REQUIRE(prop.value == "reflective");
+    } else {
+      REQUIRE(prop.value == "vacuum");
     }
   }
 }
