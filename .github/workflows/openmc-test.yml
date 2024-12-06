@@ -1,4 +1,4 @@
-name: CI
+name: OpenMC-Testing
 
 on:
   pull_request:
