@@ -59,7 +59,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
-          make -j4
+          make -j4 all install
 
       - name: Build OpenMC
         shell: bash
@@ -72,7 +72,7 @@ jobs:
           cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DOPENMC_USE_XDG=ON -DCMAKE_BUILD_TYPE=Debug
           make -j4 install
           cd ..
-          pip install --user .
+          pip install --user .[test]
           OMP_NUM_THREADS=2 pytest tests/regression_tests/dagmc
 
       - name: Setup tmate session
