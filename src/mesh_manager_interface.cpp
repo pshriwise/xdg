@@ -15,7 +15,7 @@ MeshManager::create_implicit_complement()
   for (auto surface : this->surfaces()) {
     auto parent_vols = this->get_parent_volumes(surface);
 
-    if (parent_vols.first == ID_NONE)
+  if (parent_vols.first == ID_NONE)
       this->add_surface_to_volume(ipc_volume, surface, Sense::FORWARD);
 
     if (parent_vols.second == ID_NONE)
