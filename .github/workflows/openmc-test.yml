@@ -27,6 +27,12 @@ jobs:
                               libeigen3-dev \
                               cmake
 
+      - name: Environment Variables
+        run: |
+          echo "OPENMC_CROSS_SECTIONS=$HOME/nndc_hdf5/cross_sections.xml" >> $GITHUB_ENV
+          echo "OPENMC_ENDF_DATA=$HOME/endf-b-vii.1" >> $GITHUB_ENV
+
+
       - name: Build MOAB
         shell: bash
         run: |
@@ -38,7 +44,7 @@ jobs:
           cd build
           cmake -DCMAKE_INSTALL_PREFIX=$HOME/opt -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF  -DCMAKE_BUILD_TYPE=Release ..
           make -j4
-          sudo make install
+          make install
 
       - name: Build libMesh
         shell: bash
@@ -52,7 +58,8 @@ jobs:
           cd build
           ../configure --prefix=$HOME/opt --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
           make -j4
-          sudo make install
+          make install
+
       - name: Build XDG
         shell: bash
         run: |
@@ -72,6 +79,7 @@ jobs:
           cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DOPENMC_USE_XDG=ON -DCMAKE_BUILD_TYPE=Debug
           make -j4 install
           cd ..
+          ./tools/ci/download-xs.sh
           pip install --user .[test]
           OMP_NUM_THREADS=2 pytest tests/regression_tests/dagmc
 
