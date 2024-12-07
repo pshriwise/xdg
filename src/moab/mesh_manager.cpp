@@ -322,8 +322,14 @@ MOABMeshManager::parse_metadata()
 
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
-    if (tokens.size() % 2 != 0)
-      fatal_error("Group name tokens are of incorrect size: {}", tokens.size());
+    if (tokens.size() % 2 != 0) {
+      std:: string msg = fmt::format("Group name tokens ({}) are of incorrect size: {}\n", tokens.size());
+      for (const auto& t : tokens) {
+        msg += fmt::format("{}", t);
+      }
+      msg += "\n";
+      fatal_error(msg);
+    }
 
     std::vector<Property> group_properties;
     // iterate over tokens by 2 and setup property objects
