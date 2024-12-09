@@ -38,4 +38,34 @@ std::string& strtrim(std::string& s, std::string symbols)
   return s;
 }
 
+// from OpenMC, modified
+std::string& to_lower(std::string& str)
+{
+  for (int i = 0; i < str.size(); i++)
+    str[i] = std::tolower(str[i]);
+  return str;
+}
+
+std::string& rm_substring(std::string& str, const std::string& substr)
+{
+  size_t pos = str.find(substr);
+  if (pos != std::string::npos)
+    str.erase(pos, substr.size());
+  return str;
+}
+
+bool ends_with(const std::string& value, const std::string& ending)
+{
+  if (ending.size() > value.size())
+    return false;
+  return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+bool starts_with(const std::string& value, const std::string& beginning)
+{
+  if (beginning.size() > value.size())
+    return false;
+  return std::equal(beginning.begin(), beginning.end(), value.begin());
+}
+
 } // namespace xdg
