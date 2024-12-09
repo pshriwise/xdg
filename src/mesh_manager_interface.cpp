@@ -6,7 +6,7 @@
 
 namespace xdg {
 
-void
+MeshID
 MeshManager::create_implicit_complement()
 {
   // create a new volume
@@ -28,6 +28,10 @@ MeshManager::create_implicit_complement()
 
   // TODO: allow for alternate material assignment in IPC
   volume_metadata_[{ipc_volume, PropertyType::MATERIAL}] = VOID_MATERIAL;
+
+  implicit_complement_ = ipc_volume;
+
+  return ipc_volume;
 }
 
 MeshID MeshManager::next_volume_id() const

@@ -21,7 +21,8 @@ static const std::map<std::string, PropertyType> MOAB_PROPERTY_MAP
 {
   {"mat", PropertyType::MATERIAL},
   {"material", PropertyType::MATERIAL},
-  {"boundary", PropertyType::BOUNDARY_CONDITION}
+  {"boundary", PropertyType::BOUNDARY_CONDITION},
+  {"temp", PropertyType::TEMPERATURE}
 };
 
 
@@ -80,6 +81,8 @@ public:
 
   // Metadata
   void parse_metadata() override;
+
+  void graveyard_check();
 
   // Other
   MeshLibrary mesh_library() const override {return MeshLibrary::MOAB; }
