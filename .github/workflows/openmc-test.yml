@@ -76,7 +76,7 @@ jobs:
           cd openmc
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DOPENMC_USE_XDG=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DOPENMC_USE_XDG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/opt
           make -j4 install
           cd ..
           ./tools/ci/download-xs.sh
