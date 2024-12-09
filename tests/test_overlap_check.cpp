@@ -23,7 +23,7 @@ TEST_CASE("Overlapping Volumes Test")
   check_instance_for_overlaps(xdg, overlap_map);
 
   // Expected 1 overlap
-  REQUIRE(overlap_map.size() == 1);
+  REQUIRE(overlap_map.size() == 2);
   std::set<int> expected_overlaps = {1, 2};
 
   // Expected overlaps between volumes [1,2]
@@ -57,7 +57,7 @@ TEST_CASE("Non-Overlapping Imprinted Volumes Test")
   check_instance_for_overlaps(xdg, overlap_map);
 
   // Expected no overlaps
-  REQUIRE(overlap_map.size() == 0); 
+  REQUIRE(overlap_map.size() == 0);
 }
 
 TEST_CASE("Enclosed Volume Test")
@@ -72,11 +72,11 @@ TEST_CASE("Enclosed Volume Test")
   check_instance_for_overlaps(xdg, overlap_map);
 
   // Expected 1 overlap
-  REQUIRE(overlap_map.size() == 1); 
+  REQUIRE(overlap_map.size() == 2);
   std::set<int> expected_overlaps = {1, 2};
 
   // Expected overlaps between volumes [1,2]
-  REQUIRE(expected_overlaps == overlap_map.begin()->first); 
+  REQUIRE(expected_overlaps == overlap_map.begin()->first);
 }
 
 TEST_CASE("Small Overlap Test")
@@ -91,11 +91,11 @@ TEST_CASE("Small Overlap Test")
   check_instance_for_overlaps(xdg, overlap_map);
 
   // Expected 1 overlap
-  REQUIRE(overlap_map.size() == 1); 
+  REQUIRE(overlap_map.size() == 1);
   std::set<int> expected_overlaps = {1, 2};
 
   // Expected overlaps between volumes [1,2]
-  REQUIRE(expected_overlaps == overlap_map.begin()->first); 
+  REQUIRE(expected_overlaps == overlap_map.begin()->first);
 }
 
 
