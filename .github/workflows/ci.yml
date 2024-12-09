@@ -54,3 +54,8 @@ jobs:
         run: |
           cd build
           ctest -j4 --output-on-failure
+
+      - name: Check installed executables
+        shell: bash
+        run: |
+          ~/opt/bin/tools/find-volume
