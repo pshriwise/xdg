@@ -69,7 +69,7 @@ public:
 
   MeshID next_surface_id() const;
 
-  void create_implicit_complement();
+  MeshID create_implicit_complement();
 
   // Metadata methods
   virtual void parse_metadata() = 0;
@@ -85,6 +85,7 @@ public:
   std::vector<MeshID>& volumes() { return volumes_; }
   const std::vector<MeshID>& surfaces() const { return surfaces_; }
   std::vector<MeshID>& surfaces() { return surfaces_; }
+  MeshID implicit_complement() const { return implicit_complement_; }
 
   virtual MeshLibrary mesh_library() const = 0;
 
@@ -96,6 +97,8 @@ protected:
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
 
+  // TODO: attempt to remove this attribute
+  MeshID implicit_complement_ {ID_NONE};
 
 };
 

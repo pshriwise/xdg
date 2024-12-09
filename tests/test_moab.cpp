@@ -20,12 +20,12 @@ TEST_CASE("Test MOAB Initialization")
   mesh_manager->load_file("pwr_pincell.h5m");
   mesh_manager->init();
 
-  REQUIRE(mesh_manager->num_volumes() == 3);
+  REQUIRE(mesh_manager->num_volumes() == 4);
   REQUIRE(mesh_manager->num_surfaces() == 12);
 
   // create the implicit complement volume
   mesh_manager->create_implicit_complement();
-  REQUIRE(mesh_manager->num_volumes() == 4);
+  REQUIRE(mesh_manager->num_volumes() == 5);
 
   // parse metadata
   mesh_manager->parse_metadata();
@@ -35,7 +35,8 @@ TEST_CASE("Test MOAB Initialization")
       {1, "UO2 (2.4%)"},
       {2, "Zircaloy"},
       {3, "Hot borated water"},
-      {4, "void"}
+      {4, "void"},
+      {5, "void"}
     };
 
   for (auto volume : mesh_manager->volumes()) {
@@ -58,7 +59,7 @@ TEST_CASE("Test BVH Build")
   mesh_manager->load_file("cube.h5m");
   mesh_manager->init();
 
-  REQUIRE(mesh_manager->num_volumes() == 1);
+  REQUIRE(mesh_manager->num_volumes() == 2);
   REQUIRE(mesh_manager->num_surfaces() == 6);
 
   std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
@@ -67,7 +68,7 @@ TEST_CASE("Test BVH Build")
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_scenes() == 2);
 }
 
 TEST_CASE("Test Ray Fire MOAB")
