@@ -81,7 +81,7 @@ jobs:
           cd ..
           ./tools/ci/download-xs.sh
           pip install --user .[test]
-          OMP_NUM_THREADS=2 pytest tests/regression_tests/dagmc
+          OMP_NUM_THREADS=2 pytest tests/regression_tests/dagmc/legacy tests/regression_tests/dagmc/universes
 
       - name: Setup tmate session
         if: ${{ failure() }}
