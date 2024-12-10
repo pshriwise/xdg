@@ -58,7 +58,8 @@ bool starts_with(const std::string& value, const std::string& beginning)
   if (beginning.size() > value.size())
     return false;
   return std::equal(beginning.begin(), beginning.end(), value.begin());
-  
+}
+
 std::string& remove_substring(std::string& s, const std::string& sub)
 {
   size_t pos = s.find(sub);

@@ -311,7 +311,7 @@ MOABMeshManager::parse_metadata()
     for (auto it = group_properties.begin(); it != group_properties.end();) {
       auto prop = *it;
       if (prop.type == PropertyType::MATERIAL && ends_with(prop.value, "_comp")) {
-        rm_substring(prop.value, "_comp");
+        remove_substring(prop.value, "_comp");
         if (implicit_complement() != ID_NONE)
           volume_metadata_[{implicit_complement(), PropertyType::MATERIAL}] = prop;
         else
