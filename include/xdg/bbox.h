@@ -58,7 +58,8 @@ Position center() const {
   return Position {(min_x + max_x), (min_y + max_y), (min_z + max_z)} * 0.5;
 }
 
-static BoundingBox from_points(const std::vector<Position>& points) {
+template <typename T>
+static BoundingBox from_points(const T& points) {
   BoundingBox bbox {INFTY, INFTY, INFTY, -INFTY, -INFTY, -INFTY};
   for (const auto& p : points) {
     bbox.update(p);

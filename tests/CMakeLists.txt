@@ -19,6 +19,10 @@ if (XDG_ENABLE_MOAB)
     list(APPEND TEST_NAMES test_moab)
 endif()
 
+if (XDG_ENABLE_LIBMESH)
+    list(APPEND TEST_NAMES test_libmesh)
+endif()
+
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
     target_link_libraries(${test} xdg Catch2::Catch2WithMain)
@@ -34,6 +38,9 @@ overlap.h5m
 small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
+cyl-brick.exo
+brick.exo
+brick-sidesets.exo
 )
 
 foreach(file ${TEST_FILES})
