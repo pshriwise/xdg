@@ -1,0 +1,89 @@
+name: OpenMC-Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Apt dependencies
+        shell: bash
+        run: |
+          sudo apt -y update
+          sudo apt install -y libgcc-9-dev \
+                              libstdc++-9-dev \
+                              libembree-dev \
+                              libnetcdf-dev \
+                              libhdf5-dev \
+                              libeigen3-dev \
+                              cmake
+
+      - name: Environment Variables
+        run: |
+          echo "OPENMC_CROSS_SECTIONS=$HOME/nndc_hdf5/cross_sections.xml" >> $GITHUB_ENV
+          echo "OPENMC_ENDF_DATA=$HOME/endf-b-vii.1" >> $GITHUB_ENV
+          echo "PATH=$HOME/opt/bin:$PATH" >> $GITHUB_ENV
+
+
+      - name: Build MOAB
+        shell: bash
+        run: |
+          cd ~
+          git clone https://bitbucket.org/fathomteam/moab.git
+          cd moab
+          git checkout 5.3.1
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/opt -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF  -DCMAKE_BUILD_TYPE=Release ..
+          make -j4
+          make install
+
+      - name: Build libMesh
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/libMesh/libmesh.git
+          cd libmesh
+          git checkout v1.7.0
+          git submodule update --init --recursive
+          mkdir build
+          cd build
+          ../configure --prefix=$HOME/opt --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
+          make -j4
+          make install
+
+      - name: Build XDG
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/opt -DCMAKE_PREFIX_PATH=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
+          make -j4 all install
+
+      - name: Build OpenMC
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/pshriwise/openmc --branch xdg
+          cd openmc
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DOPENMC_USE_XDG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$HOME/opt
+          make -j4 install
+          cd ..
+          ./tools/ci/download-xs.sh
+          pip install --user .[test]
+          OMP_NUM_THREADS=2 pytest tests/regression_tests/dagmc/legacy tests/regression_tests/dagmc/universes
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
