@@ -60,7 +60,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   std::vector<std::pair<std::array<xdg::Vertex, 3UL>, MeshID>> allTris;
   std::vector<MeshID> allElements;
 
-  std::cout << "allVols.size() = " << allVols.size() << std::endl;
+  std::cout << "Number of volumes checked = " << allVols.size() << std::endl;
   for (const auto& vol:mm->volumes()){  
     for (const auto& surf:mm->get_volume_surfaces(vol)){
       auto allElements = mm->get_surface_elements(surf);
@@ -75,7 +75,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       }
     }
 	}
-
+  std::cout << "Number of vertices checked = " << allVerts.size() << std::endl;
   // number of locations we'll be checking
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
   int numChecked = 1;
@@ -84,6 +84,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
   ProgressBar progBar;
 
+  std::cout << "Checking for overlapped regions at element vertices..." << std::endl;
 // first check all triangle vertex locations
 #pragma omp parallel shared(overlap_map, numChecked)
   {
@@ -102,67 +103,69 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     return;
   }
 
+  std::cout << "Checking for overlapped regions along element edges..." << std::endl; 
+  int edgesChecked = 0; 
+
 #pragma omp parallel shared(overlap_map, numChecked)
   {
-// now check along triangle edges
-// (curve edges are likely in here too,
-//  but it isn't hurting anything to check more locations)
+  // now check along triangle edges
+  // (curve edges are likely in here too,
+  //  but it isn't hurting anything to check more locations)
 
-  std::ofstream lineOut("ray_fire_lines.txt");
-  std::ofstream rayOut("ray-path.txt");
-  std::ofstream rayOutNoColl("ray-path-no-coll.txt");
-  std::ofstream rayCollision("ray-collision.txt");
+    std::ofstream lineOut("ray_fire_lines.txt");
+    std::ofstream rayOut("ray-path.txt");
+    std::ofstream rayOutNoColl("ray-path-no-coll.txt");
+    std::ofstream rayCollision("ray-collision.txt");
 
-  rayCollision << "x, y, z \n";
-  rayOut << "x, y, z \n";
-  rayOutNoColl << "x, y, z \n";
-  lineOut << "x, y, z, Vx, Vy, Vz\n"; 
-
-  std::cout << "Number of triangles = " << allTris.size() << std::endl;
-  
-#pragma omp for schedule(auto)
-  for (const auto& tri:allTris) {
-    std::array<xdg::Vertex, 3UL> triVerts = tri.first;
-    MeshID parentVol = tri.second;
-    auto origDirList = return_edges_midpoint_dirs(triVerts, lineOut);
-    for (const auto& element:origDirList)
-    {
-      Position origin = element.first;
-      Direction direction = element.second;
-      // loop over all the volumes in the problem. Skip parent vol of triangle 
-
-      for (const auto& testVol:allVols)
+    rayCollision << "x, y, z \n";
+    rayOut << "x, y, z \n";
+    rayOutNoColl << "x, y, z \n";
+    lineOut << "x, y, z, Vx, Vy, Vz\n";
+    
+  #pragma omp for schedule(auto)
+    for (const auto& tri:allTris) {
+      edgesChecked++;
+      std::array<xdg::Vertex, 3UL> triVerts = tri.first;
+      MeshID parentVol = tri.second;
+      auto origDirList = return_edges_midpoint_dirs(triVerts, lineOut);
+      for (const auto& element:origDirList)
       {
-        if (testVol == parentVol) { continue; } // skip if firing against parent vol
+        Position origin = element.first;
+        Direction direction = element.second;
+        // loop over all the volumes in the problem. Skip parent vol of triangle 
 
-        auto rayQuery = xdg->ray_fire(testVol, origin, direction); 
-        double rayDistance = rayQuery.first;
-        MeshID surfHit = rayQuery.second;  
-        if (surfHit != -1) // if surface hit (Valid MeshID returned)
+        for (const auto& testVol:allVols)
         {
-          auto volHit = mm->get_parent_volumes(surfHit);
-          std::cout << "Parent Volume = " << parentVol << " | Volume Hit = " << volHit.first << " | Distance = " << rayDistance << std::endl;
-          double ds = rayDistance/1000;
-          for (int i=0; i<1000; ++i)
+          if (testVol == parentVol) { continue; } // skip if firing against parent vol
+
+          auto rayQuery = xdg->ray_fire(testVol, origin, direction); 
+          double rayDistance = rayQuery.first;
+          MeshID surfHit = rayQuery.second;  
+          if (surfHit != -1) // if surface hit (Valid MeshID returned)
           {
-            rayOut << origin.x + direction.x*ds*i << ", " << origin.y + direction.y*ds*i << ", " << origin.z + direction.z*ds*i << std::endl;
+            auto volHit = mm->get_parent_volumes(surfHit);
+            //std::cout << "Parent Volume = " << parentVol << " | Volume Hit = " << volHit.first << " | Distance = " << rayDistance << std::endl;
+            double ds = rayDistance/1000;
+            for (int i=0; i<1000; ++i)
+            {
+              rayOut << origin.x + direction.x*ds*i << ", " << origin.y + direction.y*ds*i << ", " << origin.z + direction.z*ds*i << std::endl;
+            }
+            if (volHit.first != parentVol) {
+              // Must be overlapped by another volume?
+              rayCollision << origin.x + rayDistance*direction.x << ", " << origin.y + rayDistance*direction.y << ", " << origin.z + rayDistance*direction.z << std::endl;
+              //std::cout << "Overlapped region detected" << std::endl; 
+            }
           }
-          if (volHit.first != parentVol) {
-            // Must be overlapped by another volume?
-            rayCollision << origin.x + rayDistance*direction.x << ", " << origin.y + rayDistance*direction.y << ", " << origin.z + rayDistance*direction.z << std::endl;
-            std::cout << "Overlapped region detected" << std::endl; 
+          else 
+          {
+            //std::cout << "No Surface Hit!" << std::endl;
           }
-        }
-        else 
-        {
-          std::cout << "No Surface Hit!" << std::endl;
         }
       }
     }
   }
-}
+  std::cout << "Number of element edges checked = " << edgesChecked << std::endl;
   return;
-
 }
 
 
