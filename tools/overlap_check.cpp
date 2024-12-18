@@ -18,9 +18,10 @@ int main(int argc, char* argv[]) {
 	args.add_argument("filename")
 	  .help("Path to the faceted .h5m file to check");
 	
-	args.add_argument("-p","--points-per-edge")
-		.help("Number of evenly-spaced points to test on each triangle edge")
-		.scan<'i', int>();
+	args.add_argument("-e","--check-edges")
+	    .default_value(false)
+    	.implicit_value(true)
+		.help("Flag to enable checking along edges");
 
 	try {
 		args.parse_args(argc, argv);
@@ -31,6 +32,12 @@ int main(int argc, char* argv[]) {
 		std::cout << args;
 		exit(0);
 	}
+
+	bool checkEdges = false;
+
+	if (args.get<bool>("--check-edges")) {
+		checkEdges = true;
+	}	
 	
 	// Create a mesh manager
 	std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
@@ -45,7 +52,7 @@ int main(int argc, char* argv[]) {
   // check for overlaps
   OverlapMap overlap_map;
   Direction dir = xdg::rand_dir();
-  check_instance_for_overlaps(xdg, overlap_map);
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // if any overlaps are found, report them
   if (overlap_map.size() > 0) {

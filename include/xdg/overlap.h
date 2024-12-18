@@ -13,8 +13,9 @@ using OverlapMap = std::map<std::set<int>, Position>;
 
 // check mesh manager instance for overlaps
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
-                                 OverlapMap& overlap_map);
+                                 OverlapMap& overlap_map,
+                                 bool checkEdges);
 
-Direction direction_between_verts(const xdg::Vertex& vert1, const xdg::Vertex& vert2);
-
+std::vector<std::pair<Position, Direction>> return_edges_midpoint_dirs(const std::array<xdg::Vertex, 3> &tri, std::ofstream& lineOut);
 void report_overlaps(const OverlapMap& overlap_map);
+Direction calculate_direction(const Position& from, const Position& to); 

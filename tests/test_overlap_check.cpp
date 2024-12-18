@@ -21,7 +21,8 @@ TEST_CASE("Overlapping Volumes Test")
 	mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1); 
@@ -41,7 +42,8 @@ TEST_CASE("Non-Overlapping Volumes Test")
 	mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected no overlaps 
   REQUIRE(overlap_map.size() == 0); 
@@ -57,7 +59,8 @@ TEST_CASE("Non-Overlapping Imprinted Volumes Test")
 	mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected no overlaps
   REQUIRE(overlap_map.size() == 0); 
@@ -73,7 +76,8 @@ TEST_CASE("Enclosed Volume Test")
 	mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1); 
@@ -93,7 +97,8 @@ TEST_CASE("Small Overlap Test")
 	mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1); 

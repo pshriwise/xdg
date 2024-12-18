@@ -1,5 +1,8 @@
 #include "xdg/overlap.h"
 #include "xdg/progressBar.h"
+#include <fstream>
+#include <map>
+
 
 using namespace xdg;
 
@@ -48,28 +51,30 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
 }
 
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
-                                 OverlapMap& overlap_map) {
+                                 OverlapMap& overlap_map,
+                                 bool checkEdges) {
   auto mm = xdg->mesh_manager();
 	auto allVols = mm->volumes();
 	std::vector<Vertex> allVerts;
   std::vector<Direction> allEdgeDirections; // all edge directions forwards and backwards
-  std::vector<std::array<xdg::Vertex, 3UL>> allTris;
+  std::vector<std::pair<std::array<xdg::Vertex, 3UL>, MeshID>> allTris;
+  std::vector<MeshID> allElements;
 
-  for (const auto& surf:mm->surfaces())
-  {
-		auto elements_on_surf = mm->get_surface_elements(surf);
-		for (const auto& tri:elements_on_surf)
-		{
-			auto triVert = mm->triangle_vertices(tri);
-    	allTris.push_back(triVert);
-      // Push vertices in triangle to end of array
-			allVerts.push_back(triVert[0]); 
-    	allVerts.push_back(triVert[1]); 
-    	allVerts.push_back(triVert[2]);
-		}
+  std::cout << "allVols.size() = " << allVols.size() << std::endl;
+  for (const auto& vol:mm->volumes()){  
+    for (const auto& surf:mm->get_volume_surfaces(vol)){
+      auto allElements = mm->get_surface_elements(surf);
+      
+      for (const auto& tri:allElements){
+        auto triVert = mm->triangle_vertices(tri);
+        allTris.push_back(std::make_pair(triVert, vol));
+        // Push vertices in triangle to end of array
+        allVerts.push_back(triVert[0]); 
+        allVerts.push_back(triVert[1]); 
+        allVerts.push_back(triVert[2]);
+      }
+    }
 	}
-
-
 
   // number of locations we'll be checking
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
@@ -91,10 +96,8 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       progBar.set_value(100.0 * (double)numChecked++ / (double)numLocations);
     }
   }
-
-  bool checkEdges = true;
-
-  // if we aren't checking along edges, return
+ 
+  // if we aren't checking along edges, return early
   if (!checkEdges) {
     return;
   }
@@ -104,50 +107,64 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 // now check along triangle edges
 // (curve edges are likely in here too,
 //  but it isn't hurting anything to check more locations)
+
+  std::ofstream lineOut("ray_fire_lines.txt");
+  std::ofstream rayOut("ray-path.txt");
+  std::ofstream rayOutNoColl("ray-path-no-coll.txt");
+  std::ofstream rayCollision("ray-collision.txt");
+
+  rayCollision << "x, y, z \n";
+  rayOut << "x, y, z \n";
+  rayOutNoColl << "x, y, z \n";
+  lineOut << "x, y, z, Vx, Vy, Vz\n"; 
+
+  std::cout << "Number of triangles = " << allTris.size() << std::endl;
+  
 #pragma omp for schedule(auto)
-      for (const auto& tri:allTris) {
-      //tri[0], tri[1], tri[2] --> recovers the three vertices of the triangle   
-        Direction dir1 = direction_between_verts(tri[0], tri[1]);
-        Direction dir2 = direction_between_verts(tri[1], tri[2]);
-        Direction dir3 = direction_between_verts(tri[2], tri[0]);
+  for (const auto& tri:allTris) {
+    std::array<xdg::Vertex, 3UL> triVerts = tri.first;
+    MeshID parentVol = tri.second;
+    auto origDirList = return_edges_midpoint_dirs(triVerts, lineOut);
+    for (const auto& element:origDirList)
+    {
+      Position origin = element.first;
+      Direction direction = element.second;
+      // loop over all the volumes in the problem. Skip parent vol of triangle 
 
-        
+      for (const auto& testVol:allVols)
+      {
+        if (testVol == parentVol) { continue; } // skip if firing against parent vol
 
-       }
-//     for (size_t i = 0; i < all_edges.size(); i++) {
-//       EntityHandle edge = all_edges[i];
-//       Range edge_verts;
-//       rval = MBI->get_connectivity(&edge, 1, edge_verts);
-//       MB_CHK_SET_ERR_CONT(rval, "Failed to get triangle vertices");
-
-//       CartVect edge_coords[2];
-//       rval = MBI->get_coords(edge_verts, edge_coords[0].array());
-//       MB_CHK_SET_ERR_CONT(rval, "Failed to get triangle coordinates");
-
-//       std::vector<CartVect> locations;
-
-//       CartVect edge_vec = edge_coords[1] - edge_coords[0];
-//       CartVect& start = edge_coords[0];
-
-//       // create locations along the edge to check
-//       for (int j = 1; j <= pnts_per_edge; j++) {
-//         double t = (double)j / (double)pnts_per_edge;
-//         locations.push_back(start + t * edge_vec);
-//       }
-
-//       // check edge locations
-//       for (auto& loc : locations) {
-//         rval = check_location_for_overlap(GQT, allVols, loc, dir, overlap_map);
-//         MB_CHK_SET_ERR_CONT(rval, "Failed to check point for overlap");
-// #pragma omp critical
-//         progBar.set_value(100.0 * (double)numChecked++ /
-//                            (double)numLocations);
-//       }
-//     }
-//   }
+        auto rayQuery = xdg->ray_fire(testVol, origin, direction); 
+        double rayDistance = rayQuery.first;
+        MeshID surfHit = rayQuery.second;  
+        if (surfHit != -1) // if surface hit (Valid MeshID returned)
+        {
+          auto volHit = mm->get_parent_volumes(surfHit);
+          std::cout << "Parent Volume = " << parentVol << " | Volume Hit = " << volHit.first << " | Distance = " << rayDistance << std::endl;
+          double ds = rayDistance/1000;
+          for (int i=0; i<1000; ++i)
+          {
+            rayOut << origin.x + direction.x*ds*i << ", " << origin.y + direction.y*ds*i << ", " << origin.z + direction.z*ds*i << std::endl;
+          }
+          if (volHit.first != parentVol) {
+            // Must be overlapped by another volume?
+            rayCollision << origin.x + rayDistance*direction.x << ", " << origin.y + rayDistance*direction.y << ", " << origin.z + rayDistance*direction.z << std::endl;
+            std::cout << "Overlapped region detected" << std::endl; 
+          }
+        }
+        else 
+        {
+          std::cout << "No Surface Hit!" << std::endl;
+        }
+      }
+    }
   }
-  return
 }
+  return;
+
+}
+
 
 void report_overlaps(const OverlapMap& overlap_map) {
   std::cout << "Overlap locations found: " << overlap_map.size() << std::endl;
@@ -166,15 +183,39 @@ void report_overlaps(const OverlapMap& overlap_map) {
   }
 }
 
-MeshID ray_fire_along_tri_edges(std::shared_ptr<XDG> xdg, const xdg::Vertex& vert1, const xdg::Vertex& vert2)
+std::vector<std::pair<Position, Direction>> return_edges_midpoint_dirs(const std::array<xdg::Vertex, 3> &tri, std::ofstream& lineOut)
 {
-  Direction dir = {vert1.x-vert2.x, vert1.y-vert2.y, vert1.z-vert2.z}; 
-  Position origin = {(vert1.x+vert2.x)/2, (vert1.y+vert2.y)/2, (vert1.z+vert1.z)/2};
-  dir.normalize();
+  auto v1 = tri[0];
+  auto v2 = tri[1];
+  auto v3 = tri[2];
 
-  MeshID launchVolume;
-  xdg->find_volume(origin, );
+  // Maybe a better approach can be used instead of this vector of pairs?
+  std::vector<std::pair<Position, Direction>> origDirMap;
 
-  MeshID VolumeHit;
-  return VolumeHit;
+  // Not entirely sure how I feel about this block, maybe these helper functions could be a part of xdg::Position/vec3da??
+  origDirMap.push_back({v1, calculate_direction(v1, v2)}); // v1 to v2
+  origDirMap.push_back({v2, calculate_direction(v2, v1)}); // v2 to v1
+  origDirMap.push_back({v2, calculate_direction(v2, v3)}); // v2 to v3
+  origDirMap.push_back({v3, calculate_direction(v3, v2)}); // v3 to v2
+  origDirMap.push_back({v1, calculate_direction(v1, v3)}); // v1 to v3
+  origDirMap.push_back({v3, calculate_direction(v3, v1)}); // v3 to v1
+
+  // Write origins and directions using origDirMap
+  for (const auto& entry : origDirMap) {
+      const Position& origin = entry.first;
+      const Direction& direction = entry.second;
+
+      // Write out midpoints and directions for debugging
+      lineOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
+              << direction.x << ", " << direction.y << ", " << direction.z << "\n";
+  }
+
+  return origDirMap;
+}
+
+// Return the normalised direction between two xdg::Position types
+Direction calculate_direction(const Position& from, const Position& to) {
+    Direction dir = {to.x - from.x, to.y - from.y, to.z - from.z};
+    dir.normalize();
+    return dir;
 }
