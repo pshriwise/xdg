@@ -14,6 +14,7 @@ using namespace xdg;
 
 int main(int argc, char* argv[]) {
   
+	// Argument Parsing
   argparse::ArgumentParser args("XDG Overlap Checker Tool", "1.0", argparse::default_arguments::help);
 	args.add_argument("filename")
 	  .help("Path to the faceted .h5m file to check");

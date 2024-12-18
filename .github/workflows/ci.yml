@@ -37,20 +37,25 @@ jobs:
           git checkout 5.3.1
           mkdir build
           cd build
-          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=$HOME/opt -DCMAKE_BUILD_TYPE=Release ..
           make -j4
-          sudo make install
+          make install
 
       - name: Build
         shell: bash
         run: |
           mkdir build
           cd build
-          cmake ..
-          make -j4
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DCMAKE_INSTALL_PREFIX=$HOME/opt
+          make -j4 install
 
       - name: Test
         shell: bash
         run: |
           cd build
           ctest -j4 --output-on-failure
+
+      - name: Check installed executables
+        shell: bash
+        run: |
+          ~/opt/bin/tools/find-volume

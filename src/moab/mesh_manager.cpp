@@ -66,6 +66,8 @@ void MOABMeshManager::init() {
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
     surfaces_.push_back(moab_surface_ids[i]);
   }
+
+  MeshID ipc = create_implicit_complement();
 }
 
 // Methods
@@ -112,7 +114,7 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
 {
   moab::EntityHandle vol_handle = volume_id_map_.at(volume);
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
-  this->moab_interface()->add_parent_child(volume, surface);
+  this->moab_interface()->add_parent_child(vol_handle, surf_handle);
 
   // insert new volume into sense data
   auto sense_data = this->surface_senses(surface);
@@ -320,10 +322,20 @@ MOABMeshManager::parse_metadata()
     this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
     std::vector<std::string> tokens = tokenize(strtrim(group_name), metadata_delimiters);
 
+    // this group is often present and is meaningless
+    if (tokens.size() == 1 && tokens[0] == "picked")
+      continue;
+
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
-    if (tokens.size() % 2 != 0)
-      fatal_error("Group name tokens are of incorrect size: {}", tokens.size());
+    if (tokens.size() % 2 != 0) {
+      std:: string msg = fmt::format("Group name tokens ({}) are of incorrect size: {}\n", tokens.size());
+      for (const auto& t : tokens) {
+        msg += fmt::format("{}", t);
+      }
+      msg += "\n";
+      fatal_error(msg);
+    }
 
     std::vector<Property> group_properties;
     // iterate over tokens by 2 and setup property objects
@@ -333,6 +345,21 @@ MOABMeshManager::parse_metadata()
       if (MOAB_PROPERTY_MAP.count(key) == 0)
         fatal_error("Could not find property for key '{}'", key);
       group_properties.push_back({MOAB_PROPERTY_MAP.at(key), value});
+    }
+
+    // separate out implicit complement properties
+    for (auto it = group_properties.begin(); it != group_properties.end();) {
+      auto prop = *it;
+      if (prop.type == PropertyType::MATERIAL && ends_with(prop.value, "_comp")) {
+        rm_substring(prop.value, "_comp");
+        if (implicit_complement() != ID_NONE)
+          volume_metadata_[{implicit_complement(), PropertyType::MATERIAL}] = prop;
+        else
+           write_message(fmt::format("Implicit complement material property '{}' found but no implicit complement volume set", prop.value));
+        it = group_properties.erase(it);
+      } else {
+        ++it;
+      }
     }
 
     // now we have all of the properties. Get the geometric entities they apply to
@@ -355,11 +382,26 @@ MOABMeshManager::parse_metadata()
         for (const auto& p : group_properties) {
           surface_metadata_[{global_id, p.type}] = p;
         }
-
       } else {
         fatal_error("Properties for entities with dimension {} are unsupported", dim);
       }
     }
   }
 
+  graveyard_check();
+}
+
+void
+MOABMeshManager::graveyard_check()
+{
+  for (auto volume : this->volumes()) {
+    auto prop = MeshManager::get_volume_property(volume, PropertyType::MATERIAL);
+    // set the boundary condition to vacuum for all surfaces on volumes using a graveyard material
+    if (to_lower(prop.value) == "graveyard") {
+      auto volume_surfaces = this->get_volume_surfaces(volume);
+      for (auto surface : volume_surfaces) {
+        surface_metadata_[{surface, PropertyType::BOUNDARY_CONDITION}] = {PropertyType::BOUNDARY_CONDITION, "vacuum"};
+      }
+    }
+  }
 }

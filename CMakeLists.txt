@@ -73,6 +73,35 @@ src/moab/metadata.cpp
 )
 endif()
 
+#===============================================================================
+# RPATH information (from OpenMC)
+#===============================================================================
+
+# Provide install directory variables as defined by GNU coding standards
+include(GNUInstallDirs)
+
+# This block of code ensures that dynamic libraries can be found via the RPATH
+# whether the executable is the original one from the build directory or the
+# installed one in CMAKE_INSTALL_PREFIX. Ref:
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+
+# use, i.e. don't skip the full RPATH for the build tree
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# the RPATH to be used when installing, but only if it's not a system directory
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemDir)
+if("${isSystemDir}" STREQUAL "-1")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+endif()
+
 add_library(xdg SHARED ${xdg_sources})
 
 # pass precompile definition depending on embree version
@@ -104,35 +133,6 @@ target_link_libraries(xdg embree fmt::fmt)
 
 if (XDG_ENABLE_MOAB)
   target_link_libraries(xdg MOAB)
-endif()
-
-#===============================================================================
-# RPATH information (from OpenMC)
-#===============================================================================
-
-# Provide install directory variables as defined by GNU coding standards
-include(GNUInstallDirs)
-
-# This block of code ensures that dynamic libraries can be found via the RPATH
-# whether the executable is the original one from the build directory or the
-# installed one in CMAKE_INSTALL_PREFIX. Ref:
-# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# the RPATH to be used when installing, but only if it's not a system directory
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemDir)
-if("${isSystemDir}" STREQUAL "-1")
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 
 #=================================================================
