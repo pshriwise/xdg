@@ -16,23 +16,36 @@ int main(int argc, char* argv[]) {
   
 	// Argument Parsing
   argparse::ArgumentParser args("XDG Overlap Checker Tool", "1.0", argparse::default_arguments::help);
-  args.add_argument("filename").help("Path to the faceted .h5m file to check");
+	args.add_argument("filename")
+	  .help("Path to the faceted .h5m file to check");
+	
+	args.add_argument("-e","--check-edges")
+	    .default_value(false)
+    	.implicit_value(true)
+		.help("Flag to enable checking along edges");
 
-  try {
-    args.parse_args(argc, argv);
-    }
+	try {
+		args.parse_args(argc, argv);
+	}
+	catch(const std::runtime_error& err)
+	{
+		std::cerr << err.what() << std::endl;
+		std::cout << args;
+		exit(0);
+	}
 
-  catch(const std::runtime_error& err) {
-    std::cerr << err.what() << std::endl;
-    std::cout << args;
-    exit(0);
-    }
-  
-  // Create a mesh manager  
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
-  const auto& mm = xdg->mesh_manager();
-  mm->load_file(args.get<std::string>("filename"));
-  mm->init();	
+	bool checkEdges = false;
+
+	if (args.get<bool>("--check-edges")) {
+		checkEdges = true;
+	}	
+	
+	// Create a mesh manager
+	std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+	const auto& mm = xdg->mesh_manager();
+
+	mm->load_file(args.get<std::string>("filename"));
+	mm->init();	
   xdg->prepare_raytracer();
 
   std::cout << "Running overlap check:" << std::endl;
@@ -40,7 +53,7 @@ int main(int argc, char* argv[]) {
   // check for overlaps
   OverlapMap overlap_map;
   Direction dir = xdg::rand_dir();
-  check_instance_for_overlaps(xdg, overlap_map);
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // if any overlaps are found, report them
   if (overlap_map.size() > 0) {
@@ -48,6 +61,6 @@ int main(int argc, char* argv[]) {
   } else {
     std::cout << "No overlaps were found." << std::endl;
   }
-
+	
   return 0;
 }

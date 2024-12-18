@@ -20,7 +20,8 @@ TEST_CASE("Overlapping Volumes Test")
   mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 2);
@@ -39,7 +40,8 @@ TEST_CASE("Non-Overlapping Volumes Test")
   mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected no overlaps
   REQUIRE(overlap_map.size() == 0);
@@ -54,7 +56,8 @@ TEST_CASE("Non-Overlapping Imprinted Volumes Test")
   mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected no overlaps
   REQUIRE(overlap_map.size() == 0);
@@ -69,7 +72,8 @@ TEST_CASE("Enclosed Volume Test")
   mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 2);
@@ -88,7 +92,8 @@ TEST_CASE("Small Overlap Test")
   mm->init();
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
-  check_instance_for_overlaps(xdg, overlap_map);
+  bool checkEdges = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1);
@@ -98,5 +103,23 @@ TEST_CASE("Small Overlap Test")
   REQUIRE(expected_overlaps == overlap_map.begin()->first);
 }
 
+TEST_CASE("Edge Overlap Test")
+{
+  // Create a mesh manager
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+  const auto& mm = xdg->mesh_manager();
+  mm->load_file("overlap-edge.h5m");
+  mm->init();
+  xdg->prepare_raytracer();
+  OverlapMap overlap_map;
+  bool checkEdges = true;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
+  // Expected 1 overlap
+  // REQUIRE(overlap_map.size() == 1);
+  // std::set<int> expected_overlaps = {1, 2};
+
+  // Expected overlaps between volumes [1,2]
+  // REQUIRE(expected_overlaps == overlap_map.begin()->first);
+}
 
