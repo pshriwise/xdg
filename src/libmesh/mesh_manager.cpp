@@ -72,7 +72,7 @@ void LibMeshMeshManager::init() {
   for (auto entry : boundary_info.get_sideset_map()) {
     const libMesh::Elem* other_elem = entry.first->neighbor_ptr(entry.second.first);
     sideset_element_map_[entry.second.second].push_back(
-        {entry.first, other_elem});
+        {entry.first, entry.second.first});
   }
 
   discover_surface_elements();
@@ -261,7 +261,7 @@ void LibMeshMeshManager::discover_surface_elements() {
   for (auto &[id, elem_side] : subdomain_interface_map_) {
     if (id.first == ID_NONE || id.second == ID_NONE) {
       for (const auto &elem : elem_side) {
-        boundary_info.add_side(elem.first(), elem.first_to_second_side(), next_boundary_id);
+        boundary_info.add_side(elem.first(), elem.side_num(), next_boundary_id);
       }
     }
   }
