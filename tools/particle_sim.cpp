@@ -14,6 +14,8 @@
 using namespace xdg;
 
 static double MFP {1.0};
+// global "tally" structure
+std::unordered_map<MeshID, double> cell_tracks;
 
 struct Particle {
 
@@ -31,6 +33,7 @@ void initialize() {
   u_ = {1.0, 0.0, 0.0};
 
   volume_ = xdg_->find_volume(r_, u_);
+  log("Particle {} initialized in volume {}", id_, volume_);
 }
 
 void surf_dist() {
@@ -65,10 +68,11 @@ void advance()
   log("Comparing surface intersection distance {} to collision distance {}", surface_intersection_.first, collision_distance_);
   if (collision_distance_ < surface_intersection_.first) {
     r_ += collision_distance_ * u_;
+    cell_tracks[volume_] += collision_distance_;
     log("Particle {} collides with material at position ({}, {}, {}) ", id_, r_.x, r_.y, r_.z);
-
   } else {
     r_ += surface_intersection_.first * u_;
+    cell_tracks[volume_] += surface_intersection_.first;
     log("Particle {} advances to surface {} at position ({}, {}, {}) ", id_, surface_intersection_.second, r_.x, r_.y, r_.z);
   }
 }
@@ -122,6 +126,7 @@ int32_t n_events_ {0};
 bool alive_ {true};
 };
 
+
 int main(int argc, char** argv) {
 
 // argument parsing
@@ -139,6 +144,11 @@ args.add_argument("-m", "--mfp")
     .default_value(MFP)
     .help("Mean free path of the particles").scan<'g', double>();
 
+args.add_argument("-l", "--library")
+    .help("Mesh library to use (default: MOAB)")
+    .default_value("MOAB");
+    // .scan<'s', std::string>();
+
   try {
     args.parse_args(argc, argv);
   }
@@ -152,9 +162,13 @@ args.add_argument("-m", "--mfp")
 srand48(42);
 
 // create a mesh manager
-std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
-const auto& mm = xdg->mesh_manager();
+std::shared_ptr<XDG> xdg {nullptr};
+if (args.get<std::string>("--library") == "MOAB")
+  xdg = XDG::create(MeshLibrary::MOAB);
+else if (args.get<std::string>("--library") == "LIBMESH")
+  xdg = XDG::create(MeshLibrary::LIBMESH);
 
+const auto& mm = xdg->mesh_manager();
 mm->load_file(args.get<std::string>("filename"));
 mm->init();
 mm->parse_metadata();
@@ -192,6 +206,15 @@ for (int i = 0; i < n_particles; i++) {
     }
   }
 }
+
+// report distances in each cell in a table
+write_message("Cell Track Lengths");
+write_message("-----------");
+for (const auto& [cell, dist] : cell_tracks) {
+  write_message("Cell {}: {}", cell, dist);
+}
+write_message("-----------");
+
 
 return 0;
 }
