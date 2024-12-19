@@ -167,7 +167,7 @@ using Direction = Vec3da;
 
 inline Direction rand_dir() {
   double theta = drand48() * 2.0 * M_PI;
-  double u = (1.0 - drand48()) - 1.0;
+  double u = 2.0*drand48() - 1.0;
   double phi = acos(u);
   return Direction(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi)).normalize();
 
