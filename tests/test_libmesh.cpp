@@ -197,6 +197,39 @@ TEST_CASE("Test Ray Fire Cylinder-Brick")
   REQUIRE(xdg->point_in_volume(volume, origin));
 }
 
+TEST_CASE("Test Ray Fire Jezebel")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+
+  // fire ray from the center of the cube
+  Position origin {0.0, 0.0, 0.0};
+  Direction direction {0.0, 0.0, 1.0};
+
+  int n_rays {1000};
+
+  for (int i = 0; i < n_rays; i++) {
+    direction = rand_dir();
+    std::pair<double, MeshID> intersection;
+    intersection = xdg->ray_fire(volume, origin, direction);
+    if (intersection.second == ID_NONE)
+      fatal_error("Ray did not intersect any geometry");
+    if (intersection.first > 6.4) {
+      fatal_error("Ray intersected geometry at distance greater than 6.4 cm");
+    }
+    REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(6.3849, 1e-1));
+  }
+
+
+}
+
 // TEST_CASE("Test libMesh Initialization")
 // {
 //   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
