@@ -42,19 +42,23 @@ public:
 
   virtual std::array<Vertex, 3> triangle_vertices(MeshID element) const = 0;
 
-  virtual Direction triangle_normal(MeshID element) const = 0;
+  BoundingBox element_bounding_box(MeshID element) const;
 
-  virtual BoundingBox element_bounding_box(MeshID element) const = 0;
+  BoundingBox triangle_bounding_box(MeshID element) const;
 
-  virtual BoundingBox volume_bounding_box(MeshID volume) const = 0;
+  BoundingBox volume_bounding_box(MeshID volume) const;
 
-  virtual BoundingBox surface_bounding_box(MeshID surface) const = 0;
+  BoundingBox surface_bounding_box(MeshID surface) const;
+
+  Direction triangle_normal(MeshID element) const;
 
   // Topology
   // Returns parent with forward sense, then reverse
-  virtual std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const = 0;
+  std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const;
 
   virtual std::vector<MeshID> get_volume_surfaces(MeshID volume) const = 0;
+
+  virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const = 0;
 
   virtual Sense surface_sense(MeshID surface, MeshID volume) const = 0;
 
