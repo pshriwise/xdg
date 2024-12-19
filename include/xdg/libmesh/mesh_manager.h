@@ -84,26 +84,38 @@ public:
 
     SidePair(std::pair<const libMesh::Elem*, int> old_side) {
       side.first = old_side.first;
-      side.second = old_side.first->neighbor_ptr(old_side.second);
-      set_order();
-      set_side_num();
+      side_num_ = old_side.second;
+      side.second = old_side.first->neighbor_ptr(side_num_);
+      if (side.second != nullptr) {
+        set_order();
+        set_side_num();
+      }
     }
 
     SidePair(const libMesh::Elem* elem, int side_num) {
       side.first = elem;
+      side_num_ = side_num;
       side.second = elem->neighbor_ptr(side_num);
-      set_order();
-      set_side_num();
+      if (side.second != nullptr) {
+        set_order();
+        set_side_num();
+      }
     }
 
     SidePair(const libMesh::Elem* elem1, const libMesh::Elem* elem2) {
       side.first = elem1;
       side.second = elem2;
+      if (elem1 == nullptr || elem2 == nullptr) {
+        fatal_error("SidePair pointer constructor must be used with non-null pointers");
+      }
       set_order();
       set_side_num();
     }
 
     SidePair(std::pair<const libMesh::Elem*, const libMesh::Elem*> side_pair) : side(side_pair) {
+      if (side.first == nullptr || side.second == nullptr) {
+        fatal_error("SidePair pair constructor must be used with non-null pointers");
+      }
       set_order();
       set_side_num();
     }
@@ -135,11 +147,11 @@ public:
     void set_side_num() {
       for (int i = 0; i < side.first->n_sides(); i++) {
         if (side.first->neighbor_ptr(i) == side.second) {
-          side_num = i;
+          side_num_ = i;
           break;
         }
       }
-      if (side_num == -1) {
+      if (side_num_ == -1) {
         fatal_error("SidePair created with elements that are not neighbors");
       }
     }
@@ -147,7 +159,7 @@ public:
 
     bool operator==(const SidePair& other) const
     {
-      return side == other.side; // || side == std::make_pair(other.side.second, other.side.first);
+      return first() == other.first() && side_num() == other.side_num(); // || side == std::make_pair(other.side.second, other.side.first);
     }
 
     bool operator<(const SidePair& other) const
@@ -158,28 +170,14 @@ public:
     const libMesh::Elem* first() const { return side.first; }
     const libMesh::Elem* second() const { return side.second; }
 
-    MeshID first_to_second_side() const {
-      for (int i = 0; i < first()->n_sides(); i++) {
-        if (first()->neighbor_ptr(i) == second()) {
-          return i;
-        }
-      }
-    }
+    const int32_t side_num() const { return side_num_; }
 
     const std::unique_ptr<const libMesh::Elem> face_ptr() const {
-      return first()->side_ptr(side_num);
-    }
-
-    MeshID second_to_first_side() const {
-      for (int i = 0; i < second()->n_sides(); i++) {
-        if (second()->neighbor_ptr(i) == first()) {
-          return i;
-        }
-      }
+      return first()->side_ptr(side_num());
     }
 
     std::pair<const libMesh::Elem*, const libMesh::Elem*> side {nullptr, nullptr};
-    int32_t side_num {-1};
+    int32_t side_num_ {-1};
   }; // SidePair
 
   struct SidePairHash {
@@ -187,7 +185,7 @@ public:
     std::size_t operator()(const SidePair& p) const
     {
       auto hash1 = std::hash<const libMesh::Elem*>{}(p.first());
-      auto hash2 = std::hash<const libMesh::Elem*>{}(p.second());
+      auto hash2 = std::hash<int32_t>{}(p.side_num());
       // Combine the two hashes into a single hash value
       // This can be done using a common technique that combines them with XOR and bit shifting
       return hash1 ^ (hash2 + 0x9e3779b9 + (hash1 << 6) + (hash1 >> 2));
@@ -198,6 +196,9 @@ public:
     if (sidepair_to_mesh_id_.count(sidepair) == 0) {
       MeshID id = next_sidepair_id();
       mesh_id_to_sidepair_[id] = sidepair;
+      if (sidepair_to_mesh_id_.count(sidepair) > 0) {
+        fatal_error("SidePair already exists in sidepair_to_mesh_id_");
+      }
       sidepair_to_mesh_id_[sidepair] = id;
       return id;
     } else {
@@ -235,7 +236,11 @@ public:
   struct MeshIDPairHash {
     std::size_t operator()(const std::pair<MeshID, MeshID>& p) const
     {
-      return 4096 * p.first + p.second;
+      // Combine the hashes of the two integers
+      std::size_t h1 = std::hash<int32_t>{}(p.first);
+      std::size_t h2 = std::hash<int32_t>{}(p.second);
+      // Use a bitwise combination for mixing
+      return h1 ^ (h2 << 1); // XOR and shift for a simple combination
     }
   };
 
