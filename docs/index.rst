@@ -10,6 +10,7 @@ XDG is an open-source ray tracing toolkit providing robust ray tracing
 for particle transport operations in scientific simulations.
 
 
+
 .. .. carousel::
 ..     :show_controls:
 ..     :show_fade:
