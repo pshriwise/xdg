@@ -145,9 +145,8 @@ args.add_argument("-m", "--mfp")
     .help("Mean free path of the particles").scan<'g', double>();
 
 args.add_argument("-l", "--library")
-    .help("Mesh library to use (default: MOAB)")
+    .help("Mesh library to use. One of (MOAB, LIBMESH)")
     .default_value("MOAB");
-    // .scan<'s', std::string>();
 
   try {
     args.parse_args(argc, argv);
