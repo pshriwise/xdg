@@ -13,13 +13,18 @@
 
 using namespace xdg;
 
-static double MFP {1.0};
-// global "tally" structure
-std::unordered_map<MeshID, double> cell_tracks;
+struct SimulationData {
+  std::shared_ptr<XDG> xdg_;
+  double mfp_;
+  uint32_t n_particles_ {100};
+  uint32_t max_events_ {1000};
+  bool verbose_particles_ {false};
+  std::unordered_map<MeshID, double> cell_tracks;
+};
 
 struct Particle {
 
-Particle(std::shared_ptr<XDG> xdg, uint32_t id, bool verbose=true) : verbose_(verbose), xdg_(xdg), id_(id) {}
+Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events, bool verbose=true) : verbose_(verbose), xdg_(xdg), id_(id), max_events_(max_events) {}
 
 template<typename... Params>
 void log (const std::string& msg, const Params&... fmt_args) {
@@ -51,8 +56,8 @@ void surf_dist() {
   log("Intersected surface {} at distance {} ", surface_intersection_.second, surface_intersection_.first);
 }
 
-void sample_collision_distance() {
-  collision_distance_ = -std::log(1.0 - drand48()) * MFP;
+void sample_collision_distance(double mfp) {
+  collision_distance_ = -std::log(1.0 - drand48()) * mfp;
 }
 
 void collide() {
@@ -63,7 +68,7 @@ void collide() {
   history_.clear();
 }
 
-void advance()
+void advance(std::unordered_map<MeshID, double>& cell_tracks)
 {
   log("Comparing surface intersection distance {} to collision distance {}", surface_intersection_.first, collision_distance_);
   if (collision_distance_ < surface_intersection_.first) {
@@ -127,8 +132,26 @@ std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
 double collision_distance_ {INFTY};
 
 int32_t n_events_ {0};
+int32_t max_events_ {1000};
 bool alive_ {true};
 };
+
+void transport_particles(SimulationData& sim_data) {
+  for (uint32_t i = 0; i < sim_data.n_particles_; i++) {
+    Particle p {sim_data.xdg_, i, sim_data.max_events_, sim_data.verbose_particles_};
+    p.initialize();
+    while (p.alive_) {
+      p.surf_dist();
+      p.sample_collision_distance(sim_data.mfp_);
+      p.advance(sim_data.cell_tracks);
+      if (p.collision_distance_ < p.surface_intersection_.first) {
+        p.collide();
+      } else {
+        p.cross_surface();
+      }
+    }
+  }
+}
 
 
 int main(int argc, char** argv) {
@@ -145,7 +168,7 @@ args.add_argument("-v", "--verbose")
     .help("Enable verbose output of particle events");
 
 args.add_argument("-m", "--mfp")
-    .default_value(MFP)
+    .default_value(1.0)
     .help("Mean free path of the particles").scan<'g', double>();
 
 args.add_argument("-l", "--library")
@@ -164,12 +187,16 @@ args.add_argument("-l", "--library")
 // Problem Setup
 srand48(42);
 
+SimulationData sim_data;
+
 // create a mesh manager
 std::shared_ptr<XDG> xdg {nullptr};
 if (args.get<std::string>("--library") == "MOAB")
   xdg = XDG::create(MeshLibrary::MOAB);
 else if (args.get<std::string>("--library") == "LIBMESH")
   xdg = XDG::create(MeshLibrary::LIBMESH);
+
+sim_data.xdg_ = xdg;
 
 const auto& mm = xdg->mesh_manager();
 mm->load_file(args.get<std::string>("filename"));
@@ -178,42 +205,16 @@ mm->parse_metadata();
 xdg->prepare_raytracer();
 
 // update the mean free path
-MFP = args.get<double>("--mfp");
+sim_data.mfp_ = args.get<double>("--mfp");
 
-const int n_particles {100};
+sim_data.verbose_particles_ = args.get<bool>("--verbose");
 
-const int max_events {1000};
-
-bool verbose_particles = args.get<bool>("--verbose");
-
-for (int i = 0; i < n_particles; i++) {
-  int particle_id = i+1;
-  write_message("Starting particle {}", particle_id);
-  Particle p(xdg, particle_id, verbose_particles);
-  p.initialize();
-  while (true) {
-    p.surf_dist();
-    // terminate for leakage
-    if (!p.alive_) break;
-    p.sample_collision_distance();
-    p.advance();
-    if (p.surface_intersection_.first < p.collision_distance_)
-      p.cross_surface();
-    else
-      p.collide();
-    if (!p.alive_) break;
-
-    if (p.n_events_ > max_events) {
-      write_message("Maximum number of events ({}) reached", max_events);
-      break;
-    }
-  }
-}
+transport_particles(sim_data);
 
 // report distances in each cell in a table
 write_message("Cell Track Lengths");
 write_message("-----------");
-for (const auto& [cell, dist] : cell_tracks) {
+for (const auto& [cell, dist] : sim_data.cell_tracks) {
   write_message("Cell {}: {}", cell, dist);
 }
 write_message("-----------");
