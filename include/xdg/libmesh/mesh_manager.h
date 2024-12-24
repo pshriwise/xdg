@@ -22,11 +22,19 @@ public:
 
   ~LibMeshMeshManager();
 
+  // Backend methods (specific to libMesh)
+  //! In the case that boundary conditions are not explicitly defined, this method will
+  //! discover element faces on sudbomain interfaces, create surfaces and topology accordingly,
+  //! and assign transmission boundary conditions for these interfacdes
+  void discover_surface_elements();
+
+  //! Initialize libMesh library
+  void initialize_libmesh();
+
+  // Interface methods
   MeshLibrary mesh_library() const override { return MeshLibrary::LIBMESH; }
 
   void load_file(const std::string& filepath) override;
-
-  void initialize_libmesh();
 
   void init() override;
 
@@ -52,8 +60,6 @@ public:
     return mesh()->n_elem();
   }
 
-  void discover_surface_elements();
-
   std::vector<MeshID> get_volume_elements(MeshID volume) const override;
 
   std::vector<MeshID> get_surface_elements(MeshID surface) const override;
@@ -78,6 +84,7 @@ public:
 
   private:
 
+  //! Helper struct for unique identification of an element face
   struct SidePair {
 
     SidePair() = default;
@@ -221,6 +228,19 @@ public:
     return std::max_element(mesh_id_to_sidepair_.begin(), mesh_id_to_sidepair_.end())->first + 1;
   }
 
+  struct MeshIDPairHash {
+    std::size_t operator()(const std::pair<MeshID, MeshID>& p) const
+    {
+      // Combine the hashes of the two integers
+      std::size_t h1 = std::hash<int32_t>{}(p.first);
+      std::size_t h2 = std::hash<int32_t>{}(p.second);
+      // Use a bitwise combination for mixing
+      return h1 ^ (h2 << 1); // XOR and shift for a simple combination
+    }
+  };
+
+  // Attributes
+  protected:
     std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
     // TODO: make this global so it isn't owned by a single mesh manager
     std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
@@ -233,25 +253,19 @@ public:
     // for each face in the mesh that lies on a boundary
     std::unordered_map<MeshID, std::vector<SidePair>> sideset_element_map_;
 
-  struct MeshIDPairHash {
-    std::size_t operator()(const std::pair<MeshID, MeshID>& p) const
-    {
-      // Combine the hashes of the two integers
-      std::size_t h1 = std::hash<int32_t>{}(p.first);
-      std::size_t h2 = std::hash<int32_t>{}(p.second);
-      // Use a bitwise combination for mixing
-      return h1 ^ (h2 << 1); // XOR and shift for a simple combination
-    }
-  };
-
+  //! Mapping of subdomain interfaces (Identified by subdomain ID pairs) to the
+  //! set of element faces that make up the interface
   std::unordered_map<std::pair<MeshID, MeshID>, std::vector<SidePair>, MeshIDPairHash>
   subdomain_interface_map_;
 
+  //! Mapping of surface IDs to the set of element faces that make up the surface,
+  //! with the element face represented by assigned XDG IDs
   // TODO: store proper data types here
   std::unordered_map<MeshID, std::vector<MeshID>> surface_map_;
 
+  //! Mapping of surfaces to the volumes on either side. Volumes are ordered
+  //! based on their sense with respect to the surface triangles
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
-
 };
 
 } // namespace xdg
