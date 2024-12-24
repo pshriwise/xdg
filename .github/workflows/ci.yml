@@ -47,6 +47,7 @@ jobs:
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
+        run: |
           cd ~/moab
           mkdir build
           cd build
