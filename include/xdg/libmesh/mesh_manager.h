@@ -241,17 +241,17 @@ public:
 
   // Attributes
   protected:
-    std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
-    // TODO: make this global so it isn't owned by a single mesh manager
-    std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
+  std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
+  // TODO: make this global so it isn't owned by a single mesh manager
+  std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
 
-    // Ugh, double mapping
-    std::unordered_map<MeshID, SidePair> mesh_id_to_sidepair_;
-    std::unordered_map<SidePair, MeshID, SidePairHash> sidepair_to_mesh_id_;
+  // Ugh, double mapping
+  std::unordered_map<MeshID, SidePair> mesh_id_to_sidepair_;
+  std::unordered_map<SidePair, MeshID, SidePairHash> sidepair_to_mesh_id_;
 
-    // sideset face mapping, stores the element and the side number
-    // for each face in the mesh that lies on a boundary
-    std::unordered_map<MeshID, std::vector<SidePair>> sideset_element_map_;
+  // sideset face mapping, stores the element and the side number
+  // for each face in the mesh that lies on a boundary
+  std::unordered_map<MeshID, std::vector<SidePair>> sideset_element_map_;
 
   //! Mapping of subdomain interfaces (Identified by subdomain ID pairs) to the
   //! set of element faces that make up the interface
