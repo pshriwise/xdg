@@ -16,7 +16,7 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   for (const auto& vol : all_vols) {
     bool pointInVol = false;
     pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
-    
+
   if (pointInVol) {
     vols_found.insert(vol);
     }
@@ -56,21 +56,22 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   for (const auto& surf:mm->surfaces())
   {
     auto elements_on_surf = mm->get_surface_elements(surf);
-    
+
     for (const auto& tri:elements_on_surf)
     {
       auto triVerts = mm->triangle_vertices(tri);
       // Push vertices in triangle to end of array
-      all_verts.push_back(triVerts[0]); 
-      all_verts.push_back(triVerts[1]); 
-      all_verts.push_back(triVerts[2]); 
+      all_verts.push_back(triVerts[0]);
+      all_verts.push_back(triVerts[1]);
+      all_verts.push_back(triVerts[2]);
     }
   }
 
   // number of locations we'll be checking
   int num_locations = all_verts.size(); // + pnts_per_edge * all_edges.size();
   int num_checked = 1;
-  Direction dir = xdg::rand_dir();
+  Direction dir {0.1, 0.1, 0.1};
+  dir = dir.normalize();
   ProgressBar prog_bar;
 
 // first check all triangle vertex locations
