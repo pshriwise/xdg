@@ -150,13 +150,14 @@ std::pair<double, MeshID>
 RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
+                    const double dist_limit,
                     std::vector<MeshID>* const exclude_primitves)
 {
   RTCDRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
   rayhit.ray.set_dir(direction);
-  rayhit.ray.set_tfar(INFTY);
+  rayhit.ray.set_tfar(dist_limit);
   rayhit.ray.set_tnear(0.0);
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = HitOrientation::EXITING;
