@@ -11,7 +11,7 @@ using namespace xdg;
 
 struct SimulationData {
   std::shared_ptr<XDG> xdg_;
-  double mfp_;
+  double mfp_ {1.0};
   uint32_t n_particles_ {100};
   uint32_t max_events_ {1000};
   bool verbose_particles_ {false};
@@ -133,6 +133,8 @@ bool alive_ {true};
 };
 
 void transport_particles(SimulationData& sim_data) {
+  // Problem Setup
+  srand48(42);
   for (uint32_t i = 0; i < sim_data.n_particles_; i++) {
     Particle p {sim_data.xdg_, i, sim_data.max_events_, sim_data.verbose_particles_};
     p.initialize();

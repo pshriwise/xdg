@@ -22,6 +22,10 @@ if (XDG_ENABLE_LIBMESH)
     list(APPEND TEST_NAMES test_libmesh)
 endif()
 
+if (XDG_ENABLE_MOAB AND XDG_ENABLE_LIBMESH)
+    list(APPEND TEST_NAMES test_cross_check)
+endif()
+
 list(APPEND TEST_NAMES test_overlap_check)
 
 foreach(test ${TEST_NAMES})
@@ -40,6 +44,7 @@ small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
 cyl-brick.exo
+cyl-brick.h5m
 brick.exo
 brick-sidesets.exo
 jezebel.exo
