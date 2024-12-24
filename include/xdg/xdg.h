@@ -36,6 +36,7 @@ bool point_in_volume(MeshID volume,
 std::pair<double, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
+                                   const double dist_limit = INFTY,
                                    std::vector<MeshID>* const exclude_primitives = nullptr) const;
 
 void closest(MeshID volume,
