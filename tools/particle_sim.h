@@ -1,16 +1,13 @@
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/moab/mesh_manager.h"
 #include "xdg/vec3da.h"
 #include "xdg/xdg.h"
 
 using namespace xdg;
-
 
 struct SimulationData {
   std::shared_ptr<XDG> xdg_;
