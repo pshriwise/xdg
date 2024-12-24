@@ -40,9 +40,11 @@ jobs:
       - name: MOAB Cache
         id: moab-cache
         uses: actions/cache@v3
+        env:
+          cache-name: moab-cache
         with:
-          path: $HOME/MOAB
-          key: moab-${{ runner.os }}-${{ hashFiles('~/moab/moab-sha') }}
+          path: ~/MOAB
+          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('~/moab/moab-sha') }}
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
