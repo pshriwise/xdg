@@ -35,8 +35,6 @@ jobs:
           git clone https://bitbucket.org/fathomteam/moab.git
           cd moab
           git checkout 5.3.1
-          git rev-parse HEAD > moab-sha
-          cat moab-sha
 
       - name: Environment Variables
         run: |
