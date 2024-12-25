@@ -36,6 +36,11 @@ jobs:
           cd moab
           git checkout 5.3.1
           git rev-parse HEAD > moab-sha
+          cat moab-sha
+
+      - name: Environment Variables
+        run: |
+          echo "MOAB_SHA"=$(cd ~/moab && git rev-parse HEAD) >> $GITHUB_ENV
 
       - name: MOAB Cache
         id: moab-cache
@@ -44,7 +49,7 @@ jobs:
           cache-name: moab-cache
         with:
           path: ~/MOAB
-          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('~/**/moab-sha') }}
+          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ env.MOAB_SHA }}
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
