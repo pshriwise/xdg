@@ -44,7 +44,7 @@ jobs:
           cache-name: moab-cache
         with:
           path: ~/MOAB
-          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('~/moab/moab-sha*') }}
+          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('~/**/moab-sha') }}
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
