@@ -34,30 +34,65 @@ jobs:
           echo "PATH=$HOME/opt/bin:$PATH" >> $GITHUB_ENV
 
 
-      - name: Build MOAB
+      - name: Clone MOAB
         shell: bash
         run: |
           cd ~
           git clone https://bitbucket.org/fathomteam/moab.git
           cd moab
           git checkout 5.3.1
-          mkdir build
-          cd build
-          cmake -DCMAKE_INSTALL_PREFIX=$HOME/opt -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF  -DCMAKE_BUILD_TYPE=Release ..
-          make -j4
-          make install
 
-      - name: Build libMesh
+      - name: Clone libMesh
         shell: bash
         run: |
           cd ~
           git clone https://github.com/libMesh/libmesh.git
           cd libmesh
           git checkout v1.7.0
+
+      - name: Cache Variables
+        run: |
+          echo "MOAB_SHA"=$(cd ~/moab && git rev-parse HEAD) >> $GITHUB_ENV
+          echo "LIBMESH_SHA"=$(cd ~/libmesh && git rev-parse HEAD) >> $GITHUB_ENV
+
+      - name: MOAB Cache
+        id: moab-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: moab-cache
+        with:
+          path: ~/MOAB
+          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ env.MOAB_SHA }}
+
+      - name: libMesh Cache
+        id: libmesh-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: libmesh-cache
+        with:
+          path: ~/LIBMESH
+          key: libmesh-${{ runner.os }}-${{ env.cache-name }}-${{ env.LIBMESH_SHA }}
+
+      - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
+        name: Build MOAB
+        shell: bash
+        run: |
+          cd ~/moab
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/MOAB -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF  -DCMAKE_BUILD_TYPE=Release ..
+          make -j4
+          make install
+
+      - if: ${{ steps.libmesh-cache.outputs.cache-hit != 'true' }}
+        name: Build libMesh
+        shell: bash
+        run: |
+          cd ~/libmesh
           git submodule update --init --recursive
           mkdir build
           cd build
-          ../configure --prefix=$HOME/opt --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
+          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
           make -j4
           make install
 
@@ -66,7 +101,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/opt -DCMAKE_PREFIX_PATH=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
+          cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/opt -DCMAKE_PREFIX_PATH="$HOME/MOAB:$HOME/LIBMESH" -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
           make -j4 all install
 
       - name: Build OpenMC
