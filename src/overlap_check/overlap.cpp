@@ -60,8 +60,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   std::vector<std::pair<std::array<xdg::Vertex, 3UL>, MeshID>> allTris;
   std::vector<MeshID> allElements;
 
-  std::cout << "Number of volumes checked = " << allVols.size() << std::endl;
-  for (const auto& vol:mm->volumes()){  
+  auto VolumesToCheck = std::vector<MeshID>(allVols.begin(), allVols.end() - 1); // volumes excluding implcit complement
+  std::cout << "Number of volumes checked = " << VolumesToCheck.size() << std::endl;
+
+  for (const auto& vol:VolumesToCheck){  
     for (const auto& surf:mm->get_volume_surfaces(vol)){
       auto allElements = mm->get_surface_elements(surf);
       
@@ -69,8 +71,8 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
         auto triVert = mm->triangle_vertices(tri);
         allTris.push_back(std::make_pair(triVert, vol));
         // Push vertices in triangle to end of array
-        allVerts.push_back(triVert[0]); 
-        allVerts.push_back(triVert[1]); 
+        allVerts.push_back(triVert[0]);
+        allVerts.push_back(triVert[1]);
         allVerts.push_back(triVert[2]);
       }
     }
@@ -80,7 +82,8 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
   int numChecked = 1;
 
-  Direction dir = xdg::rand_dir();
+  Direction dir = {0.1, 0.1, 0.1};
+  dir = dir.normalize();
 
   ProgressBar progBar;
 
@@ -104,7 +107,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   }
 
   std::cout << "Checking for overlapped regions along element edges..." << std::endl; 
-  int edgesChecked = 0; 
+  int edgesChecked = 0;
+  int raysMissed = 0;
+
+  std::vector<Position> edgeOverlapLocs;
 
 #pragma omp parallel shared(overlap_map, numChecked)
   {
@@ -121,53 +127,57 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     rayOut << "x, y, z \n";
     rayOutNoColl << "x, y, z \n";
     lineOut << "x, y, z, Vx, Vy, Vz\n";
-    
+
+    std::cout << "Overlapping edges detected at:" << std::endl;
+
   #pragma omp for schedule(auto)
     for (const auto& tri:allTris) {
-      edgesChecked++;
-      std::array<xdg::Vertex, 3UL> triVerts = tri.first;
-      MeshID parentVol = tri.second;
-      auto origDirList = return_edges_midpoint_dirs(triVerts, lineOut);
-      for (const auto& element:origDirList)
+      auto rayQueries = return_ray_queries(tri, lineOut);
+      for (const auto& query:rayQueries)
       {
-        Position origin = element.first;
-        Direction direction = element.second;
-        // loop over all the volumes in the problem. Skip parent vol of triangle 
-
-        for (const auto& testVol:allVols)
+        Position origin = query.origin;
+        Direction direction = query.direction;
+        double distanceMax = query.edgeLength;
+        for (const auto& testVol:VolumesToCheck)
         {
-          if (testVol == parentVol) { continue; } // skip if firing against parent vol
-
-          auto rayQuery = xdg->ray_fire(testVol, origin, direction); 
-          double rayDistance = rayQuery.first;
-          MeshID surfHit = rayQuery.second;  
+          edgesChecked++;
+          if (testVol == query.parentVol) { continue; } // skip if firing against parent vol
+          auto ray = xdg->ray_fire(testVol, origin, direction, distanceMax); 
+          double rayDistance = ray.first;
+          MeshID surfHit = ray.second;  
           if (surfHit != -1) // if surface hit (Valid MeshID returned)
           {
             auto volHit = mm->get_parent_volumes(surfHit);
-            //std::cout << "Parent Volume = " << parentVol << " | Volume Hit = " << volHit.first << " | Distance = " << rayDistance << std::endl;
+            std::cout << "Parent Volume = " << query.parentVol << " | Volume Hit = " << volHit.first << " | Distance = " << rayDistance << std::endl;
             double ds = rayDistance/1000;
             for (int i=0; i<1000; ++i)
             {
               rayOut << origin.x + direction.x*ds*i << ", " << origin.y + direction.y*ds*i << ", " << origin.z + direction.z*ds*i << std::endl;
             }
-            if (volHit.first != parentVol) {
-              // Must be overlapped by another volume?
-              rayCollision << origin.x + rayDistance*direction.x << ", " << origin.y + rayDistance*direction.y << ", " << origin.z + rayDistance*direction.z << std::endl;
-              //std::cout << "Overlapped region detected" << std::endl; 
+
+            Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z}; 
+            // Check if overlap location already added
+            if (std::find(edgeOverlapLocs.begin(), edgeOverlapLocs.end(), collisionPoint) == edgeOverlapLocs.end()) {
+              edgeOverlapLocs.push_back(collisionPoint);
+              rayCollision << collisionPoint.x << ", " << collisionPoint.y << ", " << collisionPoint.z << std::endl;
             }
-          }
           else 
           {
-            //std::cout << "No Surface Hit!" << std::endl;
+            raysMissed++;
           }
         }
       }
     }
   }
-  std::cout << "Number of element edges checked = " << edgesChecked << std::endl;
+  // std::cout << "Number of element edges checked = " << edgesChecked << std::endl;
+  // std::cout << "Number of Rays which miss any surfaces = " << raysMissed << std::endl;
+  for (auto& loc:edgeOverlapLocs)
+  {
+    std::cout << loc << std::endl;
+  }
   return;
 }
-
+}
 
 void report_overlaps(const OverlapMap& overlap_map) {
   std::cout << "Overlap locations found: " << overlap_map.size() << std::endl;
@@ -186,39 +196,49 @@ void report_overlaps(const OverlapMap& overlap_map) {
   }
 }
 
-std::vector<std::pair<Position, Direction>> return_edges_midpoint_dirs(const std::array<xdg::Vertex, 3> &tri, std::ofstream& lineOut)
+std::vector<TriangleEdgeRayQuery> return_ray_queries(const TriVolPairs &tri, std::ofstream& lineOut)
 {
-  auto v1 = tri[0];
-  auto v2 = tri[1];
-  auto v3 = tri[2];
+  // Recover triangle vertices and parent volume
+  auto v1 = tri.first[0];
+  auto v2 = tri.first[1];
+  auto v3 = tri.first[2];
+  auto parentVolume = tri.second;
 
-  // Maybe a better approach can be used instead of this vector of pairs?
-  std::vector<std::pair<Position, Direction>> origDirMap;
+  // Maybe a better approach can be used instead of this struct?
+  std::vector<TriangleEdgeRayQuery> rayQuery;
 
   // Not entirely sure how I feel about this block, maybe these helper functions could be a part of xdg::Position/vec3da??
-  origDirMap.push_back({v1, calculate_direction(v1, v2)}); // v1 to v2
-  origDirMap.push_back({v2, calculate_direction(v2, v1)}); // v2 to v1
-  origDirMap.push_back({v2, calculate_direction(v2, v3)}); // v2 to v3
-  origDirMap.push_back({v3, calculate_direction(v3, v2)}); // v3 to v2
-  origDirMap.push_back({v1, calculate_direction(v1, v3)}); // v1 to v3
-  origDirMap.push_back({v3, calculate_direction(v3, v1)}); // v3 to v1
+  rayQuery.push_back({parentVolume, v1, calculate_direction(v1, v2), calculate_distance(v1, v2)}); // v1 to v2
+  rayQuery.push_back({parentVolume, v2, calculate_direction(v2, v1), calculate_distance(v2, v1)}); // v2 to v1
+  rayQuery.push_back({parentVolume, v2, calculate_direction(v2, v3), calculate_distance(v2, v3)}); // v2 to v3
+  rayQuery.push_back({parentVolume, v3, calculate_direction(v3, v2), calculate_distance(v3, v2)}); // v3 to v2
+  rayQuery.push_back({parentVolume, v1, calculate_direction(v1, v3), calculate_distance(v1, v3)}); // v1 to v3
+  rayQuery.push_back({parentVolume, v3, calculate_direction(v3, v1), calculate_distance(v3, v1)}); // v3 to v1
 
-  // Write origins and directions using origDirMap
-  for (const auto& entry : origDirMap) {
-      const Position& origin = entry.first;
-      const Direction& direction = entry.second;
+  // Write origins and directions using triple
+  // for (const auto& entry : triple) {
+  //     const Position& origin = entry.origin;
+  //     const Direction& direction = entry.direction;
+  //     const double& distance = entry.distanceLimit;
 
-      // Write out midpoints and directions for debugging
-      lineOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
-              << direction.x << ", " << direction.y << ", " << direction.z << "\n";
-  }
+  //     // Write out midpoints and directions for debugging
+  //     lineOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
+  //             << direction.x << ", " << direction.y << ", " << direction.z << "\n";
+  // }
 
-  return origDirMap;
+  return rayQuery;
 }
 
 // Return the normalised direction between two xdg::Position types
 Direction calculate_direction(const Position& from, const Position& to) {
-    Direction dir = {to.x - from.x, to.y - from.y, to.z - from.z};
-    dir.normalize();
-    return dir;
+  Direction dir = {to.x - from.x, to.y - from.y, to.z - from.z};
+  dir.normalize();
+  return dir;
+}
+
+double calculate_distance(const Position& from, const Position& to) {
+  double dx = to.x - from.x;
+  double dy = to.y - from.y;
+  double dz = to.z - from.z;
+  return std::sqrt(dx * dx + dy * dy + dz * dz);
 }

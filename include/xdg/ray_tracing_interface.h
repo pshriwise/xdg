@@ -40,6 +40,7 @@ public:
   std::pair<double, MeshID> ray_fire(TreeID scene,
                                      const Position& origin,
                                      const Direction& direction,
+                                     const double dist_limit = INFTY,
                                      std::vector<MeshID>* const exclude_primitives = nullptr);
 
   void closest(TreeID scene,

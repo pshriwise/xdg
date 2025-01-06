@@ -28,16 +28,34 @@ jobs:
                               libeigen3-dev \
                               cmake
 
-      - name: Build MOAB
+      - name: MOAB Clone
         shell: bash
         run: |
           cd ~
           git clone https://bitbucket.org/fathomteam/moab.git
           cd moab
           git checkout 5.3.1
+
+      - name: Environment Variables
+        run: |
+          echo "MOAB_SHA"=$(cd ~/moab && git rev-parse HEAD) >> $GITHUB_ENV
+
+      - name: MOAB Cache
+        id: moab-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: moab-cache
+        with:
+          path: ~/MOAB
+          key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ env.MOAB_SHA }}
+
+      - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
+        name: Build MOAB
+        run: |
+          cd ~/moab
           mkdir build
           cd build
-          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=$HOME/opt -DCMAKE_BUILD_TYPE=Release ..
+          cmake -DENABLE_HDF5=ON -DENABLE_BLASLAPACK=OFF -DCMAKE_INSTALL_PREFIX=$HOME/MOAB -DCMAKE_BUILD_TYPE=Release ..
           make -j4
           make install
 
@@ -46,7 +64,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=$HOME/opt -DCMAKE_INSTALL_PREFIX=$HOME/opt
+          cmake .. -DCMAKE_PREFIX_PATH=$HOME/MOAB -DCMAKE_INSTALL_PREFIX=$HOME/opt
           make -j4 install
 
       - name: Test

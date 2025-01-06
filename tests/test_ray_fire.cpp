@@ -60,4 +60,29 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   direction = {-1.0, 0.0, 0.0};
   intersection = rti->ray_fire(volume_tree, origin, direction);
   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(12.0, 1e-6));
+
+  // limit distance of the ray, shouldn't get a hit
+  origin = {0.0, 0.0, 0.0};
+  direction = {1.0, 0.0, 0.0};
+  intersection = rti->ray_fire(volume_tree, origin, direction, 4.5);
+  REQUIRE(intersection.second == ID_NONE);
+
+  // if the distance is just enough, we should still get a hit
+  // limit distance of the ray, shouldn't get a hit
+  origin = {0.0, 0.0, 0.0};
+  direction = {1.0, 0.0, 0.0};
+  intersection = rti->ray_fire(volume_tree, origin, direction, 5.1);
+  REQUIRE(intersection.second != ID_NONE);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
+  // Test excluding primitives, fire a ray from the origin and log the hit face
+  // By providing the hit face as an excluded primitive in a subsequent ray fire,
+  // there should be no intersection returned
+  std::vector<MeshID> exclude_primitives;
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, &exclude_primitives);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+  REQUIRE(exclude_primitives.size() == 1);
+
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, &exclude_primitives);
+  REQUIRE(intersection.second == ID_NONE);
 }
