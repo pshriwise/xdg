@@ -31,6 +31,7 @@ pwr_pincell.h5m
 cube.h5m
 no_overlap.h5m
 overlap.h5m
+overlap-edge.h5m
 small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
