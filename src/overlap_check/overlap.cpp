@@ -58,7 +58,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   auto allSurfs = mm->surfaces();
 	std::vector<Vertex> allVerts;
   std::vector<Direction> allEdgeDirections; // all edge directions forwards and backwards
-  std::vector<Triangle> allTris; 
+  std::vector<ElementVertices> elementVerts; 
   std::vector<MeshID> allElements;
 
   // auto VolumesToCheck = std::vector<MeshID>(allVols.begin(), allVols.end() - 1); // volumes excluding implcit complement
@@ -70,7 +70,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       for (const auto& tri:allElements){
         auto parentVols = mm->get_parent_volumes(surf);
         auto triVert = mm->triangle_vertices(tri);
-        allTris.push_back(triVert);
+        elementVerts.push_back(triVert);
         // Push vertices in triangle to end of array
         allVerts.push_back(triVert[0]);
         allVerts.push_back(triVert[1]);
@@ -179,37 +179,41 @@ void report_overlaps(const OverlapMap& overlap_map) {
   }
 }
 
-std::vector<TriangleEdgeRayQuery> return_ray_queries(const Triangle &tri, 
-                                                     std::ofstream* rayDirectionsOut = nullptr) // optionally write out ray directions 
+
+/* Return rayQueries along element edges. Currently limited to Triangles as it expects a std::array<xdg::vertex, 3> 
+   but the rest of the function body could easily work with a container of any size so could readily be generalised 
+   to work with quads. */
+std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element, 
+                                             std::ofstream* rayDirectionsOut = nullptr)
 {
-  // Recover triangle vertices and parent volume
-  auto v1 = tri[0];
-  auto v2 = tri[1];
-  auto v3 = tri[2];
+  std::vector<EdgeRayQuery> rayQueries;
+  // Loop through each edge of the element (triangle or quad)
+  for (size_t vertex = 0; vertex < element.size(); ++vertex) {
+    // Wrap around to the first vertex when at the final
+    size_t nextVertex = (vertex + 1) % element.size();
+    const auto& v1 = element[vertex];
+    const auto& v2 = element[nextVertex];
 
-  // Maybe a better approach can be used instead of this struct?
-  std::vector<TriangleEdgeRayQuery> rayQuery;
+    // Calculate direction and length of edge
+    Direction dir = calculate_direction(v1, v2);
+    double distMax = calculate_distance(v1, v2);
 
-  // Not entirely sure how I feel about this block, maybe these helper functions could be a part of xdg::Position/vec3da??
-  rayQuery.push_back({v1, calculate_direction(v1, v2), calculate_distance(v1, v2)}); // v1 to v2
-  rayQuery.push_back({v2, calculate_direction(v2, v1), calculate_distance(v2, v1)}); // v2 to v1
-  rayQuery.push_back({v2, calculate_direction(v2, v3), calculate_distance(v2, v3)}); // v2 to v3
-  rayQuery.push_back({v3, calculate_direction(v3, v2), calculate_distance(v3, v2)}); // v3 to v2
-  rayQuery.push_back({v1, calculate_direction(v1, v3), calculate_distance(v1, v3)}); // v1 to v3
-  rayQuery.push_back({v3, calculate_direction(v3, v1), calculate_distance(v3, v1)}); // v3 to v1
+    // Add the edge ray query
+    rayQueries.push_back({v1, dir, distMax});
 
-  // Write origins and directions using triple
-  if (rayDirectionsOut)
-  for (const auto& entry : rayQuery) {
-      const Position& origin = entry.origin;
-      const Direction& direction = entry.direction;
-      const double& distance = entry.edgeLength;
+    // Optionally write ray directions to the output file
+    if (rayDirectionsOut) {
+        const Position& origin = rayQueries.back().origin;
+        const Direction& direction = rayQueries.back().direction;
+        const double& distance = rayQueries.back().edgeLength;
 
-      // Write out midpoints and directions for debugging
-      *rayDirectionsOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
-              << direction.x << ", " << direction.y << ", " << direction.z << "\n";
+        // Write out origin, direction, and distance for debugging
+        *rayDirectionsOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
+                          << direction.x << ", " << direction.y << ", " << direction.z << "\n";
+    }
   }
-  return rayQuery;
+
+  return rayQueries;
 }
 
 // Return the normalised direction between two xdg::Position types
@@ -219,6 +223,7 @@ Direction calculate_direction(const Position& from, const Position& to) {
   return dir;
 }
 
+// Return the distance between two xdg::Position types
 double calculate_distance(const Position& from, const Position& to) {
   double dx = to.x - from.x;
   double dy = to.y - from.y;
@@ -226,9 +231,10 @@ double calculate_distance(const Position& from, const Position& to) {
   return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+// Loop through all triangle edges firing rays along them against all volumes (except for triangle parent volumes)
 void check_along_edges(std::shared_ptr<XDG> xdg, 
                        std::shared_ptr<MeshManager> mm, 
-                       const TriangleEdgeRayQuery& rayquery, 
+                       const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
                        std::vector<Position>& edgeOverlapLocs,
                        std::ofstream* rayPathOut = nullptr) // optional write out ray path to text file
@@ -256,7 +262,7 @@ void check_along_edges(std::shared_ptr<XDG> xdg,
       }
 
       Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z}; 
-      // Check if overlap location already added
+      // Check if overlap location already added to list from another ray
       if (std::find(edgeOverlapLocs.begin(), edgeOverlapLocs.end(), collisionPoint) == edgeOverlapLocs.end()) {
         edgeOverlapLocs.push_back(collisionPoint);
       }

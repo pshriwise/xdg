@@ -13,10 +13,9 @@
 using namespace xdg;
 
 using OverlapMap = std::map<std::set<int>, Position>;
-using Triangle = std::array<xdg::Vertex, 3>; // Triangle vertices
-using Quad = std::array<xdg::Vertex, 4>; // Quad vertices ** Not currently required but maybe in the future **
+using ElementVertices = std::array<xdg::Vertex, 3>; // This could be swapped out for something more general later on down the line
 
-struct TriangleEdgeRayQuery {
+struct EdgeRayQuery {
     Position origin; // ray_fire() launch origin
     Direction direction; // ray_fire() launch direction
     double edgeLength; // length of edge used as max distance in ray_fire()
@@ -34,15 +33,13 @@ Direction calculate_direction(const Position& from, const Position& to);
 double calculate_distance(const Position& from, const Position& to);
 
 
-std::vector<TriangleEdgeRayQuery> return_ray_queries(const Triangle &tri, 
+std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri, 
                                                      std::ofstream* rayDirectionsOut);
 
 void check_along_edges(std::shared_ptr<XDG> xdg, 
                        std::shared_ptr<MeshManager> mm, 
-                       const TriangleEdgeRayQuery& rayquery, 
+                       const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
                        std::vector<Position>& edgeOverlapLocs, 
                        std::ofstream* rayPathOut);
-
-
 #endif
