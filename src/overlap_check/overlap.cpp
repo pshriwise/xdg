@@ -114,9 +114,9 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   std::vector<Position> edgeOverlapLocs;
   std::ofstream rayDirectionsOut("ray_fire_lines.txt");
   std::ofstream rayPathOut("ray-path.txt");
-  std::ofstream rayCollisionOut("ray-collision.txt");
+  std::ofstream overlapReport("overlap-coordinates.txt");
 
-  rayCollisionOut << "x, y, z \n";
+  overlapReport << "x, y, z \n";
   rayPathOut << "x, y, z \n";
   rayDirectionsOut << "x, y, z, Vx, Vy, Vz\n";
 
@@ -156,7 +156,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   for (auto& loc:edgeOverlapLocs)
   {
     std::cout << loc << std::endl;
-    rayCollisionOut << loc.x << ", " << loc.y << ", " << loc.z << std::endl;
+    overlapReport << loc.x << ", " << loc.y << ", " << loc.z << std::endl;
   }
  }
   return;
@@ -212,7 +212,6 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element,
                           << direction.x << ", " << direction.y << ", " << direction.z << "\n";
     }
   }
-
   return rayQueries;
 }
 
@@ -263,6 +262,13 @@ void check_along_edges(std::shared_ptr<XDG> xdg,
 
       Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z}; 
       // Check if overlap location already added to list from another ray
+      std::set<MeshID> volsOverlapping; 
+      volsOverlapping.insert(testVol);
+      volsOverlapping.insert(volHit.second);
+      for (const auto& vol:volsOverlapping)
+      {
+        std::cout << vol << std::endl;
+      }
       if (std::find(edgeOverlapLocs.begin(), edgeOverlapLocs.end(), collisionPoint) == edgeOverlapLocs.end()) {
         edgeOverlapLocs.push_back(collisionPoint);
       }
