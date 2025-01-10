@@ -36,7 +36,7 @@ double calculate_distance(const Position& from, const Position& to);
 std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri, 
                                                      std::ofstream* rayDirectionsOut);
 
-void check_along_edge(std::shared_ptr<XDG> xdg, 
+MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
                        std::shared_ptr<MeshManager> mm, 
                        const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
