@@ -77,7 +77,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       }
     }
 
-  std::cout << "Number of vertices checked = " << allVerts.size() << std::endl;
+  std::cout << "Number of vertices checked = " << allVerts.size() << "\n" << std::endl;
   // number of locations we'll be checking
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
   int numChecked = 1;
@@ -101,6 +101,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
   }
 
+  if (overlap_map.empty()) { 
+    std::cout << "No Overlaps found at vertices! \n" << std::endl;
+  }
+
   // if we aren't checking along edges, return early
   if (!checkEdges) {
     return;
@@ -118,7 +122,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   rayPathOut << "x, y, z \n";
   rayDirectionsOut << "x, y, z, Vx, Vy, Vz\n";
 
-  std::cout << "Overlapping edges detected at:" << std::endl;
   // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
   int totalEdgeRays = totalElements*(3)*(allVols.size()-2); 
   int edgeRaysCast = 0;
@@ -158,12 +161,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
  }
 
-  // Report edge overlaps (could move into a seperate function)
-  // Probably want to standardise the outputs between this and the vertex overlaps
+  // Write out edge overlap locations to file for plotting in paraview
   for (auto& loc:edgeOverlapLocs)
   {
     overlapReport << loc.x << ", " << loc.y << ", " << loc.z << std::endl;
-    //std::cout << loc.x << ", " << loc.y << ", " << loc.z << std::endl;
   }
   return;
 }

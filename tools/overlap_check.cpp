@@ -48,13 +48,14 @@ int main(int argc, char* argv[]) {
 	mm->init();	
   xdg->prepare_raytracer();
 
-  std::cout << "Running overlap check:" << std::endl;
+  std::cout << "Running overlap check..." << std::endl;
 
   // check for overlaps
   OverlapMap overlap_map;
   Direction dir = xdg::rand_dir();
   check_instance_for_overlaps(xdg, overlap_map, checkEdges);
-
+  
+  std::cout << std::endl;
   // if any overlaps are found, report them
   if (overlap_map.size() > 0) {
     report_overlaps(overlap_map);

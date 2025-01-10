@@ -116,11 +116,22 @@ TEST_CASE("Small Edge Overlap Test")
   check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
-  // REQUIRE(overlap_map.size() == 1);
-  // std::set<int> expected_overlaps = {1, 2};
+  REQUIRE(overlap_map.size() == 1);
+  std::set<int> expected_overlaps = {1, 2};
 
-  // Expected overlaps between volumes [1,2]
-  // REQUIRE(expected_overlaps == overlap_map.begin()->first);
+  for (const auto& [key,value]:overlap_map)
+  {
+    // Expected overlaps between volumes [1,2]
+    REQUIRE(expected_overlaps == key);
+
+    // Expected overlap location
+    std::array<double, 3> expected = {0.236122, 0.441025, -0.0832704};
+
+    double tol = 1e-6;
+    REQUIRE_THAT(value.x, Catch::Matchers::WithinAbs(expected[0], tol));
+    REQUIRE_THAT(value.y, Catch::Matchers::WithinAbs(expected[1], tol));
+    REQUIRE_THAT(value.z, Catch::Matchers::WithinAbs(expected[2], tol));
+  }
 }
 
 TEST_CASE("Beam Edge Overlap Test")
@@ -136,9 +147,20 @@ TEST_CASE("Beam Edge Overlap Test")
   check_instance_for_overlaps(xdg, overlap_map, checkEdges);
 
   // Expected 1 overlap
-  // REQUIRE(overlap_map.size() == 1);
-  // std::set<int> expected_overlaps = {1, 2};
+  REQUIRE(overlap_map.size() == 1);
+  std::set<int> expected_overlaps = {1, 2};
 
-  // Expected overlaps between volumes [1,2]
-  // REQUIRE(expected_overlaps == overlap_map.begin()->first);
+  for (const auto& [key,value]:overlap_map)
+  {
+    // Expected overlaps between volumes [1,2]
+    REQUIRE(expected_overlaps == key);
+
+    // Expected overlap location
+    std::array<double, 3> expected = {-1.5, 0.75, -0.5};
+
+    double tol = 1e-6;
+    REQUIRE_THAT(value.x, Catch::Matchers::WithinAbs(expected[0], tol));
+    REQUIRE_THAT(value.y, Catch::Matchers::WithinAbs(expected[1], tol));
+    REQUIRE_THAT(value.z, Catch::Matchers::WithinAbs(expected[2], tol));
+  }
 }
