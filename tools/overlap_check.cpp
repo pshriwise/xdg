@@ -22,7 +22,12 @@ int main(int argc, char* argv[]) {
 	args.add_argument("-e","--check-edges")
 	    .default_value(false)
     	.implicit_value(true)
-		.help("Flag to enable checking along edges");
+		.help("Enable checking along elements edges");
+
+	args.add_argument("-v","--verbose")
+	    .default_value(false)
+    	.implicit_value(true)
+		.help("Enable more verbose outputs (all overlap locations)");
 
 	try {
 		args.parse_args(argc, argv);
@@ -35,10 +40,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	bool checkEdges = false;
+	bool verboseOuput = false;
 
 	if (args.get<bool>("--check-edges")) {
 		checkEdges = true;
 	}	
+
+	if (args.get<bool>("--verbose")) {
+		verboseOuput = true;
+	}
 	
 	// Create a mesh manager
 	std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
@@ -53,7 +63,7 @@ int main(int argc, char* argv[]) {
   // check for overlaps
   OverlapMap overlap_map;
   Direction dir = xdg::rand_dir();
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOuput);
   
   std::cout << std::endl;
   // if any overlaps are found, report them

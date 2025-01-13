@@ -24,7 +24,8 @@ struct EdgeRayQuery {
 // check mesh manager instance for overlaps
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
                                  OverlapMap& overlap_map,
-                                 bool checkEdges);
+                                 bool checkEdges, 
+                                 bool verboseOutput);
 
 void report_overlaps(const OverlapMap& overlap_map);
 
@@ -33,13 +34,11 @@ Direction calculate_direction(const Position& from, const Position& to);
 double calculate_distance(const Position& from, const Position& to);
 
 
-std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri, 
-                                                     std::ofstream* rayDirectionsOut);
+std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri);
 
 MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
                        std::shared_ptr<MeshManager> mm, 
                        const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
-                       std::vector<Position>& edgeOverlapLocs, 
-                       std::ofstream* rayPathOut);
+                       std::vector<Position>& edgeOverlapLocs);
 #endif

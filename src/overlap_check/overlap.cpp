@@ -52,7 +52,8 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
 
 void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
                                  OverlapMap& overlap_map,
-                                 bool checkEdges) {
+                                 bool checkEdges = false,
+                                 bool verboseOutput = false) {
   auto mm = xdg->mesh_manager();
 	auto allVols = mm->volumes();
   auto allSurfs = mm->surfaces();
@@ -114,13 +115,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   
   ProgressBar edgeProgBar;
   std::vector<Position> edgeOverlapLocs;
-  std::ofstream rayDirectionsOut("rays-cast-directions.txt");
-  std::ofstream rayPathOut("ray-path.txt");
-  std::ofstream overlapReport("overlap-coordinates.txt");
-
-  overlapReport << "x, y, z \n";
-  rayPathOut << "x, y, z \n";
-  rayDirectionsOut << "x, y, z, Vx, Vy, Vz\n";
 
   // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
   int totalEdgeRays = totalElements*(3)*(allVols.size()-2); 
@@ -144,10 +138,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       auto elementsOnSurf = mm->get_surface_elements(surf);
       for (const auto& element:elementsOnSurf) {
         auto tri = mm->triangle_vertices(element);
-        auto rayQueries = return_ray_queries(tri, &rayDirectionsOut);
+        auto rayQueries = return_ray_queries(tri);
         for (const auto& query:rayQueries)
         {
-          auto volHit = check_along_edge(xdg, mm, query, volsToCheck, edgeOverlapLocs, &rayPathOut);
+          auto volHit = check_along_edge(xdg, mm, query, volsToCheck, edgeOverlapLocs);
           if (volHit != -1) 
           {
             overlap_map[{volHit, parentVols.first}] = edgeOverlapLocs.back();
@@ -159,12 +153,19 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
         }
       }
     }
- }
+  }
 
-  // Write out edge overlap locations to file for plotting in paraview
-  for (auto& loc:edgeOverlapLocs)
-  {
-    overlapReport << loc.x << ", " << loc.y << ", " << loc.z << std::endl;
+  if (overlap_map.empty()) { 
+    std::cout << "No Overlaps found along edges! \n" << std::endl;
+  }
+
+  if (verboseOutput) {
+  // Write out edge overlap locations to stdout
+    std::cout << "\nVerbose ouptut enabled. Printing the locations of all overlaps along edges..." << std::endl;
+    for (auto& loc:edgeOverlapLocs)
+    {
+      std::cout << loc.x << ", " << loc.y << ", " << loc.z << "\n";
+    }
   }
   return;
 }
@@ -189,8 +190,7 @@ void report_overlaps(const OverlapMap& overlap_map) {
 /* Return rayQueries along element edges. Currently limited to Triangles as ElementVertices is defined as a std::array<xdg::vertex, 3> 
    but the rest of the function body could easily work with a container of any size so could readily be generalised 
    to work with quads. */
-std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element, 
-                                             std::ofstream* rayDirectionsOut = nullptr)
+std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
 {
   std::vector<EdgeRayQuery> rayQueries;
   // Loop through each edge of the element (triangle or quad)
@@ -206,21 +206,6 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element,
     // Add the edge ray query
     rayQueries.push_back({v1, dirForwards, edgeLength});
   }
-
-  // Optionally write every ray query to the output file
-  if (rayDirectionsOut) {
-    for (const auto& entry : rayQueries) {
-      const Position& origin = entry.origin;
-      const Direction& direction = entry.direction;
-      const double& distance = entry.edgeLength;
-
-      // Write out origin, direction, and distance for debugging
-      *rayDirectionsOut << origin.x << ", " << origin.y << ", " << origin.z << ", "
-                        << direction.x << ", " << direction.y << ", " << direction.z << ", "
-                        << distance << "\n";
-      }
-  }
-
   return rayQueries;
 }
 
@@ -244,8 +229,7 @@ MeshID check_along_edge(std::shared_ptr<XDG> xdg,
                        std::shared_ptr<MeshManager> mm, 
                        const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
-                       std::vector<Position>& edgeOverlapLocs,
-                       std::ofstream* rayPathOut = nullptr) // optionally write out ray path to text file
+                       std::vector<Position>& edgeOverlapLocs)
 {
   auto origin = rayquery.origin;
   auto direction = rayquery.direction;
@@ -261,16 +245,6 @@ MeshID check_along_edge(std::shared_ptr<XDG> xdg,
     {
       counter++;
       volHit = mm->get_parent_volumes(surfHit);
-      if (rayPathOut)
-      {
-        double ds = rayDistance/1000;
-        for (int i = 0; i < 1000; ++i)
-        {
-          *rayPathOut << origin.x + direction.x * ds * i << ", "
-                   << origin.y + direction.y * ds * i << ", "
-                   << origin.z + direction.z * ds * i << std::endl;
-        }
-      }
 
       Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z}; 
       // Check if overlap location already added to list from another ray

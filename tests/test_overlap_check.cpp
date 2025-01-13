@@ -21,7 +21,8 @@ TEST_CASE("Overlapping Volumes Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = false;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 2);
@@ -41,7 +42,8 @@ TEST_CASE("Non-Overlapping Volumes Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = false;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected no overlaps
   REQUIRE(overlap_map.size() == 0);
@@ -57,7 +59,8 @@ TEST_CASE("Non-Overlapping Imprinted Volumes Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = false;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected no overlaps
   REQUIRE(overlap_map.size() == 0);
@@ -73,7 +76,8 @@ TEST_CASE("Enclosed Volume Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = false;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 2);
@@ -93,7 +97,8 @@ TEST_CASE("Small Overlap Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = false;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1);
@@ -113,7 +118,8 @@ TEST_CASE("Small Edge Overlap Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = true;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1);
@@ -144,7 +150,8 @@ TEST_CASE("Beam Edge Overlap Test")
   xdg->prepare_raytracer();
   OverlapMap overlap_map;
   bool checkEdges = true;
-  check_instance_for_overlaps(xdg, overlap_map, checkEdges);
+  bool verboseOutput = false;
+  check_instance_for_overlaps(xdg, overlap_map, checkEdges, verboseOutput);
 
   // Expected 1 overlap
   REQUIRE(overlap_map.size() == 1);
