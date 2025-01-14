@@ -8,7 +8,9 @@ using namespace xdg;
 
 void check_location_for_overlap(std::shared_ptr<XDG> xdg,
                                 const std::vector<MeshID>& allVols, Vertex loc,
-                                Direction dir, OverlapMap& overlap_map) {
+                                Direction dir, OverlapMap& overlap_map,
+                                const bool& verboseOutput,
+                                std::vector<Position>& vertexOverlapLocs) {
 
   std::set<MeshID> vols_found;
   double bump = 1E-9;
@@ -28,6 +30,9 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   if (vols_found.size() > 1) {
 #pragma omp critical
     overlap_map[vols_found] = loc;
+    if (verboseOutput) {
+      vertexOverlapLocs.push_back(loc);
+    }
   }
 
   // move the point slightly off the vertex
@@ -47,6 +52,10 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   if (vols_found.size() > 1) {
 #pragma omp critical
     overlap_map[vols_found] = loc;
+    if (verboseOutput) {
+      vertexOverlapLocs.push_back(loc);
+    }
+
   }
 }
 
@@ -84,6 +93,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   dir = dir.normalize();
 
   ProgressBar vertexProgBar;
+  std::vector<Position> vertexOverlapLocs;
 
   std::cout << "Checking for overlapped regions at element vertices..." << std::endl;
 // first check all triangle vertex locations
@@ -92,7 +102,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 #pragma omp for schedule(auto)
     for (size_t i = 0; i < allVerts.size(); i++) {
       Vertex vert = allVerts[i];
-      check_location_for_overlap(xdg, allVols, vert, dir, overlap_map);
+      check_location_for_overlap(xdg, allVols, vert, dir, overlap_map, verboseOutput, vertexOverlapLocs);
 
 #pragma omp critical
       vertexProgBar.set_value(100.0 * (double)numChecked++ / (double)numLocations);
@@ -103,8 +113,16 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     std::cout << "No Overlaps found at vertices! \n" << std::endl;
   }
 
+  if (verboseOutput) {
+    // Write out vertex overlap locations to stdout
+    std::cout << "\nVerbose ouptut enabled. Printing the locations of all point in volume checks for vertices..." << std::endl;
+    for (auto& loc:vertexOverlapLocs)
+    {
+      std::cout << loc.x << ", " << loc.y << ", " << loc.z << "\n";
+    }
+  }
+
   // if we aren't checking along edges, return early
-  std::cout << checkEdges << std::endl; 
   if (!checkEdges) {
     return;
   }

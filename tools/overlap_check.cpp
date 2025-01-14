@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	args.add_argument("-v","--verbose")
 	    .default_value(false)
     	.implicit_value(true)
-		.help("Enable more verbose outputs (all overlap locations)");
+		.help("Enable more verbose outputs (xyz positions of every overlap location)");
 
 	try {
 		args.parse_args(argc, argv);
