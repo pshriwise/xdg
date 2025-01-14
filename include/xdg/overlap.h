@@ -41,4 +41,4 @@ MeshID check_along_edge(std::shared_ptr<XDG> xdg,
                        const EdgeRayQuery& rayquery, 
                        const std::vector<MeshID>& volsToCheck, 
                        std::vector<Position>& edgeOverlapLocs);
-#endif
+#endif // include guard

@@ -17,13 +17,11 @@ int main(int argc, char* argv[]) {
 	// Argument Parsing
   argparse::ArgumentParser args("XDG Overlap Checker Tool", "1.0", argparse::default_arguments::help);
 	args.add_argument("filename")
-	  .help("Path to the faceted .h5m file to check");
-	
+	  .help("Path to the faceted .h5m file to check");	
 	args.add_argument("-e","--check-edges")
 	    .default_value(false)
     	.implicit_value(true)
 		.help("Enable checking along elements edges");
-
 	args.add_argument("-v","--verbose")
 	    .default_value(false)
     	.implicit_value(true)

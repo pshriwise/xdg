@@ -7,8 +7,8 @@
 using namespace xdg;
 
 void check_location_for_overlap(std::shared_ptr<XDG> xdg,
-                                     const std::vector<MeshID>& allVols, Vertex loc,
-                                     Direction dir, OverlapMap& overlap_map) {
+                                const std::vector<MeshID>& allVols, Vertex loc,
+                                Direction dir, OverlapMap& overlap_map) {
 
   std::set<MeshID> vols_found;
   double bump = 1E-9;
@@ -17,12 +17,12 @@ void check_location_for_overlap(std::shared_ptr<XDG> xdg,
   loc += dir * bump;
 
   for (const auto& vol : allVols) {
-		bool pointInVol = false;
-		pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
+    bool pointInVol = false;
+    pointInVol = xdg->point_in_volume(vol, loc, &dir, nullptr);
 
-		if (pointInVol) {
-			vols_found.insert(vol);
-		}
+    if (pointInVol) {
+      vols_found.insert(vol);
+    }
   }
 
   if (vols_found.size() > 1) {
@@ -55,13 +55,10 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
                                  bool checkEdges = false,
                                  bool verboseOutput = false) {
   auto mm = xdg->mesh_manager();
-	auto allVols = mm->volumes();
+  auto allVols = mm->volumes();
   auto allSurfs = mm->surfaces();
-	std::vector<Vertex> allVerts;
+  std::vector<Vertex> allVerts;
   int totalElements = 0;
-
-  // auto VolumesToCheck = std::vector<MeshID>(allVols.begin(), allVols.end() - 1); // volumes excluding implcit complement
-  // std::cout << "Number of volumes checked = " << VolumesToCheck.size() << std::endl;
 
   /* Loop over surface instead of all volumes as it results in duplicating the number of checks when it does the nodes in the
      implicit complement as well as the explicit volumes. Also removes an uneccesary layer of nesting. */
@@ -160,7 +157,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   }
 
   if (verboseOutput) {
-  // Write out edge overlap locations to stdout
+    // Write out edge overlap locations to stdout
     std::cout << "\nVerbose ouptut enabled. Printing the locations of all overlaps along edges..." << std::endl;
     for (auto& loc:edgeOverlapLocs)
     {
@@ -200,8 +197,9 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
     const auto& v1 = element[vertex];
     const auto& v2 = element[nextVertex];
 
-    Direction dirForwards = calculate_direction(v1, v2);    
-    double edgeLength = calculate_distance(v1, v2);
+    Direction dir = v2 - v1;    
+    double edgeLength = dir.length();
+    dir /= edgeLength; 
 
     // Add the edge ray query
     rayQueries.push_back({v1, dirForwards, edgeLength});
@@ -224,7 +222,7 @@ double calculate_distance(const Position& from, const Position& to) {
   return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-// Fire a ray along a single edge direction firing against all volumes except for parents (fowards+reverse sense). Returns volume of surface hit
+// Fire a ray along a single edge direction firing against all volumes except for the current surfaces' parent volumes (fowards+reverse sense). Returns volume ID of the surface hit
 MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
                        std::shared_ptr<MeshManager> mm, 
                        const EdgeRayQuery& rayquery, 
