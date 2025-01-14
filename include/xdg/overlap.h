@@ -29,11 +29,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
 void report_overlaps(const OverlapMap& overlap_map);
 
-// Helper Geometry functions
-Direction calculate_direction(const Position& from, const Position& to); 
-double calculate_distance(const Position& from, const Position& to);
-
-
 std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri);
 
 MeshID check_along_edge(std::shared_ptr<XDG> xdg, 

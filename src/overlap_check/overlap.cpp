@@ -202,24 +202,9 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
     dir /= edgeLength; 
 
     // Add the edge ray query
-    rayQueries.push_back({v1, dirForwards, edgeLength});
+    rayQueries.push_back({v1, dir, edgeLength});
   }
   return rayQueries;
-}
-
-// Return the normalised direction between two xdg::Position types
-Direction calculate_direction(const Position& from, const Position& to) {
-  Direction dir = {to.x - from.x, to.y - from.y, to.z - from.z};
-  dir.normalize();
-  return dir;
-}
-
-// Return the distance between two xdg::Position types
-double calculate_distance(const Position& from, const Position& to) {
-  double dx = to.x - from.x;
-  double dy = to.y - from.y;
-  double dz = to.z - from.z;
-  return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 // Fire a ray along a single edge direction firing against all volumes except for the current surfaces' parent volumes (fowards+reverse sense). Returns volume ID of the surface hit
