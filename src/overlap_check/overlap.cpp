@@ -104,6 +104,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   }
 
   // if we aren't checking along edges, return early
+  std::cout << checkEdges << std::endl; 
   if (!checkEdges) {
     return;
   }
