@@ -32,8 +32,8 @@ void report_overlaps(const OverlapMap& overlap_map);
 std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &tri);
 
 MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
-                       std::shared_ptr<MeshManager> mm, 
-                       const EdgeRayQuery& rayquery, 
-                       const std::vector<MeshID>& volsToCheck, 
-                       std::vector<Position>& edgeOverlapLocs);
+                        std::shared_ptr<MeshManager> mm, 
+                        const EdgeRayQuery& rayquery, 
+                        const std::vector<MeshID>& volsToCheck, 
+                        std::vector<Position>& edgeOverlapLocs);
 #endif // include guard

@@ -73,16 +73,16 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
      implicit complement as well as the explicit volumes. Also removes an uneccesary layer of nesting. */
 
   for (const auto& surf:allSurfs){  
-      auto surfElements = mm->get_surface_elements(surf);
-      totalElements += surfElements.size();
-      for (const auto& tri:surfElements){
-        auto triVert = mm->triangle_vertices(tri);
-        // Push vertices in triangle to end of array
-        allVerts.push_back(triVert[0]);
-        allVerts.push_back(triVert[1]);
-        allVerts.push_back(triVert[2]);
-      }
+    auto surfElements = mm->get_surface_elements(surf);
+    totalElements += surfElements.size();
+    for (const auto& tri:surfElements){
+      auto triVert = mm->triangle_vertices(tri);
+      // Push vertices in triangle to end of array
+      allVerts.push_back(triVert[0]);
+      allVerts.push_back(triVert[1]);
+      allVerts.push_back(triVert[2]);
     }
+  }
 
   std::cout << "Number of vertices checked = " << allVerts.size() << "\n" << std::endl;
   // number of locations we'll be checking
@@ -96,7 +96,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   std::vector<Position> vertexOverlapLocs;
 
   std::cout << "Checking for overlapped regions at element vertices..." << std::endl;
-// first check all triangle vertex locations
+  // first check all triangle vertex locations
 #pragma omp parallel shared(overlap_map, numChecked)
   {
 #pragma omp for schedule(auto)
@@ -228,10 +228,10 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
 
 // Fire a ray along a single edge direction firing against all volumes except for the current surfaces' parent volumes (fowards+reverse sense). Returns volume ID of the surface hit
 MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
-                       std::shared_ptr<MeshManager> mm, 
-                       const EdgeRayQuery& rayquery, 
-                       const std::vector<MeshID>& volsToCheck, 
-                       std::vector<Position>& edgeOverlapLocs)
+                        std::shared_ptr<MeshManager> mm, 
+                        const EdgeRayQuery& rayquery, 
+                        const std::vector<MeshID>& volsToCheck, 
+                        std::vector<Position>& edgeOverlapLocs)
 {
   auto origin = rayquery.origin;
   auto direction = rayquery.direction;
