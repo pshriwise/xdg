@@ -80,8 +80,8 @@ autodoc_member_order = 'bysource'
 #
 html_baseurl = 'localhost:8888'
 html_theme = 'sphinx_rtd_theme'
-html_logo = 'assets/xdg-logo.png'
-html_favicon = 'assets/xdg-logo.webp'
+html_logo = 'assets/XDG_Logo_500x500.png'
+html_favicon = 'assets/XDG_Favicon_32x32.png'
 html_theme_options = {
     'canonical_url': '',
     'analytics_id': '',
