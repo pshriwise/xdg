@@ -11,3 +11,6 @@ XDG Interface
 
 .. doxygenfile:: ray_tracing_interface.h
    :project: XDG
+
+.. doxygenfile:: ray.h
+   :project: XDG
