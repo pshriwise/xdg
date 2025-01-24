@@ -40,7 +40,7 @@ void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
-  BoundingBox bounds = mesh_manager->element_bounding_box(primitive_ref.primitive_id);
+  BoundingBox bounds = mesh_manager->triangle_bounding_box(primitive_ref.primitive_id);
 
   args->bounds_o->lower_x = bounds.min_x - user_data->box_bump;
   args->bounds_o->lower_y = bounds.min_y - user_data->box_bump;
