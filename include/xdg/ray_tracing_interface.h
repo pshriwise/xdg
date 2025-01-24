@@ -17,6 +17,8 @@ namespace xdg
 {
 
 using TreeID = RTCScene;
+using XdgDevice = RTCDevice;
+using XdgGeometry = RTCGeometry;
 
 class RayTracer {
 // Constructors
@@ -27,7 +29,7 @@ public:
 // Methods
   void init();
 
-  RTCScene create_scene();
+  TreeID create_scene();
 
   TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
 
@@ -65,23 +67,23 @@ public:
 // Data members
 private:
   // Embree members
-  RTCDevice device_;
-  std::vector<RTCScene> scenes_; //<! All scenes created by this ray tracer
-  std::vector<RTCGeometry> geometries_; //<! All geometries created by this ray tracer
+  XdgDevice device_;
+  std::vector<TreeID> scenes_; //<! All scenes created by this ray tracer
+  std::vector<XdgGeometry> geometries_; //<! All geometries created by this ray tracer
 
   // Mesh-to-Scene maps
-  std::map<MeshID, RTCScene> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
-  std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
-  RTCScene gloabal_scene_;
+  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::map<MeshID, XdgGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
+  TreeID gloabal_scene_;
 
   // Internal Embree Mappings
-  std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
+  std::unordered_map<XdgGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
 
   // Internal parameters
   double numerical_precision_ {1e-3};
 
   // storage
-  std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
+  std::unordered_map<TreeID, std::vector<PrimitiveRef>> primitive_ref_storage_;
 };
 
 } // namespace xdg
