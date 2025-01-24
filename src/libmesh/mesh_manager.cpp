@@ -52,31 +52,38 @@ void LibMeshMeshManager::init() {
 
   auto libmesh_bounding_box = libMesh::MeshTools::create_bounding_box(*mesh());
 
+
+  // identify all subdomain IDs in the mesh, these represent volumes
   std::set<libMesh::subdomain_id_type> subdomain_ids;
   mesh()->subdomain_ids(subdomain_ids);
   for (auto id : subdomain_ids) {
     volumes_.push_back(id);
   }
 
+  // identify all sideset IDs in the mesh, these represent surfaces
   std::set<MeshID> boundary_ids;
-
   auto boundary_info = mesh()->get_boundary_info();
   for (auto entry : boundary_info.get_sideset_name_map()) {
     boundary_ids.insert(entry.first);
   }
 
+  // identify the next available surface ID
   MeshID next_boundary_id =
       *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
 
-  // invert the boundary info sideset map
+  // invert the boundary info sideset map so that we can identify
+  // the elements associated with each sideset
   for (auto entry : boundary_info.get_sideset_map()) {
     const libMesh::Elem* other_elem = entry.first->neighbor_ptr(entry.second.first);
     sideset_element_map_[entry.second.second].push_back(
         {entry.first, entry.second.first});
   }
 
+  // search for any implicit sidesets (faces that are the boundary between two
+  // subdomains/volumes)
   discover_surface_elements();
 
+  // libMesh initialization
   mesh()->prepare_for_use();
 }
 
@@ -150,6 +157,8 @@ bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
 
 void LibMeshMeshManager::discover_surface_elements() {
 
+  // for any active local elements, identify element faces
+  // where the subdomain IDs are different on either side
   for (const auto *elem : mesh()->active_local_element_ptr_range()) {
     auto subdomain_id = elem->subdomain_id();
     for (int i = 0; i < elem->n_sides(); i++) {
@@ -165,11 +174,11 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
   }
 
-  // replace interface surfaces with sideset surfaces as needed
+  // replace implicit interface surfaces with sideset surfaces where needed
   for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
     if (sideset_elems.size() == 0) continue;
 
-    // determine the subdomain IDs for this sideset
+    // determine the subdomain IDs for the sideset
     // (possible that the face is the boundary of the mesh)
     std::pair<MeshID, MeshID> subdomain_pair {ID_NONE, ID_NONE};
     auto sense = Sense::FORWARD;
@@ -179,12 +188,20 @@ void LibMeshMeshManager::discover_surface_elements() {
     if (neighbor)
       subdomain_pair.second = neighbor->subdomain_id();
     else
+      // if there isn't an element on the other side of this face,
+      // move on
       subdomain_pair.second = ID_NONE;
 
+    // if this is a defined sideset, it should match one of the pairs in the
+    // interface map if it doesn't based on the current ordering of senses, try
+    // the reverse sense
     if(subdomain_interface_map_.count(subdomain_pair) == 0) {
       auto sense = Sense::REVERSE;
       subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
     }
+
+    // if the sideset pair doesn't exist in the interface map at all,
+    // then we have a problem or a poorly defined sideset
     if (subdomain_interface_map_.count(subdomain_pair) == 0) {
       fatal_error("No interface elements found for sideset");
     }
@@ -193,6 +210,8 @@ void LibMeshMeshManager::discover_surface_elements() {
     auto interface_elems = subdomain_interface_map_[subdomain_pair];
     std::set<SidePair> interface_set(interface_elems.begin(), interface_elems.end());
     std::set<SidePair> sideset_set(sideset_elems.begin(), sideset_elems.end());
+
+    // I believe this is code related to handling partial sidesets
 
     // // if the discovered sideset elements don't overlap with this interface,
     // // at all, move on
@@ -211,11 +230,16 @@ void LibMeshMeshManager::discover_surface_elements() {
     //   fatal_error("Partial match for sideset elements in a subdomain interface");
     // }
 
-    // remove the sideset elements from the interface elements
+    // TODO: there's a possibility that explicitly defined sidesets only partially
+    // cover one of the discovered interface sidesets, but we aren't handling
+    // that yet
+
+    // remove the explicit sideset elements from the interface elements
     for (const auto& elem : sideset_elems) {
       interface_set.erase(elem);
     }
 
+    // add the interface sideset faces to the subdomain interface map
     subdomain_interface_map_[subdomain_pair] = std::vector<SidePair>(interface_set.begin(), interface_set.end());
 
     // add this sideset to the list of surfaces
@@ -250,14 +274,18 @@ void LibMeshMeshManager::discover_surface_elements() {
     for (const auto &elem : elements) {
       surface_map_[surface_id].push_back(sidepair_id(elem));
     }
+    // increment the next surfce ID
     surfaces().push_back(surface_id++);
   }
 
   auto& boundary_info = mesh_->get_boundary_info();
 
-  int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(), boundary_info.get_boundary_ids().end()) + 1;
+  int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(),
+                                           boundary_info.get_boundary_ids().end()) + 1;
 
-  // put all boundary elements in a special sideset
+  // put all mesh boundary elements in a special sideset that we can
+  // reference later if needed
+  // (any faces that are part of the implicit complement in DAGMC parlance)
   for (auto &[id, elem_side] : subdomain_interface_map_) {
     if (id.first == ID_NONE || id.second == ID_NONE) {
       for (const auto &elem : elem_side) {
