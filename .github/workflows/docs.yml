@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r docs/requirements.txt  # Ensure your documentation dependencies are in requirements.txt
+        pip install -r docs/requirements.txt
 
     - name: Build documentation
       run: |
