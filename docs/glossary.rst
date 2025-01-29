@@ -41,7 +41,7 @@ Glossary
     EntitySet
         An arbitrary collection of entities in MOAB, including other
         `EntitySet`'s. Parent-child relationships between `EntitySet`'s can also
-        be established.
+        be established. Synonymous with the term :term:`MeshSet`.
 
     MeshSet
         A collection of entities in MOAB. Synonymous with :term:`EntitySet`.
