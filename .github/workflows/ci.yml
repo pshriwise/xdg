@@ -37,9 +37,16 @@ jobs:
           cd moab
           git checkout 5.3.1
 
+      - name: libMesh Clone
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/libMesh/libmesh.git
+
       - name: Environment Variables
         run: |
           echo "MOAB_SHA"=$(cd ~/moab && git rev-parse HEAD) >> $GITHUB_ENV
+          echo "LIBMESH_SHA"=$(cd ~/libmesh && git rev-parse HEAD) >> $GITHUB_ENV
 
       - name: MOAB Cache
         id: moab-cache
@@ -49,6 +56,15 @@ jobs:
         with:
           path: ~/MOAB
           key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ env.MOAB_SHA }}
+
+      - name: libMesh Cache
+        id: libmesh-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: libmesh-cache
+        with:
+          path: ~/LIBMESH
+          key: libmesh-${{ runner.os }}-${{ env.cache-name }}-${{ env.LIBMESH_SHA }}
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
