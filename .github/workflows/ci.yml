@@ -76,7 +76,8 @@ jobs:
           make -j4
           make install
 
-      - name: Build libMesh
+      - if: ${{ steps.libmesh-cache.outputs.cache-hit != 'true' }}
+        name: Build libMesh
         shell: bash
         run: |
           cd ~
