@@ -44,7 +44,7 @@ TEST_CASE("Test MOAB-libMesh Cross-Check 1 Vol")
 
   transport_particles(moab_sim_data);
 
-  // these two problems should be using the same boundary triangles and conditions.
+  // these two problems should be using the same triangles and boundary conditions.
   // as a result we epxect the two different backends to return the same result
   for (const auto& [volume, distance] : libmesh_sim_data.cell_tracks) {
     REQUIRE_THAT(moab_sim_data.cell_tracks[volume], Catch::Matchers::WithinAbs(libmesh_sim_data.cell_tracks[volume], 1e-10));
@@ -80,7 +80,7 @@ TEST_CASE("Test MOAB-libMesh Cross-Check 2 Vol")
 
   transport_particles(moab_sim_data);
 
-  // these two problems should be using the same boundary triangles and conditions.
+  // these two problems should be using the same triangles and boundary conditions.
   // as a result we epxect the two different backends to return the same result
   for (const auto& [volume, distance] : libmesh_sim_data.cell_tracks) {
     REQUIRE_THAT(moab_sim_data.cell_tracks[volume], Catch::Matchers::WithinAbs(libmesh_sim_data.cell_tracks[volume], 1e-10));
