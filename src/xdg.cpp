@@ -1,7 +1,6 @@
 #include <vector>
 
 #include "xdg/xdg.h"
-#include "xdg/error.h"
 
 // mesh manager concrete implementations
 #ifdef XDG_ENABLE_MOAB
