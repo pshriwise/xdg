@@ -12,7 +12,6 @@ namespace xdg {
 
 // Constructors
 LibMeshMeshManager::LibMeshMeshManager(void *ptr) {
-
   if (libmesh_init == nullptr) {
     initialize_libmesh();
   }
@@ -34,7 +33,6 @@ LibMeshMeshManager::~LibMeshMeshManager() {
   libmesh_init.reset();
 }
 
-// libMesh mesh manager
 void LibMeshMeshManager::initialize_libmesh() {
   // libmesh requires the program name, so at least one argument is needed
   int argc = 1;
@@ -45,13 +43,12 @@ void LibMeshMeshManager::initialize_libmesh() {
 }
 
 void LibMeshMeshManager::init() {
-  // ensure that the mesh is 3-dimensional
+  // ensure that the mesh is 3-dimensional, for our use case this is expected
   if (mesh_->mesh_dimension() != 3) {
     fatal_error("Mesh must be 3-dimensional");
   }
 
   auto libmesh_bounding_box = libMesh::MeshTools::create_bounding_box(*mesh());
-
 
   // identify all subdomain IDs in the mesh, these represent volumes
   std::set<libMesh::subdomain_id_type> subdomain_ids;
@@ -66,10 +63,6 @@ void LibMeshMeshManager::init() {
   for (auto entry : boundary_info.get_sideset_name_map()) {
     boundary_ids.insert(entry.first);
   }
-
-  // identify the next available surface ID
-  MeshID next_boundary_id =
-      *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
 
   // invert the boundary info sideset map so that we can identify
   // the elements associated with each sideset
@@ -210,29 +203,6 @@ void LibMeshMeshManager::discover_surface_elements() {
     auto interface_elems = subdomain_interface_map_[subdomain_pair];
     std::set<SidePair> interface_set(interface_elems.begin(), interface_elems.end());
     std::set<SidePair> sideset_set(sideset_elems.begin(), sideset_elems.end());
-
-    // I believe this is code related to handling partial sidesets
-
-    // // if the discovered sideset elements don't overlap with this interface,
-    // // at all, move on
-    // if (!intersects_set(interface_set, sideset_set)) {
-    //   continue;
-    // }
-
-    // // if the discovered interface set is larger than the interface set,
-    // // move on
-    // if (interface_set.size() > sideset_set.size()) {
-    //   continue;
-    // }
-
-    // // if there is an intersection, but an incomplete one, then we have a problem
-    // if (!contains_set(sideset_set, interface_set)) {
-    //   fatal_error("Partial match for sideset elements in a subdomain interface");
-    // }
-
-    // TODO: there's a possibility that explicitly defined sidesets only partially
-    // cover one of the discovered interface sidesets, but we aren't handling
-    // that yet
 
     // remove the explicit sideset elements from the interface elements
     for (const auto& elem : sideset_elems) {
