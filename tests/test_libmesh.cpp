@@ -230,53 +230,5 @@ TEST_CASE("Test Ray Fire Jezebel")
 
 }
 
-// TEST_CASE("Test libMesh Initialization")
-// {
-//   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
-
-//   mesh_manager->load_file("cyl-brick.exo");
-
-//   mesh_manager->init();
-
-//   REQUIRE(mesh_manager->num_volumes() == 2);
-
-//   // This correct based on geometry topology (provided sidesets)
-//   REQUIRE(mesh_manager->num_surfaces() == 13);
-//   // This is correct based on mesh topology
-//   // REQUIRE(mesh_manager->num_surfaces() == 3);
-
-//   // create the implicit complement volume
-//   mesh_manager->create_implicit_complement();
-//   REQUIRE(mesh_manager->num_volumes() == 3);
-
-//   // parse metadata
-//   mesh_manager->parse_metadata();
-
-//   std::map<MeshID, std::string> material_exp_results =
-//     {
-//       {1, "mat:steel"},
-//       {2, "mat:iron"},
-//       {3, "void"}
-//     };
-//     //   {1, "UO2 (2.4%)"},
-//     //   {2, "Zircaloy"},
-//     //   {3, "Hot borated water"},
-//     //   {4, "void"}
-//     // };
-
-//   for (auto volume : mesh_manager->volumes()) {
-//     auto prop = mesh_manager->get_volume_property(volume, PropertyType::MATERIAL);
-//     REQUIRE(prop.type == PropertyType::MATERIAL);
-//     REQUIRE(material_exp_results[volume] == prop.value);
-//   }
-
-//   std::vector reflecting_surface_ids {1};
-//   for (auto surface : reflecting_surface_ids) {
-//     auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
-//     REQUIRE(prop.value == "boundary:reflective");
-//   }
-// }
-
-
 
 
