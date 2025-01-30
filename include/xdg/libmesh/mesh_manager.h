@@ -15,6 +15,8 @@ namespace xdg {
 
 class LibMeshMeshManager : public MeshManager {
 
+  constexpr static int SIDE_NONE {-1};
+
 public:
   LibMeshMeshManager(void* ptr);
 
@@ -22,10 +24,13 @@ public:
 
   ~LibMeshMeshManager();
 
-  // Backend methods (specific to libMesh)
-  //! In the case that boundary conditions are not explicitly defined, this method will
-  //! discover element faces on sudbomain interfaces, create surfaces and topology accordingly,
-  //! and assign transmission boundary conditions for these interfacdes
+  // Backend methods
+
+  //! Discover element faces on sudbomain interfaces,
+  //! create surfaces and topology accordingly,
+  //! and assign transmission boundary conditions for these interfacdes.
+  //! If pre-defined sidesets exist, they will replace discovered interfaces
+  //! between subdomains. Full replacement of subdomain interfaces is required.
   void discover_surface_elements();
 
   //! Initialize libMesh library
@@ -86,7 +91,6 @@ public:
 
   //! Helper struct for unique identification of an element face
   struct SidePair {
-
     SidePair() = default;
 
     SidePair(std::pair<const libMesh::Elem*, int> old_side) {
@@ -132,18 +136,19 @@ public:
         fatal_error("SidePair created with null elements");
       }
 
-      // null pointers come second always
+      // re-order so that null pointers come second if present
       if (side.first == nullptr) {
         std::swap(side.first, side.second);
         return;
       }
 
+      // if a null pointer is present, the remaining checks aren't necessary
       if (side.second == nullptr) {
         return;
       }
 
       if (side.first->id() == side.second->id()) {
-        fatal_error("SidePair created with same element on both sides");
+        fatal_error("SidePair created with the same element on both sides. Element ID: {}", side.first->id());
       }
 
       if (side.first->id() > side.second->id()) {
@@ -158,7 +163,7 @@ public:
           break;
         }
       }
-      if (side_num_ == -1) {
+      if (side_num_ == SIDE_NONE) {
         fatal_error("SidePair created with elements that are not neighbors");
       }
     }
@@ -166,7 +171,7 @@ public:
 
     bool operator==(const SidePair& other) const
     {
-      return first() == other.first() && side_num() == other.side_num(); // || side == std::make_pair(other.side.second, other.side.first);
+      return first() == other.first() && side_num() == other.side_num();
     }
 
     bool operator<(const SidePair& other) const
@@ -184,7 +189,7 @@ public:
     }
 
     std::pair<const libMesh::Elem*, const libMesh::Elem*> side {nullptr, nullptr};
-    int32_t side_num_ {-1};
+    int32_t side_num_ {SIDE_NONE};
   }; // SidePair
 
   struct SidePairHash {
