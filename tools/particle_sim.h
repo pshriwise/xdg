@@ -119,16 +119,15 @@ void cross_surface()
 bool verbose_ {true};
 std::shared_ptr<XDG> xdg_;
 uint32_t id_ {0};
+int32_t max_events_ {1000};
+
 Position r_;
 Direction u_;
 MeshID volume_ {ID_NONE};
-std::vector<MeshID> history_{};
-
+std::vector<MeshID> history_ {};
 std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
 double collision_distance_ {INFTY};
-
 int32_t n_events_ {0};
-int32_t max_events_ {1000};
 bool alive_ {true};
 };
 
