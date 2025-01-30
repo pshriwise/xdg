@@ -53,3 +53,6 @@ Glossary
 
     `GPRT <https://github.com/gprt-org/GPRT>`_
         General Purpose Raytracing Toolkit
+
+    XDG
+        Accelerated Discretized Geometry
