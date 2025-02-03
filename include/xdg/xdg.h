@@ -15,8 +15,10 @@ public:
 // Constructors
   XDG() = default;
 
-  XDG(std::shared_ptr<MeshManager> mesh_manager) :
-    mesh_manager_(mesh_manager) {}
+  XDG(std::shared_ptr<MeshManager> mesh_manager, std::shared_ptr<RayTracer> ray_tracing_interface) :
+    mesh_manager_(mesh_manager), ray_tracing_interface_(ray_tracing_interface) {}
+
+
 
   // factor method that allows for specification of a backend mesh library and ray tracer
   static std::shared_ptr<XDG> create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib);

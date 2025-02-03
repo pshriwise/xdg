@@ -14,10 +14,10 @@ using namespace xdg;
 TEST_CASE("Test Occluded")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  mm->init(); // this should do nothing, just good practice to call it
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
-  xdg->prepare_raytracer();
   std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
+  mm->init(); // this should do nothing, just good practice to call it
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, rti);
+  xdg->prepare_raytracer();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);
 
   // setup ray to fire that won't hit the mock model

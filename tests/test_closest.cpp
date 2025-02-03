@@ -11,14 +11,16 @@
 // xdg test includes
 #include "mesh_mock.h"
 #include "util.h"
+#include "xdg/embree_ray_tracer.h"
 
 using namespace xdg;
 
 TEST_CASE("Test Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
   mm->init(); // this should do nothing, but its good practice to call it
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, rti);
   xdg->prepare_raytracer();
 
   MeshID volume = mm->volumes()[0];
