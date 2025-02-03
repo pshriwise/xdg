@@ -7,6 +7,7 @@
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
+#include "xdg/embree_ray_tracer.h"
 
 #include "mesh_mock.h"
 
@@ -18,7 +19,7 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   mm->init(); // this should do nothing, just good practice to call it
   REQUIRE(mm->mesh_library() == MeshLibrary::INTERNAL);
 
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);
 
   Position origin {0.0, 0.0, 0.0};

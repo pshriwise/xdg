@@ -4,7 +4,7 @@
 
 // mesh manager concrete implementations
 #include "xdg/moab/mesh_manager.h"
-
+#include "xdg/embree_ray_tracer.h"
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
 namespace xdg {
@@ -18,11 +18,11 @@ void XDG::prepare_raytracer()
 }
 
 
-std::shared_ptr<XDG> XDG::create(MeshLibrary library)
+std::shared_ptr<XDG> XDG::create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib)
 {
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>();
 
-  switch (library)
+  switch (mesh_lib)
   {
   case MeshLibrary::MOAB:
     xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
@@ -30,6 +30,16 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary library)
   default:
     break;
   }
+  
+  switch (ray_tracing_lib)
+  {
+  case RTLibrary::EMBREE:
+    xdg->set_ray_tracing_interface(std::make_shared<EmbreeRayTracer>());
+    break;
+  default:
+    break;
+  }
+  
   return xdg;
 }
 

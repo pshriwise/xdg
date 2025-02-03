@@ -5,6 +5,7 @@
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
+#include "xdg/embree_ray_tracer.h"
 
 #include "mesh_mock.h"
 
@@ -19,7 +20,7 @@ TEST_CASE("Test Mesh BVH")
   REQUIRE(mm->num_surfaces() == 6);
   REQUIRE(mm->num_volume_elements(1) == 12);
 
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
 
   std::unordered_map<MeshID, TreeID> volume_to_scene_map;
   for (auto volume: mm->volumes()) {

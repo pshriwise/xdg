@@ -1,33 +1,34 @@
+#include "xdg/embree_ray_tracer.h"
 #include "xdg/error.h"
 #include "xdg/geometry_data.h"
-#include "xdg/ray_tracing_interface.h"
 #include "xdg/ray.h"
+
 
 namespace xdg {
 
-// void error(void* dum, RTCError code, const char* str) {
-//   if (code != RTC_ERROR_NONE)
-//     fatal_error("Embree error: {}", str);
-// }
+void error(void* dum, RTCError code, const char* str) {
+  if (code != RTC_ERROR_NONE)
+    fatal_error("Embree error: {}", str);
+}
 
-// RayTracer::RayTracer()
-// {
-//   device_ = rtcNewDevice(nullptr);
-//   rtcSetDeviceErrorFunction(device_, (RTCErrorFunction)error, nullptr);
-// }
+EmbreeRayTracer::EmbreeRayTracer()
+{
+  device_ = rtcNewDevice(nullptr);
+  rtcSetDeviceErrorFunction(device_, (RTCErrorFunction)error, nullptr);
+}
 
-// RayTracer::~RayTracer()
-// {
-//   rtcReleaseDevice(device_);
-// }
+EmbreeRayTracer::~EmbreeRayTracer()
+{
+  rtcReleaseDevice(device_);
+}
 
-void RayTracer::init()
+void EmbreeRayTracer::init()
 {
 
 }
 
-TreeID RayTracer::create_scene() {
-  TreeID scene = rtcNewScene(device_);
+TreeID EmbreeRayTracer::create_scene() {
+  RTCScene scene = rtcNewScene(device_);
   rtcSetSceneFlags(scene, RTC_SCENE_FLAG_ROBUST);
   rtcSetSceneBuildQuality(scene, RTC_BUILD_QUALITY_HIGH);
   scenes_.push_back(scene);
@@ -36,7 +37,7 @@ TreeID RayTracer::create_scene() {
 }
 
 TreeID
-RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
+EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                            MeshID volume_id)
 {
 
@@ -118,12 +119,12 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   return volume_scene;
 }
 
-bool RayTracer::point_in_volume(TreeID scene,
+bool EmbreeRayTracer::point_in_volume(TreeID scene,
                                 const Position& point,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives) const
 {
-  RTCDRayHit rayhit;
+  RTCDRayHit rayhit; // embree specfic rayhit struct (payload?)
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
   else rayhit.ray.set_dir({1. / std::sqrt(2.0), 1 / std::sqrt(2.0), 0.0});
@@ -147,7 +148,7 @@ bool RayTracer::point_in_volume(TreeID scene,
 }
 
 std::pair<double, MeshID>
-RayTracer::ray_fire(TreeID scene,
+EmbreeRayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
@@ -180,7 +181,7 @@ RayTracer::ray_fire(TreeID scene,
     return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 
-void RayTracer::closest(TreeID scene,
+void EmbreeRayTracer::closest(TreeID scene,
                         const Position& point,
                         double& distance,
                         MeshID& triangle)
@@ -202,7 +203,7 @@ void RayTracer::closest(TreeID scene,
   triangle = query.primitive_ref->primitive_id;
 }
 
-void RayTracer::closest(TreeID scene,
+void EmbreeRayTracer::closest(TreeID scene,
                         const Position& point,
                         double& distance)
 {
@@ -210,7 +211,7 @@ void RayTracer::closest(TreeID scene,
   closest(scene, point, distance, triangle);
 }
 
-bool RayTracer::occluded(TreeID scene,
+bool EmbreeRayTracer::occluded(TreeID scene,
                          const Position& origin,
                          const Direction& direction,
                          double& distance) const

@@ -80,6 +80,7 @@ src/util/str_utils.cpp
 src/xdg.cpp
 src/overlap_check/overlap.cpp
 src/overlap_check/progressBar.cpp
+src/embree_ray_tracer.cpp
 )
 
 if (XDG_ENABLE_MOAB)

@@ -152,7 +152,7 @@ args.add_argument("-m", "--mfp")
 srand48(42);
 
 // create a mesh manager
-std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
 const auto& mm = xdg->mesh_manager();
 
 mm->load_file(args.get<std::string>("filename"));

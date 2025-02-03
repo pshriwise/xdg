@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "xdg/generic_types.h"
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
 #include "xdg/mesh_manager_interface.h"
@@ -16,56 +17,51 @@
 namespace xdg
 {
 
-using TreeID = RTCScene;
-using XdgDevice = RTCDevice;
-using XdgGeometry = RTCGeometry;
 
 class RayTracer {
 // Constructors
 public:
-  RayTracer();
-  ~RayTracer();
+  // RayTracer();
+  virtual ~RayTracer() {};
 
 // Methods
-  void init();
+  virtual void init() = 0;
 
-  TreeID create_scene();
+  virtual TreeID create_scene() = 0;
 
-  TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume);
+  virtual TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) = 0;
 
   // Query Methods
-  bool point_in_volume(TreeID scene,
+  virtual bool point_in_volume(TreeID scene,
                        const Position& point,
                        const Direction* direction = nullptr,
-                       const std::vector<MeshID>* exclude_primitives = nullptr) const;
+                       const std::vector<MeshID>* exclude_primitives = nullptr) const = 0;
 
-  std::pair<double, MeshID> ray_fire(TreeID scene,
+  virtual std::pair<double, MeshID> ray_fire(TreeID scene,
                                      const Position& origin,
                                      const Direction& direction,
                                      const double dist_limit = INFTY,
-                                     std::vector<MeshID>* const exclude_primitives = nullptr);
+                                     std::vector<MeshID>* const exclude_primitives = nullptr) = 0;
 
-  void closest(TreeID scene,
+  virtual void closest(TreeID scene,
                const Position& origin,
                double& dist,
                MeshID& triangle);
 
-  void closest(TreeID scene,
+  virtual void closest(TreeID scene,
                const Position& origin,
                double& dist);
 
-  bool occluded(TreeID scene,
+  virtual bool occluded(TreeID scene,
                 const Position& origin,
                 const Direction& direction,
-                double& dist) const;
+                double& dist) const ;
 
 // Accessors
   int num_registered_scenes() const { return scenes_.size(); }
 
   const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const { return user_data_map_.at(surface_to_geometry_map_.at(surface)); }
 
-// Data members
-private:
   // Embree members
   XdgDevice device_;
   std::vector<TreeID> scenes_; //<! All scenes created by this ray tracer
@@ -84,8 +80,19 @@ private:
 
   // storage
   std::unordered_map<TreeID, std::vector<PrimitiveRef>> primitive_ref_storage_;
-};
+// Data members
+private:
 
+  /*
+  Right now, all of the generic types used in the ray tracing interface are just aliases
+  to Embree types. In the future we will need to have a think about which data will be common
+  across RTIs. Thoughts so far:
+  - TreeID needs to correspond to the specific ray tracers internal type to reference BVH trees
+  - XdgDevice corresponds to the internal type which references the device (what is this?)
+  - XdgGeometry corresponds to the internal type referencing the geometry native to that ray tracer
+  */
+
+};
 } // namespace xdg
 
 

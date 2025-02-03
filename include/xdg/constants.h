@@ -39,6 +39,13 @@ enum class MeshLibrary {
   LIBMESH
 };
 
+// Ray Tracing library identifier
+enum class RTLibrary {
+  INTERNAL = 0,
+  EMBREE,
+  GPRT
+};
+
 // Mesh identifer type
 using MeshID = int32_t;
 
