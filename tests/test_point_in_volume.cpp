@@ -31,12 +31,13 @@ TEST_CASE("Test Point in Volume")
   result = rti->point_in_volume(volume_tree, point);
   REQUIRE(result == true);
 
-  // test a point on the positive x boundary
-  point = {5.0, 0.0, 0,0};
+  // test a point just outside on the positive x boundary
+  // no direction
+  point = {5.001, 0.0, 0,0};
   result = rti->point_in_volume(volume_tree, point);
   REQUIRE(result == false);
 
-  // test a point just outside the positive x boundary
+  // test a point on the positive x boundary
   // and provide a direction
   point = {5.0, 0.0, 0.0};
   Direction dir = {1.0, 0.0, 0.0};
