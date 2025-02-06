@@ -9,28 +9,28 @@ namespace xdg {
 // Placeholder for GPRTAccel types until they are avaialable
 struct GPRTAccel {}; // --> RTCScene [ TreeID ]
 struct GPRTGeom {}; // --> RTCGeometry [ XdgGeometry ]
-struct GPRTContext {}; // --> RTCDevice [ XdgDevice ]
+struct GPRTContext {}; // --> RTCDevice [ XdgDevice ] TODO: is this needed?
 
 // Struct to hold either RTCScene or GPRTAccel
 struct TreeID {
-    std::variant<RTCScene, GPRTAccel> _ID;
+  std::variant<RTCScene, GPRTAccel> _ID;
 
-    // Default constructor
-    TreeID() : _ID(nullptr) {}  // Initializes _ID with nullptr
+  // Default constructor
+  TreeID() : _ID(nullptr) {}  // Initializes _ID with nullptr
 
-    // Explicit constructors
-    explicit TreeID(RTCScene scene) : _ID(scene) {}
-    explicit TreeID(GPRTAccel accel) : _ID(accel) {}
+  // Explicit constructors
+  explicit TreeID(RTCScene scene) : _ID(scene) {}
+  explicit TreeID(GPRTAccel accel) : _ID(accel) {}
 
-    // Variant Type checks
-    bool is_embree() const { return std::holds_alternative<RTCScene>(_ID); } // return True if _ID RTCScene
-    bool is_gprt() const { return std::holds_alternative<GPRTAccel>(_ID); } // return True if _ID GPRTAccel
+  // Variant Type checks
+  bool is_embree() const { return std::holds_alternative<RTCScene>(_ID); } // return True if _ID RTCScene
+  bool is_gprt() const { return std::holds_alternative<GPRTAccel>(_ID); } // return True if _ID GPRTAccel
 
-    // TODO: Should these accessors make use of std::get_if<T> instead of std::get<T>?
-    
-    // Accessors 
-    RTCScene embree() { return std::get<RTCScene>(_ID); } // return the underlying RTCScene
-    GPRTAccel gprt() { return std::get<GPRTAccel>(_ID); } // return the underlying GPRTAccel
+  // TODO: Should these accessors make use of std::get_if<T> instead of std::get<T>?
+  
+  // Accessors 
+  RTCScene embree() { return std::get<RTCScene>(_ID); } // return the underlying RTCScene
+  GPRTAccel gprt() { return std::get<GPRTAccel>(_ID); } // return the underlying GPRTAccel
 };
 
 // Struct to hold either RTCGeometry or GPRTGeom

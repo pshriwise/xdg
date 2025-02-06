@@ -41,7 +41,6 @@ enum class MeshLibrary {
 
 // Ray Tracing library identifier
 enum class RTLibrary {
-  INTERNAL = 0,
   EMBREE,
   GPRT
 };
