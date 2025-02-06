@@ -64,7 +64,7 @@ public:
 
 
   // Embree members
-  RTCGeometry device_;
+  RTCDevice device_;
   std::vector<TreeID> scenes_; //<! All scenes created by this ray tracer
   std::vector<RTCGeometry> geometries_; //<! All geometries created by this ray tracer
 

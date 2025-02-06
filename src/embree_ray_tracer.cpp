@@ -31,17 +31,20 @@ TreeID EmbreeRayTracer::create_scene() {
   RTCScene rtcscene = rtcNewScene(device_);
   rtcSetSceneFlags(rtcscene, RTC_SCENE_FLAG_ROBUST);
   rtcSetSceneBuildQuality(rtcscene, RTC_BUILD_QUALITY_HIGH);
-  TreeID scene(rtcscene);
+  TreeID scene(rtcscene); // TreeID is its own type now so needs to be instantiated as such
   scenes_.push_back(scene);
   return scene;
 }
 
+// TODO: Does it make sense for a lot of this function to be defined in the base class?
 TreeID
 EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                            MeshID volume_id)
 {
 
   auto volume_scene = this->create_scene();  
+  // volume_scene returns a TreeID. To get the underlying RTCScene we can do volume_scene.embree()
+  // Once GPRT is implemented we could also use volume_scene.gprt()
 
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);

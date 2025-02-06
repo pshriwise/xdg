@@ -64,16 +64,8 @@ public:
 
 
 private:
-
-  /*
-  Right now, all of the generic types used in the ray tracing interface are just aliases
-  to Embree types. In the future we will need to have a think about which data will be common
-  across RTIs. Thoughts so far:
-  - TreeID needs to correspond to the specific ray tracers internal type to reference BVH trees
-  - XdgDevice corresponds to the internal type which references the device (what is this?)
-  - XdgGeometry corresponds to the internal type referencing the geometry native to that ray tracer
-  */
-
+// TODO: Think about which variables will be shared between RayTracers independent of which library is used
+// Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 };
 } // namespace xdg
 

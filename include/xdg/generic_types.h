@@ -4,8 +4,6 @@
 #include "xdg/embree_interface.h"
 #include <variant>
 
-
-
 namespace xdg {
 
 // Placeholder for GPRTAccel types until they are avaialable
@@ -24,50 +22,38 @@ struct TreeID {
     explicit TreeID(RTCScene scene) : _ID(scene) {}
     explicit TreeID(GPRTAccel accel) : _ID(accel) {}
 
-    bool is_embree() const { return std::holds_alternative<RTCScene>(_ID); }
-    bool is_gprt() const { return std::holds_alternative<GPRTAccel>(_ID); }
+    // Variant Type checks
+    bool is_embree() const { return std::holds_alternative<RTCScene>(_ID); } // return True if _ID RTCScene
+    bool is_gprt() const { return std::holds_alternative<GPRTAccel>(_ID); } // return True if _ID GPRTAccel
 
-    RTCScene embree() { return std::get<RTCScene>(_ID); }
-    GPRTAccel gprt() { return std::get<GPRTAccel>(_ID); }
+    // TODO: Should these accessors make use of std::get_if<T> instead of std::get<T>?
+    
+    // Accessors 
+    RTCScene embree() { return std::get<RTCScene>(_ID); } // return the underlying RTCScene
+    GPRTAccel gprt() { return std::get<GPRTAccel>(_ID); } // return the underlying GPRTAccel
 };
 
 // Struct to hold either RTCGeometry or GPRTGeom
 struct XdgGeometry {
-    std::variant<RTCGeometry, GPRTGeom> _geometry;
+  std::variant<RTCGeometry, GPRTGeom> _geometry;
 
-    // Default constructor
-    XdgGeometry() : _geometry(nullptr) {}  // Initializes _geometry with nullptr
+  // Default constructor
+  XdgGeometry() : _geometry(nullptr) {}  // Initializes _geometry with nullptr
 
-    // Explicit constructors
-    explicit XdgGeometry(RTCGeometry rtc_geometry) : _geometry(rtc_geometry) {}
-    explicit XdgGeometry(GPRTGeom gprt_geometry) : _geometry(gprt_geometry) {}
+  // Explicit constructors
+  explicit XdgGeometry(RTCGeometry rtc_geometry) : _geometry(rtc_geometry) {}
+  explicit XdgGeometry(GPRTGeom gprt_geometry) : _geometry(gprt_geometry) {}
 
-    bool is_embree() const { return std::holds_alternative<RTCGeometry>(_geometry); }
-    bool is_gprt() const { return std::holds_alternative<GPRTGeom>(_geometry); }
+  // Variant Type checks
+  bool is_embree() const { return std::holds_alternative<RTCGeometry>(_geometry); } // return True if _geometry RTCGeometry
+  bool is_gprt() const { return std::holds_alternative<GPRTGeom>(_geometry); }      // return True if _geometry GPRTGeom
 
-    RTCGeometry embree() { return std::get<RTCGeometry>(_geometry); }
-    GPRTGeom gprt() { return std::get<GPRTGeom>(_geometry); }
+  // TODO: Should these accessors make use of std::get_if<T> instead of std::get<T>?
+
+  // Accessors 
+  RTCGeometry embree() { return std::get<RTCGeometry>(_geometry); } // return the underlying RTCGeometry
+  GPRTGeom gprt() { return std::get<GPRTGeom>(_geometry); }         // return the underlying GPRTGeom
 };
-
-
-// // base TreeID
-// template <typename T>
-// struct TreeID {
-//     T treeID;
-// };
-
-// // Type traits to check for different RT backends at compile time
-// template <typename T>
-// struct is_ray_tracing_scene : std::false_type {}; // Default to false to ensure that an RT backend is always set
-
-// template <>
-// struct is_ray_tracing_scene<RTCScene> : std::true_type {}; // Embree
-
-// template <>
-// struct is_ray_tracing_scene<GPRT> : std::true_type {}; // GPRT 
-
-// template <>
-// struct is_ray_tracing_scene<OptixScene> : std::true_type {}; // Optix
 
 
 }
