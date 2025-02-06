@@ -28,12 +28,12 @@ void EmbreeRayTracer::init()
 }
 
 TreeID EmbreeRayTracer::create_scene() {
-  RTCScene scene = rtcNewScene(device_);
-  rtcSetSceneFlags(scene, RTC_SCENE_FLAG_ROBUST);
-  rtcSetSceneBuildQuality(scene, RTC_BUILD_QUALITY_HIGH);
+  RTCScene rtcscene = rtcNewScene(device_);
+  rtcSetSceneFlags(rtcscene, RTC_SCENE_FLAG_ROBUST);
+  rtcSetSceneBuildQuality(rtcscene, RTC_BUILD_QUALITY_HIGH);
+  TreeID scene(rtcscene);
   scenes_.push_back(scene);
   return scene;
-
 }
 
 TreeID
@@ -41,12 +41,12 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
                            MeshID volume_id)
 {
 
-  auto volume_scene = this->create_scene();
+  auto volume_scene = this->create_scene();  
 
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);
-  this->primitive_ref_storage_[volume_scene].resize(volume_elements.size());
-  auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
+  this->primitive_ref_storage_[volume_scene.embree()].resize(volume_elements.size());
+  auto& triangle_storage = this->primitive_ref_storage_[volume_scene.embree()];
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
   int storage_offset {0};
@@ -89,7 +89,7 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
     auto surface_triangles = mesh_manager->get_surface_elements(surface);
     RTCGeometry surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
     rtcSetGeometryUserPrimitiveCount(surface_geometry, surface_triangles.size());
-    unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);
+    unsigned int embree_surface = rtcAttachGeometry(volume_scene.embree(), surface_geometry);
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
@@ -114,7 +114,7 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
 
     rtcCommitGeometry(surface_geometry);
   }
-  rtcCommitScene(volume_scene);
+  rtcCommitScene(volume_scene.embree());
 
   return volume_scene;
 }
@@ -136,7 +136,7 @@ bool EmbreeRayTracer::point_in_volume(TreeID scene,
   if (exclude_primitives != nullptr) rayhit.ray.exclude_primitives = exclude_primitives;
 
   {
-    rtcIntersect1(scene, (RTCRayHit*)&rayhit);
+    rtcIntersect1(scene.embree(), (RTCRayHit*)&rayhit);
   }
 
   // if the ray hit nothing, the point is outside of the volume
@@ -167,7 +167,7 @@ EmbreeRayTracer::ray_fire(TreeID scene,
 
   // fire the ray
   {
-    rtcIntersect1(scene, (RTCRayHit*)&rayhit);
+    rtcIntersect1(scene.embree(), (RTCRayHit*)&rayhit);
     // TODO: I don't quite understand this...
     rayhit.hit.Ng_x *= -1.0;
     rayhit.hit.Ng_y *= -1.0;
@@ -192,7 +192,7 @@ void EmbreeRayTracer::closest(TreeID scene,
   RTCPointQueryContext context;
   rtcInitPointQueryContext(&context);
 
-  rtcPointQuery(scene, &query, &context, (RTCPointQueryFunction)&TriangleClosestFunc, &scene);
+  rtcPointQuery(scene.embree(), &query, &context, (RTCPointQueryFunction)&TriangleClosestFunc, &scene);
 
   if (query.geomID == RTC_INVALID_GEOMETRY_ID) {
     distance = INFTY;
@@ -228,7 +228,7 @@ bool EmbreeRayTracer::occluded(TreeID scene,
 
   // fire the ray
   {
-    rtcOccluded1(scene, (RTCRay*)&ray);
+    rtcOccluded1(scene.embree(), (RTCRay*)&ray);
   }
 
   distance = ray.dtfar;

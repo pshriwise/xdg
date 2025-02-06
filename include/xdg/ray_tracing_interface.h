@@ -46,41 +46,23 @@ public:
   virtual void closest(TreeID scene,
                const Position& origin,
                double& dist,
-               MeshID& triangle);
+               MeshID& triangle) = 0;
 
   virtual void closest(TreeID scene,
                const Position& origin,
-               double& dist);
+               double& dist) = 0;
 
   virtual bool occluded(TreeID scene,
                 const Position& origin,
                 const Direction& direction,
-                double& dist) const ;
+                double& dist) const = 0;
 
 // Accessors
-  int num_registered_scenes() const { return scenes_.size(); }
+  virtual int num_registered_scenes() const = 0;
 
-  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const { return user_data_map_.at(surface_to_geometry_map_.at(surface)); }
+  virtual const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const = 0;
 
-  // Embree members
-  XdgDevice device_;
-  std::vector<TreeID> scenes_; //<! All scenes created by this ray tracer
-  std::vector<XdgGeometry> geometries_; //<! All geometries created by this ray tracer
 
-  // Mesh-to-Scene maps
-  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
-  std::map<MeshID, XdgGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
-  TreeID gloabal_scene_;
-
-  // Internal Embree Mappings
-  std::unordered_map<XdgGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
-
-  // Internal parameters
-  double numerical_precision_ {1e-3};
-
-  // storage
-  std::unordered_map<TreeID, std::vector<PrimitiveRef>> primitive_ref_storage_;
-// Data members
 private:
 
   /*
