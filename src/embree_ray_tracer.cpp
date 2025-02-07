@@ -86,6 +86,12 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
   bump = std::max(bump, 1e-03);
   bump = 1.0;
 
+ // TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
+ // implementation. Then another virtual function can be called register_volume_RT_specific. 
+ // in this scenario register_volume isn't a virtual function but instead calls a virtual function.
+ // That virtual function will be overrided to do the RT specific things in registering the volume.  
+
+
   // create a new geometry for each surface
   int buffer_start = 0;
   for (auto surface : volume_surfaces) {
