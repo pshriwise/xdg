@@ -9,7 +9,6 @@ namespace xdg {
 
 struct PrimitiveRef {
   MeshID primitive_id {ID_NONE};
-  Sense sense {Sense::UNSET};
 };
 
 void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args);

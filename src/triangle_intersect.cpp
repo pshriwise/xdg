@@ -74,7 +74,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
   // if this is a normal ray fire, flip the normal as needed
-  if (primitive_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  if (args->geomID == user_data->reverse_sense && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
     normal = -normal;
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
