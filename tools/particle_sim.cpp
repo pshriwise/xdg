@@ -77,8 +77,10 @@ void cross_surface()
 {
   n_events_++;
   log("Event {} for particle {}", n_events_, id_);
+  auto boundary_condition = xdg_->mesh_manager()->get_surface_property(surface_intersection_.second, PropertyType::BOUNDARY_CONDITION);
+  log("Particle crossing surface {}. Boundary condition: {}", surface_intersection_.second, boundary_condition.value);
   // check for the surface boundary condition
-  if (xdg_->mesh_manager()->get_surface_property(surface_intersection_.second, PropertyType::BOUNDARY_CONDITION).value == "reflecting") {
+  if (boundary_condition.value == "reflecting") {
     log("Particle {} reflects off surface {}", id_, surface_intersection_.second);
     log("Direction before reflection: ({}, {}, {})", u_.x, u_.y, u_.z);
 
@@ -96,6 +98,9 @@ void cross_surface()
       log("Resetting particle history to last intersection");
       history_ = {history_.back()};
     }
+  } else if (boundary_condition.value == "vacuum") {
+    log("Particle crossing vacuum boundary. Terminating...");
+    alive_ = false;
   } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
     log("Particle {} enters volume {}", id_, volume_);

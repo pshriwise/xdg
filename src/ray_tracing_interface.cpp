@@ -89,6 +89,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
+    surface_data->box_bump = bump;
     surface_data->surface_id = surface;
     // surface_data->forward_sense = forward; 
     // surface_data->reverse_sense = reverse;
