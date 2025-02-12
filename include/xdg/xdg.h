@@ -37,7 +37,8 @@ std::pair<double, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
                                    const double dist_limit = INFTY,
-                                   std::vector<MeshID>* const exclude_primitives = nullptr) const;
+                                   std::vector<MeshID>* const exclude_primitives = nullptr,
+                                   HitOrientation orientation = HitOrientation::EXITING) const;
 
 void closest(MeshID volume,
               const Position& origin,
