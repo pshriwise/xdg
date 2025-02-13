@@ -151,8 +151,8 @@ RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
-                    std::vector<MeshID>* const exclude_primitves,
-                    HitOrientation orientation)
+                    HitOrientation orientation,
+                    std::vector<MeshID>* const exclude_primitves)
 {     
   RTCDRayHit rayhit;
   // set ray data
