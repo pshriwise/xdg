@@ -25,6 +25,8 @@ public:
 // Methods
   void prepare_raytracer();
 
+  void prepare_volume_for_raytracing(MeshID volume);
+
 // Geometric Queries
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;

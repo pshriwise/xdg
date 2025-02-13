@@ -12,11 +12,14 @@ namespace xdg {
 void XDG::prepare_raytracer()
 {
   for (auto volume : mesh_manager()->volumes()) {
-    TreeID tree = ray_tracing_interface_->register_volume(mesh_manager_, volume);
-    volume_to_scene_map_[volume] = tree;
+    this->prepare_volume_for_raytracing(volume);
   }
 }
 
+void XDG::prepare_volume_for_raytracing(MeshID volume) {
+    TreeID tree = ray_tracing_interface_->register_volume(mesh_manager_, volume);
+    volume_to_scene_map_[volume] = tree;
+}
 
 std::shared_ptr<XDG> XDG::create(MeshLibrary library)
 {
