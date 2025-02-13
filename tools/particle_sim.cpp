@@ -26,10 +26,10 @@ void log (const std::string& msg, const Params&... fmt_args) {
 }
 
 void initialize() {
-  // TODO: replace with sampling
+  // TODO: replace position with sampling in bbox
   r_ = {0.0, 0.0, 0.0};
-  u_ = {1.0, 0.0, 0.0};
-
+  u_ = rand_dir();
+  history_.clear();
   volume_ = xdg_->find_volume(r_, u_);
 }
 
@@ -56,7 +56,7 @@ void collide() {
   n_events_++;
   log("Event {} for particle {}", n_events_, id_);
   u_ = rand_dir();
-  log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.z, u_.y, u_.z);
+  log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.x, u_.y, u_.z);
   history_.clear();
 }
 
@@ -71,6 +71,11 @@ void advance()
     r_ += surface_intersection_.first * u_;
     log("Particle {} advances to surface {} at position ({}, {}, {}) ", id_, surface_intersection_.second, r_.x, r_.y, r_.z);
   }
+}
+
+std::string material() {
+  auto prop = xdg_->mesh_manager()->get_volume_property(volume_, PropertyType::MATERIAL);
+  return prop.value;
 }
 
 void cross_surface()
@@ -103,10 +108,10 @@ void cross_surface()
     alive_ = false;
   } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
-    log("Particle {} enters volume {}", id_, volume_);
+    log("Particle {} enters volume {} with material assignment {}", id_, volume_, material());
     if (volume_ == ID_NONE) {
+      log("Particle has reached the problem boundary. Terminating...");
       alive_ = false;
-      return;
     }
   }
 }
