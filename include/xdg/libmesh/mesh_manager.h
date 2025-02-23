@@ -168,6 +168,10 @@ public:
       }
     }
 
+    void swap() {
+      std::swap(side.first, side.second);
+      set_side_num();
+    }
 
     bool operator==(const SidePair& other) const
     {
@@ -222,7 +226,7 @@ public:
     return sidepair_id(SidePair(elem1, elem2));
   }
 
-  SidePair sidepair(MeshID sidepair) const {
+  const SidePair& sidepair(MeshID sidepair) const {
     return mesh_id_to_sidepair_.at(sidepair);
   }
 

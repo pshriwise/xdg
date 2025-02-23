@@ -219,6 +219,7 @@ void LibMeshMeshManager::discover_surface_elements() {
     if (sense == Sense::REVERSE) {
       subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
     }
+
     surface_senses_[sideset_id] = subdomain_pair;
     for (const auto& elem : sideset_elems) {
       surface_map_[sideset_id].push_back(sidepair_id(elem));
@@ -226,7 +227,7 @@ void LibMeshMeshManager::discover_surface_elements() {
   }
 
   // if surfaces are populated by sideset data at all, dont use discovered interfaces
-  if (surfaces().size() > 0) return;
+  // if (surfaces().size() > 0) return;
 
   MeshID surface_id = 1000;
 
@@ -252,6 +253,41 @@ void LibMeshMeshManager::discover_surface_elements() {
 
   int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(),
                                            boundary_info.get_boundary_ids().end()) + 1;
+
+
+  // now that the boundary faces have been identified, we need to ensure that
+  // the normals are consistent for each sideset. The normals of element faces
+  // depend on which element is being used to reference the face. This extends
+  // to the sideset faces as well, so we need to ensure that the normals are
+  // consistent for each sideset. This is done by using the first face for each
+  // sideset and treating the first element as the "cannonical" element for the
+  // set. This means that all faces in the set should reference elements within
+  // the same mesh block to ensure that the orientation of the normals is consistent
+  // with respect to that block. Senses in the mesh data structures will be updated
+  // accordingly
+
+  write_message("Ensuring consistent normals for sideset faces...");
+  for (auto &[surface_id, surface_faces] : surface_map_) {
+    if (surface_faces.size() == 0) continue;
+
+    // choose the reference block based on the first face in the set
+    int reference_block = mesh_id_to_sidepair_.at(surface_faces.at(0)).first()->subdomain_id();
+    surface_senses_[surface_id] = {reference_block, ID_NONE};
+
+    for (const auto &face : surface_faces) {
+      auto& pair = mesh_id_to_sidepair_.at(face);
+      // swap the element positions based on subdomain ID if needed
+      if (pair.first()->subdomain_id() != reference_block) {
+        pair.swap();
+        // if we've swapped a nullptr into the first position, we have a problem
+        if (pair.first() == nullptr) fatal_error("Attempting to swap nullptr to first face value");
+      }
+      // set the sense of the surface with respect to the other block to reverse
+      if (pair.second() != nullptr) {
+        surface_senses_[surface_id] = {reference_block, pair.second()->subdomain_id()};
+      }
+    }
+  }
 
   // put all mesh boundary elements in a special sideset that we can
   // reference later if needed
