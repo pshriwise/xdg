@@ -51,6 +51,8 @@ brick.exo
 brick-sidesets.exo
 jezebel.exo
 jezebel.h5m
+pincell.h5m
+pincell-implicit.exo
 )
 
 foreach(file ${TEST_FILES})
