@@ -16,6 +16,7 @@ test_xdg_interface
 
 if (XDG_ENABLE_MOAB)
     list(APPEND TEST_NAMES test_moab)
+    list(APPEND TEST_NAMES test_overlap_check)
 endif()
 
 if (XDG_ENABLE_LIBMESH)
@@ -26,7 +27,6 @@ if (XDG_ENABLE_MOAB AND XDG_ENABLE_LIBMESH)
     list(APPEND TEST_NAMES test_cross_check)
 endif()
 
-list(APPEND TEST_NAMES test_overlap_check)
 
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
