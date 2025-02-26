@@ -80,7 +80,6 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
   double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
   bump = std::max(bump, 1e-03);
-  bump = 1.0;
 
   // create a new geometry for each surface
   int buffer_start = 0;
@@ -92,6 +91,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
+    surface_data->box_bump = bump;
     surface_data->surface_id = surface;
     surface_data->mesh_manager = mesh_manager.get();
     surface_data->prim_ref_buffer = tri_ref_ptr + buffer_start;
@@ -151,8 +151,9 @@ RayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
+                    HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
-{
+{     
   RTCDRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
@@ -160,7 +161,7 @@ RayTracer::ray_fire(TreeID scene,
   rayhit.ray.set_tfar(dist_limit);
   rayhit.ray.set_tnear(0.0);
   rayhit.ray.rf_type = RayFireType::VOLUME;
-  rayhit.ray.orientation = HitOrientation::EXITING;
+  rayhit.ray.orientation = orientation;
   rayhit.ray.mask = -1; // no mask
   if (exclude_primitves != nullptr) rayhit.ray.exclude_primitives = exclude_primitves;
 
