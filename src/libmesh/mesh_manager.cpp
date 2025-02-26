@@ -170,21 +170,18 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
   }
 
-  // print blocks and sizes of discovered interfaces
-  for (const auto& [pair, elements] : subdomain_interface_map_) {
-    std::cout << "Interface between " << pair.first << " and " << pair.second << std::endl;
-    std::cout << "Number of elements: " << elements.size() << std::endl;
-  }
-
-
   // replace implicit interface surfaces with sideset surfaces where needed
+  // this is done by identifying the subdomain IDs for each sideset and
+  // replacing the interface elements with the sideset elements.
+  // Partial replacement is allowed. If any elements remain in the
+  // interface sets after this operation, they will be treated as interfaces
+  // between subdomains
   for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
     if (sideset_elems.size() == 0) continue;
 
     // determine the subdomain IDs for the sideset
     // (possible that the face is the boundary of the mesh)
     std::pair<MeshID, MeshID> subdomain_pair {ID_NONE, ID_NONE};
-    auto sense = Sense::FORWARD;
     auto elem_pair = sidepair(sideset_elems.at(0));
     subdomain_pair.first = elem_pair.first()->subdomain_id();
     auto neighbor = elem_pair.second();
@@ -196,53 +193,35 @@ void LibMeshMeshManager::discover_surface_elements() {
       subdomain_pair.second = ID_NONE;
 
     // if this is a defined sideset, it should match one of the pairs in the
-    // interface map if it doesn't based on the current ordering of senses, try
-    // the reverse sense
+    // interface map. If it doesn't based on the current ordering of subdomains,
+    // swap the order
     if(subdomain_interface_map_.count(subdomain_pair) == 0) {
-      auto sense = Sense::REVERSE;
       subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
     }
 
     // if the sideset pair doesn't exist in the interface map at all,
-    // then we have a problem or a poorly defined sideset
+    // then we have a problem or a poorly defined (or inconsistent) sideset
     if (subdomain_interface_map_.count(subdomain_pair) == 0) {
       fatal_error("No interface elements found for sideset");
     }
 
     // replace the interface elements with the sideset elements
-    auto interface_elems = subdomain_interface_map_[subdomain_pair];
-    std::set<MeshID> interface_set(interface_elems.begin(), interface_elems.end());
-    std::set<MeshID> sideset_set(sideset_elems.begin(), sideset_elems.end());
+    std::set<MeshID>& interface_set = subdomain_interface_map_[subdomain_pair];
 
-    // remove the explicit sideset elements from the interface elements
-    std::cout << "Interface set removal between " << subdomain_pair.first << " and " << subdomain_pair.second << std::endl;
-    std::cout << "Interface set size before: " << interface_set.size() << std::endl;
+    // remove the explicit sideset elements from the discovered
+    // interface elements that match this subdomain pair
     for (const auto& elem : sideset_elems) {
       interface_set.erase(elem);
     }
-    std::cout << "Interface set size after: " << interface_set.size() << std::endl;
-
-    // add the interface sideset faces to the subdomain interface map
-    subdomain_interface_map_[subdomain_pair] = interface_set;
 
     // add this sideset to the list of surfaces
-    surfaces_.push_back(sideset_id);
-    // set the surface senses -- I don't love this part....
-    // TODO: streamline this
-    if (sense == Sense::REVERSE) {
-      subdomain_pair = {subdomain_pair.second, subdomain_pair.first};
-    }
-
-    surface_senses_[sideset_id] = subdomain_pair;
+    surfaces().push_back(sideset_id);
     for (const auto& elem : sideset_elems) {
       surface_map_[sideset_id].push_back(elem);
     }
   }
 
-  // if surfaces are populated by sideset data at all, dont use discovered interfaces
-  // if (surfaces().size() > 0) return;
-
-  MeshID surface_id = 1000;
+  MeshID next_surface_id = surfaces().size() == 0 ? 1 : *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 
   std::set<std::pair<MeshID, MeshID>> visited_interfaces;
   for (auto &[pair, elements] : subdomain_interface_map_) {
@@ -257,22 +236,16 @@ void LibMeshMeshManager::discover_surface_elements() {
       continue;
     visited_interfaces.insert(pair);
 
-    surface_senses_[surface_id] = pair;
+    surface_senses_[next_surface_id] = pair;
     for (const auto &elem : elements) {
-      surface_map_[surface_id].push_back(elem);
+      surface_map_[next_surface_id].push_back(elem);
     }
-    // increment the next surfce ID
-    std::cout << "Adding surface " << surface_id << std::endl;
-    std::cout << "Bewteen " << pair.first << " and " << pair.second << std::endl;
-    std::cout << "# elements: " << elements.size() << std::endl;
-    surfaces().push_back(surface_id++);
+    surfaces().push_back(next_surface_id++);
   }
 
   auto& boundary_info = mesh_->get_boundary_info();
-
-  int next_boundary_id = *std::max_element(boundary_info.get_boundary_ids().begin(),
-                                           boundary_info.get_boundary_ids().end()) + 1;
-
+  auto boundary_ids = boundary_info.get_boundary_ids();
+  int next_boundary_id = boundary_ids.size() == 0 ? 1 : *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
 
   // now that the boundary faces have been identified, we need to ensure that
   // the normals are consistent for each sideset. The normals of element faces
@@ -284,7 +257,6 @@ void LibMeshMeshManager::discover_surface_elements() {
   // the same mesh block to ensure that the orientation of the normals is consistent
   // with respect to that block. Senses in the mesh data structures will be updated
   // accordingly
-
   write_message("Ensuring consistent normals for sideset faces...");
   for (auto &[surface_id, surface_faces] : surface_map_) {
     if (surface_faces.size() == 0) continue;
@@ -319,7 +291,7 @@ void LibMeshMeshManager::discover_surface_elements() {
       }
     }
   }
-  boundary_info.sideset_name(next_boundary_id) = "boundary";
+  boundary_info.sideset_name(next_boundary_id) = "xdg_boundary";
 }
 
 std::vector<MeshID>
