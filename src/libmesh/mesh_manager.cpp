@@ -75,6 +75,19 @@ void LibMeshMeshManager::init() {
   // subdomains/volumes)
   discover_surface_elements();
 
+  // merge sidesets into interfaces where possible
+  merge_sidesets_into_interfaces();
+
+  // create surfaces from sidesets and interfaces
+  create_surfaces_from_sidesets_and_interfaces();
+
+  // determine the senses of the surfaces, defines
+  // the mesh-based topology of the geometry
+  determine_surface_senses();
+
+  // create a sideset for all faces on the boundary of the mesh
+  create_boundary_sideset();
+
   // libMesh initialization
   mesh()->prepare_for_use();
 }
@@ -148,7 +161,7 @@ bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
 }
 
 void LibMeshMeshManager::discover_surface_elements() {
-
+  subdomain_interface_map_.clear();
   // for any active local elements, identify element faces
   // where the subdomain IDs are different on either side
   for (const auto *elem : mesh()->active_local_element_ptr_range()) {
@@ -169,7 +182,9 @@ void LibMeshMeshManager::discover_surface_elements() {
       }
     }
   }
+}
 
+void LibMeshMeshManager::merge_sidesets_into_interfaces() {
   // replace implicit interface surfaces with sideset surfaces where needed
   // this is done by identifying the subdomain IDs for each sideset and
   // replacing the interface elements with the sideset elements.
@@ -188,9 +203,7 @@ void LibMeshMeshManager::discover_surface_elements() {
     if (neighbor)
       subdomain_pair.second = neighbor->subdomain_id();
     else
-      // if there isn't an element on the other side of this face,
-      // move on
-      subdomain_pair.second = ID_NONE;
+      subdomain_pair.second = ID_NONE; // boundary face, set other block to ID_NONE
 
     // if this is a defined sideset, it should match one of the pairs in the
     // interface map. If it doesn't based on the current ordering of subdomains,
@@ -213,8 +226,14 @@ void LibMeshMeshManager::discover_surface_elements() {
     for (const auto& elem : sideset_elems) {
       interface_set.erase(elem);
     }
+  }
+}
 
-    // add this sideset to the list of surfaces
+void LibMeshMeshManager::create_surfaces_from_sidesets_and_interfaces() {
+
+  // start by creating surfaces for each sideset. These have explicit IDs
+  // and may be used to define boundary conditions.
+  for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
     surfaces().push_back(sideset_id);
     for (const auto& elem : sideset_elems) {
       surface_map_[sideset_id].push_back(elem);
@@ -242,11 +261,9 @@ void LibMeshMeshManager::discover_surface_elements() {
     }
     surfaces().push_back(next_surface_id++);
   }
+}
 
-  auto& boundary_info = mesh_->get_boundary_info();
-  auto boundary_ids = boundary_info.get_boundary_ids();
-  int next_boundary_id = boundary_ids.size() == 0 ? 1 : *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
-
+void LibMeshMeshManager::determine_surface_senses() {
   // now that the boundary faces have been identified, we need to ensure that
   // the normals are consistent for each sideset. The normals of element faces
   // depend on which element is being used to reference the face. This extends
@@ -279,6 +296,12 @@ void LibMeshMeshManager::discover_surface_elements() {
       }
     }
   }
+}
+
+void LibMeshMeshManager::create_boundary_sideset() {
+  auto& boundary_info = mesh_->get_boundary_info();
+  auto boundary_ids = boundary_info.get_boundary_ids();
+  int next_boundary_id = boundary_ids.size() == 0 ? 1 : *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
 
   // put all mesh boundary elements in a special sideset that we can
   // reference later if needed

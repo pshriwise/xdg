@@ -33,6 +33,26 @@ public:
   //! between subdomains. Full replacement of subdomain interfaces is required.
   void discover_surface_elements();
 
+  //! If explicit sidesets exist, the elements in these sidesets should
+  //! replace the elements in the discovered subdomain interfaces.
+  void merge_sidesets_into_interfaces();
+
+  //! For each user-defined sideset, create a surface and assign the associated
+  //! elements to the surface. Also define new surfaces for any discovered interface
+  //! sidesets if the sets are not empty after merging.
+  void create_surfaces_from_sidesets_and_interfaces();
+
+  //! The "natural" orientation of triangle normals is dependent on the element
+  //! used to defined the SidePair objects we use for unique identification of faces.
+  //! This method ensures that the normals are consistent for each sideset and sets
+  //! the senses of the parent volumes (mesh blocks) for each surface, updating
+  //! curent SidePair objects to do so if necessary.
+  void determine_surface_senses();
+
+  //! Create a new sideset for all faces on the boundary of the mesh.
+  //! This is used for re-entrant particles if needed.
+  void create_boundary_sideset();
+
   //! Initialize libMesh library
   void initialize_libmesh();
 
