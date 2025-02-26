@@ -47,6 +47,7 @@ args.add_argument("-l", "--library")
 srand48(42);
 
 SimulationData sim_data;
+sim_data.n_particles_ = 1;
 
 // create a mesh manager
 std::shared_ptr<XDG> xdg {nullptr};
