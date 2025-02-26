@@ -168,17 +168,16 @@ void LibMeshMeshManager::discover_surface_elements() {
     MeshID subdomain_id = elem->subdomain_id();
     for (int i = 0; i < elem->n_sides(); i++) {
       auto neighbor = elem->neighbor_ptr(i);
-      MeshID neighbor_id = ID_NONE;
-      if (neighbor)
-        neighbor_id = neighbor->subdomain_id();
+      // get the subdomain ID of the neighbor, if it exists
+      // otherwise set to ID_NONE
+      MeshID neighbor_id = neighbor ? neighbor->subdomain_id() : ID_NONE;
       // if these IDs are different, then this is an interface element
-      if (neighbor_id != subdomain_id) {
-        // ensure that there is only one interface between each block pair
-        if (subdomain_interface_map_.count({neighbor_id, subdomain_id}) != 0) {
-          subdomain_interface_map_[{neighbor_id, subdomain_id}].insert(sidepair_id({elem, i}));
-        } else {
-          subdomain_interface_map_[{subdomain_id, neighbor_id}].insert(sidepair_id({elem, i}));
-        }
+      if (neighbor_id == subdomain_id) continue;
+      // ensure that there is only one interface between each block pair
+      if (subdomain_interface_map_.count({neighbor_id, subdomain_id}) != 0) {
+        subdomain_interface_map_[{neighbor_id, subdomain_id}].insert(sidepair_id({elem, i}));
+      } else {
+        subdomain_interface_map_[{subdomain_id, neighbor_id}].insert(sidepair_id({elem, i}));
       }
     }
   }
@@ -200,10 +199,8 @@ void LibMeshMeshManager::merge_sidesets_into_interfaces() {
     auto elem_pair = sidepair(sideset_elems.at(0));
     subdomain_pair.first = elem_pair.first()->subdomain_id();
     auto neighbor = elem_pair.second();
-    if (neighbor)
-      subdomain_pair.second = neighbor->subdomain_id();
-    else
-      subdomain_pair.second = ID_NONE; // boundary face, set other block to ID_NONE
+    // set to ID_NONE if the neighbor is null
+    subdomain_pair.second = neighbor ? neighbor->subdomain_id() : ID_NONE;
 
     // if this is a defined sideset, it should match one of the pairs in the
     // interface map. If it doesn't based on the current ordering of subdomains,
@@ -230,7 +227,6 @@ void LibMeshMeshManager::merge_sidesets_into_interfaces() {
 }
 
 void LibMeshMeshManager::create_surfaces_from_sidesets_and_interfaces() {
-
   // start by creating surfaces for each sideset. These have explicit IDs
   // and may be used to define boundary conditions.
   for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
@@ -263,7 +259,6 @@ void LibMeshMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   }
 }
 
-void LibMeshMeshManager::determine_surface_senses() {
   // now that the boundary faces have been identified, we need to ensure that
   // the normals are consistent for each sideset. The normals of element faces
   // depend on which element is being used to reference the face. This extends
@@ -274,6 +269,7 @@ void LibMeshMeshManager::determine_surface_senses() {
   // the same mesh block to ensure that the orientation of the normals is consistent
   // with respect to that block. Senses in the mesh data structures will be updated
   // accordingly
+void LibMeshMeshManager::determine_surface_senses() {
   write_message("Ensuring consistent normals for sideset faces...");
   for (auto &[surface_id, surface_faces] : surface_map_) {
     if (surface_faces.size() == 0) continue;
@@ -291,10 +287,16 @@ void LibMeshMeshManager::determine_surface_senses() {
         if (pair.first() == nullptr) fatal_error("Attempting to swap nullptr to first face value");
       }
       // set the sense of the surface with respect to the other block to reverse
-      if (pair.second() != nullptr) {
+      if (pair.second() != nullptr)
         surface_senses_[surface_id] = {reference_block, pair.second()->subdomain_id()};
-      }
     }
+  }
+
+  // the operation above has likely invlaidated the sidepair to mesh ID map
+  // so we need to rebuild it
+  sidepair_to_mesh_id_.clear();
+  for (const auto& [id, pair] : mesh_id_to_sidepair_) {
+    sidepair_to_mesh_id_[pair] = id;
   }
 }
 
