@@ -38,7 +38,7 @@ void initialize() {
 }
 
 void surf_dist() {
-  surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, INFTY, &history_);
+  surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::EXITING, &history_);
   if (surface_intersection_.first == 0.0) {
     fatal_error("Particle {} stuck at position ({}, {}, {}) on surfacce {}", id_, r_.x, r_.y, r_.z, surface_intersection_.second);
     alive_ = false;
