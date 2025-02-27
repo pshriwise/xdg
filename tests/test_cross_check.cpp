@@ -18,14 +18,12 @@ using namespace xdg;
 class CrossCheck {
 
 public:
-
     CrossCheck(std::vector<std::pair<std::string, MeshLibrary>> test_cases) : test_cases_(test_cases) {}
 
-
+    // Methods
     void transport() {
       for (const auto& test_case : test_cases_) {
         std::shared_ptr<XDG> xdg {XDG::create(test_case.second)};
-
         xdg->mesh_manager()->load_file(test_case.first);
         xdg->mesh_manager()->init();
         xdg->mesh_manager()->parse_metadata();
@@ -37,7 +35,6 @@ public:
         sim_data.verbose_particles_ = false;
 
         transport_particles(sim_data);
-
         sim_data_.push_back(sim_data);
       }
     }
@@ -54,9 +51,9 @@ public:
     }
 
 private:
-
+  // Data members
   std::vector<SimulationData> sim_data_;
-
+  //! A set of test cases (pairs of filenames and mesh libraries) to compare
   std::vector<std::pair<std::string, MeshLibrary>> test_cases_;
 };
 

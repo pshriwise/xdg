@@ -27,7 +27,6 @@ TEST_CASE("Test Brick")
   mesh_manager->init();
 
   REQUIRE(mesh_manager->num_volumes() == 1);
-
   REQUIRE(mesh_manager->num_surfaces() == 1);
 }
 
@@ -35,13 +34,10 @@ TEST_CASE("Test Brick")
 TEST_CASE("Test Brick w/ Sidesets")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
-
   mesh_manager->load_file("brick-sidesets.exo");
-
   mesh_manager->init();
 
   REQUIRE(mesh_manager->num_volumes() == 1);
-
   REQUIRE(mesh_manager->num_surfaces() == 6);
 }
 
@@ -56,18 +52,15 @@ TEST_CASE("Test BVH Build Brick")
   REQUIRE(mesh_manager->num_surfaces() == 1);
 
   std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
-
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
-
   REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
 }
 
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
 {
   std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshMeshManager>();
-
   mesh_manager->load_file("brick-sidesets.exo");
   mesh_manager->init();
 
@@ -227,7 +220,6 @@ TEST_CASE("Test Ray Fire Jezebel")
     }
     REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(6.3849, 1e-1));
   }
-
 }
 
 TEST_CASE("Test Point Location Jezebel")
@@ -287,6 +279,3 @@ TEST_CASE("Test Point Location Cylinder-Brick")
   volume_id = xdg->find_volume(origin, direction);
   REQUIRE(volume_id == xdg->mesh_manager()->implicit_complement());
 }
-
-
-
