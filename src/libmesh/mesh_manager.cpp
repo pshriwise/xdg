@@ -11,29 +11,29 @@
 namespace xdg {
 
 // Constructors
-LibMeshMeshManager::LibMeshMeshManager(void *ptr) {
+LibMeshManager::LibMeshManager(void *ptr) {
   if (libmesh_init == nullptr) {
     initialize_libmesh();
   }
 }
 
-LibMeshMeshManager::LibMeshMeshManager() : MeshManager() {
+LibMeshManager::LibMeshManager() : MeshManager() {
   if (libmesh_init == nullptr) {
     initialize_libmesh();
   }
 }
 
-void LibMeshMeshManager::load_file(const std::string &filepath) {
+void LibMeshManager::load_file(const std::string &filepath) {
   mesh_ = std::make_unique<libMesh::Mesh>(libmesh_init->comm(), 3);
   mesh_->read(filepath);
 }
 
-LibMeshMeshManager::~LibMeshMeshManager() {
+LibMeshManager::~LibMeshManager() {
   mesh_->clear();
   libmesh_init.reset();
 }
 
-void LibMeshMeshManager::initialize_libmesh() {
+void LibMeshManager::initialize_libmesh() {
   // libmesh requires the program name, so at least one argument is needed
   int argc = 1;
   const std::string argv{"XDG"};
@@ -42,7 +42,7 @@ void LibMeshMeshManager::initialize_libmesh() {
       std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0));
 }
 
-void LibMeshMeshManager::init() {
+void LibMeshManager::init() {
   // ensure that the mesh is 3-dimensional, for our use case this is expected
   if (mesh_->mesh_dimension() != 3) {
     fatal_error("Mesh must be 3-dimensional");
@@ -92,14 +92,14 @@ void LibMeshMeshManager::init() {
   mesh()->prepare_for_use();
 }
 
-MeshID LibMeshMeshManager::create_volume() {
+MeshID LibMeshManager::create_volume() {
   std::unique_ptr<libMesh::Mesh> submesh_ =
       std::make_unique<libMesh::Mesh>(mesh_->comm(), 3);
   MeshID next_volume_id = *std::max_element(volumes_.begin(), volumes_.end()) + 1;
   return next_volume_id;
 }
 
-void LibMeshMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite) {
+void LibMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite) {
     auto senses = surface_senses(surface);
     if (sense == Sense::FORWARD) {
       if (!overwrite && senses.first != ID_NONE) {
@@ -115,7 +115,7 @@ void LibMeshMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Se
 }
 
 
-void LibMeshMeshManager::parse_metadata() {
+void LibMeshManager::parse_metadata() {
   // surface metadata
   auto boundary_info = mesh()->get_boundary_info();
   auto sideset_name_map = boundary_info.get_sideset_name_map();
@@ -160,7 +160,7 @@ bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
   return true;
 }
 
-void LibMeshMeshManager::discover_surface_elements() {
+void LibMeshManager::discover_surface_elements() {
   subdomain_interface_map_.clear();
   // for any active local elements, identify element faces
   // where the subdomain IDs are different on either side
@@ -183,7 +183,7 @@ void LibMeshMeshManager::discover_surface_elements() {
   }
 }
 
-void LibMeshMeshManager::merge_sidesets_into_interfaces() {
+void LibMeshManager::merge_sidesets_into_interfaces() {
   // replace implicit interface surfaces with sideset surfaces where needed
   // this is done by identifying the subdomain IDs for each sideset and
   // replacing the interface elements with the sideset elements.
@@ -226,7 +226,7 @@ void LibMeshMeshManager::merge_sidesets_into_interfaces() {
   }
 }
 
-void LibMeshMeshManager::create_surfaces_from_sidesets_and_interfaces() {
+void LibMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // start by creating surfaces for each sideset. These have explicit IDs
   // and may be used to define boundary conditions.
   for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
@@ -269,7 +269,7 @@ void LibMeshMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // the same mesh block to ensure that the orientation of the normals is consistent
   // with respect to that block. Senses in the mesh data structures will be updated
   // accordingly
-void LibMeshMeshManager::determine_surface_senses() {
+void LibMeshManager::determine_surface_senses() {
   write_message("Ensuring consistent normals for sideset faces...");
   for (auto &[surface_id, surface_faces] : surface_map_) {
     if (surface_faces.size() == 0) continue;
@@ -300,7 +300,7 @@ void LibMeshMeshManager::determine_surface_senses() {
   }
 }
 
-void LibMeshMeshManager::create_boundary_sideset() {
+void LibMeshManager::create_boundary_sideset() {
   auto& boundary_info = mesh_->get_boundary_info();
   auto boundary_ids = boundary_info.get_boundary_ids();
   int next_boundary_id = boundary_ids.size() == 0 ? 1 : *std::max_element(boundary_ids.begin(), boundary_ids.end()) + 1;
@@ -320,7 +320,7 @@ void LibMeshMeshManager::create_boundary_sideset() {
 }
 
 std::vector<MeshID>
-LibMeshMeshManager::get_volume_elements(MeshID volume) const {
+LibMeshManager::get_volume_elements(MeshID volume) const {
   std::vector<MeshID> elements;
   libMesh::MeshBase::const_element_iterator it =
       mesh()->active_subdomain_elements_begin(volume);
@@ -333,11 +333,11 @@ LibMeshMeshManager::get_volume_elements(MeshID volume) const {
 }
 
 std::vector<MeshID>
-LibMeshMeshManager::get_surface_elements(MeshID surface) const {
+LibMeshManager::get_surface_elements(MeshID surface) const {
   return surface_map_.at(surface);
 }
 
-std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
+std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
   std::vector<Vertex> vertices;
   auto elem = mesh()->elem_ptr(element);
   for (unsigned int i = 0; i < elem->n_nodes(); ++i) {
@@ -348,7 +348,7 @@ std::vector<Vertex> LibMeshMeshManager::element_vertices(MeshID element) const {
 }
 
 std::array<Vertex, 3>
-LibMeshMeshManager::triangle_vertices(MeshID element) const {
+LibMeshManager::triangle_vertices(MeshID element) const {
   auto side_pair = sidepair(element);
   auto face = side_pair.face_ptr();
   std::array<Vertex, 3> vertices;
@@ -361,7 +361,7 @@ LibMeshMeshManager::triangle_vertices(MeshID element) const {
 }
 
 std::vector<MeshID>
-LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
+LibMeshManager::get_volume_surfaces(MeshID volume) const {
   // walk the surface senses and return the surfaces that have this volume
   // as an entry
   std::vector<MeshID> surfaces;
@@ -374,11 +374,11 @@ LibMeshMeshManager::get_volume_surfaces(MeshID volume) const {
 }
 
 std::pair<MeshID, MeshID>
-LibMeshMeshManager::surface_senses(MeshID surface) const {
+LibMeshManager::surface_senses(MeshID surface) const {
   return surface_senses_.at(surface);
 }
 
-Sense LibMeshMeshManager::surface_sense(MeshID surface, MeshID volume) const {
+Sense LibMeshManager::surface_sense(MeshID surface, MeshID volume) const {
   auto senses = surface_senses(surface);
   return volume == senses.first ? Sense::FORWARD : Sense::REVERSE;
 }

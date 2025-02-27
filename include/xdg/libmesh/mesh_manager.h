@@ -13,16 +13,16 @@
 namespace xdg {
 
 
-class LibMeshMeshManager : public MeshManager {
+class LibMeshManager : public MeshManager {
 
   constexpr static int SIDE_NONE {-1};
 
 public:
-  LibMeshMeshManager(void* ptr);
+  LibMeshManager(void* ptr);
 
-  LibMeshMeshManager();
+  LibMeshManager();
 
-  ~LibMeshMeshManager();
+  ~LibMeshManager();
 
   // Backend methods
 

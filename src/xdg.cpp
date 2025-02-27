@@ -42,7 +42,7 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary library)
     #endif
     #ifdef XDG_ENABLE_LIBMESH
     case MeshLibrary::LIBMESH:
-      xdg->set_mesh_manager_interface(std::make_shared<LibMeshMeshManager>());
+      xdg->set_mesh_manager_interface(std::make_shared<LibMeshManager>());
       break;
     #endif
     default:

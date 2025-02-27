@@ -20,7 +20,7 @@ void print_intersection(std::pair<double, MeshID> intersection) {
 
 TEST_CASE("Test Brick")
 {
-  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
 
   mesh_manager->load_file("brick.exo");
 
@@ -33,7 +33,7 @@ TEST_CASE("Test Brick")
 
 TEST_CASE("Test Brick w/ Sidesets")
 {
-  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
   mesh_manager->load_file("brick-sidesets.exo");
   mesh_manager->init();
 
@@ -43,7 +43,7 @@ TEST_CASE("Test Brick w/ Sidesets")
 
 TEST_CASE("Test BVH Build Brick")
 {
-  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshMeshManager>();
+  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshManager>();
 
   mesh_manager->load_file("brick.exo");
   mesh_manager->init();
@@ -60,7 +60,7 @@ TEST_CASE("Test BVH Build Brick")
 
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
 {
-  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshMeshManager>();
+  std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshManager>();
   mesh_manager->load_file("brick-sidesets.exo");
   mesh_manager->init();
 
@@ -102,7 +102,7 @@ TEST_CASE("Test Ray Fire Brick")
 
 TEST_CASE("Test Cylinder-Brick Initialization")
 {
-  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
 
   mesh_manager->load_file("cyl-brick.exo");
 
