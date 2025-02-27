@@ -94,6 +94,7 @@ public:
   virtual MeshLibrary mesh_library() const = 0;
 
   void display_model_topology() const;
+  void write_topology_to_xml(const std::string filename="xdg_model.xml") const;
 
 protected:
   // metadata
