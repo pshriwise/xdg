@@ -31,6 +31,7 @@ TEST_CASE("Test Brick")
   REQUIRE(mesh_manager->num_surfaces() == 1);
 }
 
+
 TEST_CASE("Test Brick w/ Sidesets")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshMeshManager>()};
@@ -227,7 +228,64 @@ TEST_CASE("Test Ray Fire Jezebel")
     REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(6.3849, 1e-1));
   }
 
+}
 
+TEST_CASE("Test Point Location Jezebel")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+
+  // fire ray from the center of the cube
+  Position origin {0.0, 0.0, 0.0};
+  Direction direction {0.0, 0.0, 1.0};
+
+  // the origin of the problem should be in the volume
+  MeshID volume_id = xdg->find_volume(origin, direction);
+  REQUIRE(volume_id == volume);
+
+  // a point outside of the sphere should be in the implicit complement
+  origin = {0.0, 0.0, 10.0};
+  volume_id = xdg->find_volume(origin, direction);
+  REQUIRE(volume_id == xdg->mesh_manager()->implicit_complement());
+}
+
+TEST_CASE("Test Point Location Cylinder-Brick")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("cyl-brick.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID expected_volume = 1;
+
+  // fire ray from the center of the cube
+  Position origin {0.0, 0.0, 0.0};
+  Direction direction {0.0, 0.0, 1.0};
+
+  // test a point inside the cylinder
+  MeshID volume_id = xdg->find_volume(origin, direction);
+  REQUIRE(volume_id == expected_volume);
+
+  // test a point inside the cube
+  expected_volume = 2;
+  origin = {0.0, 0.0, 10.0};
+  volume_id = xdg->find_volume(origin, direction);
+  REQUIRE(volume_id == expected_volume);
+
+  // a point outside of the sphere should be in the implicit complement
+  origin = {0.0, 0.0, 100.0};
+  volume_id = xdg->find_volume(origin, direction);
+  REQUIRE(volume_id == xdg->mesh_manager()->implicit_complement());
 }
 
 
