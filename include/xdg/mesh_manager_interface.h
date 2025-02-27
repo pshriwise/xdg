@@ -93,6 +93,8 @@ public:
 
   virtual MeshLibrary mesh_library() const = 0;
 
+  void display_model_topology() const;
+
 protected:
   // metadata
   std::map<std::pair<MeshID, PropertyType>, Property> volume_metadata_;
