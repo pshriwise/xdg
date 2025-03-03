@@ -176,6 +176,17 @@ public:
       }
     }
 
+
+    //! Retrieve a vertex of the side pair face, using the type
+    //! to access the node reference though an internal, non-blocking
+    //! data structure
+    template<typename T>
+    Vertex vertex(int i) const {
+      const auto e_type = static_cast<const T*>(first());
+      const auto& node_ref = first()->node_ref(e_type->side_nodes_map[side_num()][i]);
+      return {node_ref(0), node_ref(1), node_ref(2)};
+    }
+
     void set_side_num() {
       for (int i = 0; i < side.first->n_sides(); i++) {
         if (side.first->neighbor_ptr(i) == side.second) {
@@ -209,6 +220,7 @@ public:
     const int32_t side_num() const { return side_num_; }
 
     const std::unique_ptr<const libMesh::Elem> face_ptr() const {
+
       return first()->side_ptr(side_num());
     }
 

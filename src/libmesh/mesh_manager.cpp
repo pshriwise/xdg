@@ -5,6 +5,7 @@
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/elem.h"
+#include "libmesh/cell_tet4.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/mesh_tools.h"
 
@@ -39,7 +40,7 @@ void LibMeshManager::initialize_libmesh() {
   const std::string argv{"XDG"};
   const char *argv_cstr = argv.c_str();
   libmesh_init =
-      std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0));
+      std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0, 1));
 }
 
 void LibMeshManager::init() {
@@ -349,13 +350,10 @@ std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
 
 std::array<Vertex, 3>
 LibMeshManager::triangle_vertices(MeshID element) const {
-  auto side_pair = sidepair(element);
-  auto face = side_pair.face_ptr();
+  const auto& side_pair = sidepair(element);
   std::array<Vertex, 3> vertices;
-  int n_nodes = face->n_nodes();
   for (unsigned int i = 0; i < 3; ++i) {
-    auto node = face->node_ref(i);
-    vertices[i] = {node(0), node(1), node(2)};
+    vertices[i] = std::move(side_pair.vertex<libMesh::Tet4>(i));
   }
   return vertices;
 }
