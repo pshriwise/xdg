@@ -24,6 +24,7 @@ jobs:
           sudo apt install -y libgcc-9-dev \
                               libstdc++-9-dev \
                               libembree-dev \
+                              libnetcdf-dev \
                               libhdf5-dev \
                               libeigen3-dev \
                               cmake
@@ -36,9 +37,16 @@ jobs:
           cd moab
           git checkout 5.3.1
 
+      - name: libMesh Clone
+        shell: bash
+        run: |
+          cd ~
+          git clone https://github.com/libMesh/libmesh.git
+
       - name: Environment Variables
         run: |
           echo "MOAB_SHA"=$(cd ~/moab && git rev-parse HEAD) >> $GITHUB_ENV
+          echo "LIBMESH_SHA"=$(cd ~/libmesh && git rev-parse HEAD) >> $GITHUB_ENV
 
       - name: MOAB Cache
         id: moab-cache
@@ -48,6 +56,15 @@ jobs:
         with:
           path: ~/MOAB
           key: moab-${{ runner.os }}-${{ env.cache-name }}-${{ env.MOAB_SHA }}
+
+      - name: libMesh Cache
+        id: libmesh-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: libmesh-cache
+        with:
+          path: ~/LIBMESH
+          key: libmesh-${{ runner.os }}-${{ env.cache-name }}-${{ env.LIBMESH_SHA }}
 
       - if: ${{ steps.moab-cache.outputs.cache-hit != 'true' }}
         name: Build MOAB
@@ -59,12 +76,26 @@ jobs:
           make -j4
           make install
 
+      - if: ${{ steps.libmesh-cache.outputs.cache-hit != 'true' }}
+        name: Build libMesh
+        shell: bash
+        run: |
+          cd ~
+          cd libmesh
+          git checkout v1.7.0
+          git submodule update --init --recursive
+          mkdir build
+          cd build
+          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
+          make -j4
+          sudo make install
+
       - name: Build
         shell: bash
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=$HOME/MOAB -DCMAKE_INSTALL_PREFIX=$HOME/opt
+          cmake .. -DCMAKE_PREFIX_PATH="$HOME/LIBMESH;$HOME/MOAB" -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
           make -j4 install
 
       - name: Test
@@ -77,3 +108,7 @@ jobs:
         shell: bash
         run: |
           ~/opt/bin/tools/find-volume
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3

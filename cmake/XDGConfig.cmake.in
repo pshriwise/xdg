@@ -7,6 +7,13 @@ if(@XDG_ENABLE_MOAB@)
   find_package(MOAB REQUIRED HINTS @MOAB_DIR@)
 endif()
 
+if(@XDG_ENABLE_LIBMESH@)
+  include(FindPkgConfig)
+  list(APPEND CMAKE_PREFIX_PATH @LIBMESH_PREFIX@)
+  set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH True)
+  pkg_check_modules(LIBMESH REQUIRED @LIBMESH_PC_FILE@>=1.7.0 IMPORTED_TARGET)
+endif()
+
 if (NOT TARGET xdg::xdg)
     include("${XDG_CMAKE_DIR}/XDGTargets.cmake")
 endif()
