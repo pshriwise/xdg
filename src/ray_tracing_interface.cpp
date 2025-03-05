@@ -49,19 +49,17 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
   int storage_offset {0};
+
   for (auto& surface_id : volume_surfaces) {
     // get the sense of this surface with respect to the volume
-    Sense triangle_sense {Sense::UNSET};
     auto surf_to_vol_senses = mesh_manager->get_parent_volumes(surface_id);
-    if (volume_id == surf_to_vol_senses.first) triangle_sense = Sense::FORWARD;
-    else if (volume_id == surf_to_vol_senses.second) triangle_sense = Sense::REVERSE;
-    else fatal_error("Volume {} is not a parent of surface {}", volume_id, surface_id);
-
+    if (volume_id != surf_to_vol_senses.first && volume_id != surf_to_vol_senses.second) {
+      fatal_error("Volume {} is not a parent of surface {}", volume_id, surface_id);
+    } // TODO: Can this be moved into the loop that populates GeometrySurfaceData? 
     auto surface_elements = mesh_manager->get_surface_elements(surface_id);
     for (int i = 0; i < surface_elements.size(); ++i) {
       auto& primitive_ref = triangle_storage[i + storage_offset];
       primitive_ref.primitive_id = surface_elements[i];
-      primitive_ref.sense = triangle_sense;
     }
     storage_offset += surface_elements.size();
  }
@@ -89,10 +87,12 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     rtcSetGeometryUserPrimitiveCount(surface_geometry, surface_triangles.size());
     unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);
     this->surface_to_geometry_map_[surface] = surface_geometry;
-
+    auto surf_to_vol_senses = mesh_manager->get_parent_volumes(surface);
     std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
     surface_data->box_bump = bump;
     surface_data->surface_id = surface;
+    surface_data->forward_sense = surf_to_vol_senses.first; 
+    surface_data->reverse_sense = surf_to_vol_senses.second;
     surface_data->mesh_manager = mesh_manager.get();
     surface_data->prim_ref_buffer = tri_ref_ptr + buffer_start;
     user_data_map_[surface_geometry] = surface_data;
