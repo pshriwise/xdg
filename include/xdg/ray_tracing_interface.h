@@ -41,7 +41,8 @@ public:
                                      const Position& origin,
                                      const Direction& direction,
                                      const double dist_limit = INFTY,
-                                     std::vector<MeshID>* const exclude_primitives = nullptr) = 0;
+                                     HitOrientation orientation = HitOrientation::EXITING,
+                                     std::vector<MeshID>* const exclude_primitives = nullptr);
 
   virtual void closest(TreeID scene,
                const Position& origin,

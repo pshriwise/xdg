@@ -1,10 +1,17 @@
 #include <vector>
 
 #include "xdg/xdg.h"
+#include "xdg/error.h"
 
 // mesh manager concrete implementations
+#ifdef XDG_ENABLE_MOAB
 #include "xdg/moab/mesh_manager.h"
-#include "xdg/embree_ray_tracer.h"
+#include "xdg/embree_ray_tracer.h"#endif
+
+#ifdef XDG_ENABLE_LIBMESH
+#include "xdg/libmesh/mesh_manager.h"
+#endif
+
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
 namespace xdg {
@@ -12,9 +19,13 @@ namespace xdg {
 void XDG::prepare_raytracer()
 {
   for (auto volume : mesh_manager()->volumes()) {
+    this->prepare_volume_for_raytracing(volume);
+  }
+}
+
+void XDG::prepare_volume_for_raytracing(MeshID volume) {
     TreeID tree = ray_tracing_interface_->register_volume(mesh_manager_, volume);
     volume_to_scene_map_[volume] = tree;
-  }
 }
 
 
@@ -24,12 +35,29 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib
 
   switch (mesh_lib)
   {
-  case MeshLibrary::MOAB:
-    xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
-    break;
-  default:
-    break;
+    #ifdef XDG_ENABLE_MOAB
+    case MeshLibrary::MOAB:
+      xdg->set_mesh_manager_interface(std::make_shared<MOABMeshManager>());
+      break;
+    #endif
+    #ifdef XDG_ENABLE_LIBMESH
+    case MeshLibrary::LIBMESH:
+      xdg->set_mesh_manager_interface(std::make_shared<LibMeshManager>());
+      break;
+    #endif
+    default:
+      std::string mesh_library = MESH_LIB_TO_STR.at(library);
+      auto msg = fmt::format("Invalid mesh library {} specified. XDG instance could not be created. ", mesh_library);
+      msg += "This build of XDG supports the following mesh libraries:";
+      #ifdef XDG_ENABLE_MOAB
+      msg += " MOAB ";
+      #endif
+      #ifdef XDG_ENABLE_LIBMESH
+      msg += " LibMesh ";
+      #endif
+      fatal_error(msg);
   }
+
   
   switch (ray_tracing_lib)
   {
@@ -70,10 +98,11 @@ XDG::ray_fire(MeshID volume,
               const Position& origin,
               const Direction& direction,
               const double dist_limit,
+              HitOrientation orientation,
               std::vector<MeshID>* const exclude_primitives) const
 {
   TreeID scene = volume_to_scene_map_.at(volume);
-  return ray_tracing_interface()->ray_fire(scene, origin, direction, dist_limit, exclude_primitives);
+  return ray_tracing_interface()->ray_fire(scene, origin, direction, dist_limit, orientation, exclude_primitives);
 }
 
 void XDG::closest(MeshID volume,

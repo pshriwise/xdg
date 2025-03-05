@@ -2,6 +2,7 @@
 #define _XDG_INTERFACE_H
 
 #include <memory>
+#include <unordered_map>
 
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
@@ -27,6 +28,8 @@ public:
 // Methods
   void prepare_raytracer();
 
+  void prepare_volume_for_raytracing(MeshID volume);
+
 // Geometric Queries
 MeshID find_volume(const Position& point,
                    const Direction& direction) const;
@@ -40,6 +43,7 @@ std::pair<double, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
                                    const double dist_limit = INFTY,
+                                   HitOrientation orientation = HitOrientation::EXITING,
                                    std::vector<MeshID>* const exclude_primitives = nullptr) const;
 
 void closest(MeshID volume,
@@ -76,7 +80,7 @@ Direction surface_normal(MeshID surface,
   }
 
 // Accessors
-  const std::shared_ptr<RayTracer> ray_tracing_interface() const {
+  const std::shared_ptr<RayTracer>& ray_tracing_interface() const {
     return ray_tracing_interface_;
   }
 
@@ -92,9 +96,9 @@ private:
   std::shared_ptr<RayTracer> ray_tracing_interface_ {nullptr};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
-  std::map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
-  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
-  std::map<MeshID, XdgGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
+  std::unordered_map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
+  std::unordered_map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::unordered_map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   TreeID gloabal_scene_;
 };
 

@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
   mm->load_file(args.get<std::string>("filename"));
   mm->init();
   mm->parse_metadata();
-  xdg->prepare_raytracer();
 
   if (args.get<bool>("--list")) {
     std::cout << "Volumes: " << std::endl;
@@ -63,8 +62,14 @@ int main(int argc, char** argv) {
   }
 
   MeshID volume = args.get<int>("volume");
+  xdg->prepare_volume_for_raytracing(volume);
+
   Position origin = args.get<std::vector<double>>("--origin");
   Direction direction = args.get<std::vector<double>>("--direction");
+  direction.normalize();
+
+  std::cout << "Origin: " << origin[0] << ", " << origin[1] << ", " << origin[2] << std::endl;
+  std::cout << "Direction: " << direction[0] << ", " << direction[1] << ", " << direction[2] << std::endl;
 
   auto result = xdg->ray_fire(volume, origin, direction);
 

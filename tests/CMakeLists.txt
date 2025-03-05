@@ -12,11 +12,23 @@ test_point_in_volume
 test_normal
 test_measure
 test_xdg_interface
-test_overlap_check
 )
 
 if (XDG_ENABLE_MOAB)
     list(APPEND TEST_NAMES test_moab)
+endif()
+
+if (XDG_ENABLE_LIBMESH)
+    list(APPEND TEST_NAMES test_libmesh)
+endif()
+
+if (XDG_ENABLE_MOAB AND XDG_ENABLE_LIBMESH)
+    list(APPEND TEST_NAMES test_cross_check)
+endif()
+
+# placing this last as it's a slow test
+if (XDG_ENABLE_MOAB)
+    list(APPEND TEST_NAMES test_overlap_check)
 endif()
 
 foreach(test ${TEST_NAMES})
@@ -36,6 +48,14 @@ beam-overlaps.h5m
 small_overlap.h5m
 no_overlap_imp.h5m
 enclosed.h5m
+cyl-brick.exo
+cyl-brick.h5m
+brick.exo
+brick-sidesets.exo
+jezebel.exo
+jezebel.h5m
+pincell.h5m
+pincell-implicit.exo
 )
 
 foreach(file ${TEST_FILES})

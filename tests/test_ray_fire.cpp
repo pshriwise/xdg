@@ -62,6 +62,18 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   intersection = rti->ray_fire(volume_tree, origin, direction);
   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(12.0, 1e-6));
 
+  // fire from the outside of the cube toward each face, ensuring that the intersection distances are correct
+  // in this case rays are fired with a HitOrientation::ENTERING. Rays should hit the first surface intersected
+  origin = {-10.0, 0.0, 0.0};
+  direction = {1.0, 0.0, 0.0};
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, HitOrientation::ENTERING);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(8.0, 1e-6));
+
+  origin = {10.0, 0.0, 0.0};
+  direction = {-1.0, 0.0, 0.0};
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, HitOrientation::ENTERING);
+  REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
+
   // limit distance of the ray, shouldn't get a hit
   origin = {0.0, 0.0, 0.0};
   direction = {1.0, 0.0, 0.0};
@@ -80,10 +92,10 @@ TEST_CASE("Test Ray Fire Mesh Mock")
   // By providing the hit face as an excluded primitive in a subsequent ray fire,
   // there should be no intersection returned
   std::vector<MeshID> exclude_primitives;
-  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, &exclude_primitives);
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, HitOrientation::EXITING, &exclude_primitives);
   REQUIRE_THAT(intersection.first, Catch::Matchers::WithinAbs(5.0, 1e-6));
   REQUIRE(exclude_primitives.size() == 1);
 
-  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, &exclude_primitives);
+  intersection = rti->ray_fire(volume_tree, origin, direction, INFTY, HitOrientation::EXITING, &exclude_primitives);
   REQUIRE(intersection.second == ID_NONE);
 }

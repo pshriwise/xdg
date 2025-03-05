@@ -45,6 +45,13 @@ enum class RTLibrary {
   GPRT
 };
 
+static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
+{
+  {MeshLibrary::INTERNAL, "INTERNAL"},
+  {MeshLibrary::MOAB, "MOAB"},
+  {MeshLibrary::LIBMESH, "LIBMESH"}
+};
+
 // Mesh identifer type
 using MeshID = int32_t;
 

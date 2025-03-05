@@ -20,7 +20,19 @@ endif()
 # Compiler options (things in this section may not be platform-portable)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# require MOAB for now
+# Set module path
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
+
+#===============================================================================
+# libMesh
+#===============================================================================
+if(XDG_ENABLE_LIBMESH)
+  find_package(LIBMESH REQUIRED)
+endif()
+
+#===============================================================================
+# MOAB (DAGMC)
+#===============================================================================
 if (XDG_ENABLE_MOAB)
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 endif()
@@ -82,6 +94,12 @@ src/overlap_check/overlap.cpp
 src/overlap_check/progressBar.cpp
 src/embree_ray_tracer.cpp
 )
+
+if (XDG_ENABLE_LIBMESH)
+list(APPEND xdg_sources
+src/libmesh/mesh_manager.cpp
+)
+endif()
 
 if (XDG_ENABLE_MOAB)
 list(APPEND xdg_sources
@@ -146,9 +164,25 @@ target_include_directories(xdg
   PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${LIBMESH_INCLUDE_DIRS}
 )
 
+if (XDG_ENABLE_MOAB)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_MOAB)
+endif()
+
+if (XDG_ENABLE_LIBMESH)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_LIBMESH)
+endif()
+
 target_link_libraries(xdg embree fmt::fmt)
+
+# ===================
+# Link mesh libraries
+# ===================
+if(XDG_ENABLE_LIBMESH)
+  target_link_libraries(xdg PkgConfig::LIBMESH)
+endif()
 
 if (XDG_ENABLE_MOAB)
   target_link_libraries(xdg MOAB)

@@ -71,31 +71,8 @@ public:
     return {vertices[0], vertices[1], vertices[2]};
   }
 
-  virtual Direction triangle_normal(MeshID element) const override {
-    const auto vertices = element_vertices(element);
-    return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
-  }
-
-  virtual BoundingBox element_bounding_box(MeshID element) const override {
-    const auto vertices = element_vertices(element);
-    return BoundingBox::from_points(vertices);
-  }
-
-  virtual BoundingBox volume_bounding_box(MeshID volume) const override {
-    return bounding_box;
-  }
-
-  virtual BoundingBox surface_bounding_box(MeshID surface) const override {
-    BoundingBox surface_box;
-    for (auto& element : get_surface_elements(surface)) {
-      auto element_box = element_bounding_box(element);
-      surface_box.update(element_box);
-    }
-    return surface_box;
-  }
-
   // Topology
-  virtual std::pair<MeshID, MeshID> get_parent_volumes(MeshID surface) const override {
+  virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override {
     return {0, ID_NONE};
   }
 
