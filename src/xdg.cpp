@@ -2,11 +2,12 @@
 
 #include "xdg/xdg.h"
 #include "xdg/error.h"
+#include "xdg/embree_ray_tracer.h"
 
 // mesh manager concrete implementations
 #ifdef XDG_ENABLE_MOAB
 #include "xdg/moab/mesh_manager.h"
-#include "xdg/embree_ray_tracer.h"#endif
+#endif
 
 #ifdef XDG_ENABLE_LIBMESH
 #include "xdg/libmesh/mesh_manager.h"
@@ -46,7 +47,7 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib
       break;
     #endif
     default:
-      std::string mesh_library = MESH_LIB_TO_STR.at(library);
+      std::string mesh_library = MESH_LIB_TO_STR.at(mesh_lib);
       auto msg = fmt::format("Invalid mesh library {} specified. XDG instance could not be created. ", mesh_library);
       msg += "This build of XDG supports the following mesh libraries:";
       #ifdef XDG_ENABLE_MOAB

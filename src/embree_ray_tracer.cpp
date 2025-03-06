@@ -161,6 +161,7 @@ EmbreeRayTracer::ray_fire(TreeID scene,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
+                    HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
 {
   RTCDRayHit rayhit;
@@ -170,7 +171,7 @@ EmbreeRayTracer::ray_fire(TreeID scene,
   rayhit.ray.set_tfar(dist_limit);
   rayhit.ray.set_tnear(0.0);
   rayhit.ray.rf_type = RayFireType::VOLUME;
-  rayhit.ray.orientation = HitOrientation::EXITING;
+  rayhit.ray.orientation = orientation;
   rayhit.ray.mask = -1; // no mask
   if (exclude_primitves != nullptr) rayhit.ray.exclude_primitives = exclude_primitves;
 

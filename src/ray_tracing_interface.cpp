@@ -6,6 +6,8 @@
 
 namespace xdg {
 
+  RayTracer::~RayTracer() {}
+
 // This function defines the common logic which is needed to register a volume with a particular RT library.
 // This incldudes storage of various maps, which begs the question - where should that data be stored (base or derived?). 
 // This function will not be virtual. 

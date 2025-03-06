@@ -22,7 +22,7 @@ class RayTracer {
 // Constructors
 public:
   // RayTracer();
-  virtual ~RayTracer() {};
+  virtual ~RayTracer();
 
 // Methods
   virtual void init() = 0;
@@ -42,7 +42,7 @@ public:
                                      const Direction& direction,
                                      const double dist_limit = INFTY,
                                      HitOrientation orientation = HitOrientation::EXITING,
-                                     std::vector<MeshID>* const exclude_primitives = nullptr);
+                                     std::vector<MeshID>* const exclude_primitives = nullptr) = 0;
 
   virtual void closest(TreeID scene,
                const Position& origin,
@@ -68,6 +68,7 @@ private:
 // TODO: Think about which variables will be shared between RayTracers independent of which library is used
 // Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 };
+
 } // namespace xdg
 
 

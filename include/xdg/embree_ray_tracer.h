@@ -25,7 +25,6 @@ class EmbreeRayTracer : public RayTracer {
 public:
   EmbreeRayTracer();
   ~EmbreeRayTracer();
-
   void init() override;
   TreeID create_scene() override;
   TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) override;
@@ -42,6 +41,7 @@ public:
                                      const Position& origin,
                                      const Direction& direction,
                                      const double dist_limit = INFTY,
+                                     HitOrientation orientation = HitOrientation::EXITING,
                                      std::vector<MeshID>* const exclude_primitives = nullptr) override;
 
   void closest(TreeID scene,
