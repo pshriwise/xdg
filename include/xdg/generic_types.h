@@ -13,7 +13,7 @@ struct GPRTContext {}; // --> RTCDevice [ XdgDevice ] TODO: is this needed?
 
 // Struct to hold either RTCScene or GPRTAccel
 struct TreeID {
-  std::variant<RTCScene, GPRTAccel> _ID;
+  std::variant<std::nullptr_t, RTCScene, GPRTAccel> _ID;
 
   // Default constructor
   TreeID() : _ID(nullptr) {}  // Initializes _ID with nullptr
@@ -35,7 +35,7 @@ struct TreeID {
 
 // Struct to hold either RTCGeometry or GPRTGeom
 struct XdgGeometry {
-  std::variant<RTCGeometry, GPRTGeom> _geometry;
+  std::variant<std::nullptr_t, RTCGeometry, GPRTGeom> _geometry;
 
   // Default constructor
   XdgGeometry() : _geometry(nullptr) {}  // Initializes _geometry with nullptr
