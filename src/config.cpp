@@ -5,7 +5,11 @@
 #include "omp.h"
 #endif
 
-XDGConfig::XDGConfig(int n_threads) {
+namespace xdg {
+
+XDGConfig::XDGConfig(int verbosity, bool warnings, int n_threads)
+: verbosity_(verbosity), suppress_warnings_(warnings)
+{
   // Set the number of threads
   if (n_threads != -1) {
     n_threads_ = n_threads;
@@ -39,3 +43,7 @@ void XDGConfig::initialize_libmesh() {
   libmesh_init_ = std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0, n_threads_);
 }
 #endif
+
+std::shared_ptr<XDGConfig> XDGConfig::new_instance_;
+
+} // namespace xdg
