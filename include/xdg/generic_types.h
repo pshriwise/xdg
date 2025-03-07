@@ -75,7 +75,30 @@ struct XdgGeometry {
 
 }; // namespace xdg
 
+namespace std {
+// Specialize std::hash for the empty struct GPRTAccel
+template <>
+struct hash<xdg::GPRTAccel> {
+  size_t operator()(const xdg::GPRTAccel& gprt_accel) const noexcept {
+    // Use the address of the object as the hash value
+    return std::hash<const void*>{}(static_cast<const void*>(&gprt_accel)); 
+  }
+};
 
+// Specialize std::hash for TreeID to allow TreeID to be used as a key
+template <>
+struct hash<xdg::TreeID> {
+  size_t operator()(const xdg::TreeID& treeID) const noexcept {
+    if (treeID.is_embree()) {
+        return std::hash<RTCScene>{}(treeID.embree());
+    } else if (treeID.is_gprt()) {
+        // Since GPRTAccel is still a placeholder we need to hash based on its address (or uintptr_t)
+        return std::hash<xdg::GPRTAccel>{}(treeID.gprt());
+    } else {
+        return 0; // Handle nullptr case
+    }
+  }
+};
 
 }; // namespace std
 
