@@ -8,6 +8,27 @@ namespace xdg {
 
   RayTracer::~RayTracer() {}
 
+
+  const double RayTracer::bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id) 
+  {
+    // compute the bounding box of the volume
+    auto volume_bounding_box = mesh_manager->volume_bounding_box(volume_id);
+
+    // determine the bump distance for this volume based on the maximum distance a ray will travel
+    // to an intersection
+    double dx = volume_bounding_box.max_x - volume_bounding_box.min_x;
+    double dy = volume_bounding_box.max_y - volume_bounding_box.min_y;
+    double dz = volume_bounding_box.max_z - volume_bounding_box.min_z;
+
+    double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
+    double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
+    bump = std::max(bump, 1e-03);
+    bump = 1.0;
+
+    return bump;
+  }
+
+
 // This function defines the common logic which is needed to register a volume with a particular RT library.
 // This incldudes storage of various maps, which begs the question - where should that data be stored (base or derived?). 
 // This function will not be virtual. 

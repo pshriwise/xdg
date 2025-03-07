@@ -36,6 +36,8 @@ TreeID EmbreeRayTracer::create_scene() {
   return scene;
 }
 
+
+
 // TODO: Does it make sense for a lot of this function to be defined in the base class?
 TreeID
 EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
@@ -72,25 +74,13 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
 
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
-  // compute the bounding box of the volume
-  auto volume_bounding_box = mesh_manager->volume_bounding_box(volume_id);
-
-  // determine the bump distance for this volume based on the maximum distance a ray will travel
-  // to an intersection
-  double dx = volume_bounding_box.max_x - volume_bounding_box.min_x;
-  double dy = volume_bounding_box.max_y - volume_bounding_box.min_y;
-  double dz = volume_bounding_box.max_z - volume_bounding_box.min_z;
-
-  double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
-  double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
-  bump = std::max(bump, 1e-03);
-  bump = 1.0;
+  auto bump = bounding_box_bump(mesh_manager, volume_id); 
 
  // TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
  // implementation. Then another virtual function can be called register_volume_RT_specific. 
  // in this scenario register_volume isn't a virtual function but instead calls a virtual function.
  // That virtual function will be overrided to do the RT specific things in registering the volume.  
-
+ // Primitive_ref_storage is the only non-local variable used in this context that is a member of the derived class.
 
   // create a new geometry for each surface
   int buffer_start = 0;

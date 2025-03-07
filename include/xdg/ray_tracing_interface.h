@@ -63,7 +63,14 @@ public:
 
   virtual const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const = 0;
 
+
+// TODO: Think about which variables will be shared between RayTracers independent of which library is used
+// Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 protected:
+// Common functions across RayTracers
+  const double bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id); // return a bump value based on the size of a bounding box (minimum 1e-3). Should this be a part of mesh_manager?
+
+
 // Common member variables across RayTracers
   TreeID global_scene_;
   std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scene
@@ -72,8 +79,6 @@ protected:
   double numerical_precision_ {1e-3};
 
   private:
-// TODO: Think about which variables will be shared between RayTracers independent of which library is used
-// Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 };
 
 } // namespace xdg
