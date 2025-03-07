@@ -283,8 +283,6 @@ public:
   // Attributes
   protected:
   std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
-  // TODO: make this global so it isn't owned by a single mesh manager
-  std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
 
   // Ugh, double mapping
   std::unordered_map<MeshID, SidePair> mesh_id_to_sidepair_;

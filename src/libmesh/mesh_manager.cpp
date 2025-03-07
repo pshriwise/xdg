@@ -1,5 +1,6 @@
 #include "xdg/libmesh/mesh_manager.h"
 
+#include "xdg/config.h"
 #include "xdg/error.h"
 #include "xdg/util/str_utils.h"
 
@@ -13,34 +14,20 @@ namespace xdg {
 
 // Constructors
 LibMeshManager::LibMeshManager(void *ptr) {
-  if (libmesh_init == nullptr) {
-    initialize_libmesh();
-  }
 }
 
 LibMeshManager::LibMeshManager() : MeshManager() {
-  if (libmesh_init == nullptr) {
-    initialize_libmesh();
-  }
 }
 
 void LibMeshManager::load_file(const std::string &filepath) {
-  mesh_ = std::make_unique<libMesh::Mesh>(libmesh_init->comm(), 3);
+  int n_mesh_dimensions {3};
+  mesh_ = std::make_unique<libMesh::Mesh>(XDGConfig::get_config()->libmesh_init()->comm(),
+                                          n_mesh_dimensions);
   mesh_->read(filepath);
 }
 
 LibMeshManager::~LibMeshManager() {
   mesh_->clear();
-  libmesh_init.reset();
-}
-
-void LibMeshManager::initialize_libmesh() {
-  // libmesh requires the program name, so at least one argument is needed
-  int argc = 1;
-  const std::string argv{"XDG"};
-  const char *argv_cstr = argv.c_str();
-  libmesh_init =
-      std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0, 1));
 }
 
 void LibMeshManager::init() {

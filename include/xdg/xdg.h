@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "xdg/config.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
 
@@ -85,7 +86,7 @@ private:
   double _triangle_volume_contribution(const PrimitiveRef& triangle) const;
   double _triangle_area_contribution(const PrimitiveRef& triangle) const;
 
-// Data members
+  // Data members
   const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
