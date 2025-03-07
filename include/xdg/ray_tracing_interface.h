@@ -58,13 +58,20 @@ public:
                 const Direction& direction,
                 double& dist) const = 0;
 
-// Accessors
-  virtual int num_registered_scenes() const = 0;
+// Generic Accessors
+  int num_registered_scenes() const { return scenes_.size(); };
 
   virtual const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const = 0;
 
+protected:
+// Common member variables across RayTracers
+  TreeID global_scene_;
+  std::map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scene
+  std::vector<TreeID> scenes_; //<! All scenes created by this ray tracer
+  // Internal parameters
+  double numerical_precision_ {1e-3};
 
-private:
+  private:
 // TODO: Think about which variables will be shared between RayTracers independent of which library is used
 // Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 };
