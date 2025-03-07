@@ -39,6 +39,12 @@ enum class MeshLibrary {
   LIBMESH
 };
 
+// Ray Tracing library identifier
+enum class RTLibrary {
+  EMBREE,
+  GPRT
+};
+
 static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
 {
   {MeshLibrary::INTERNAL, "INTERNAL"},

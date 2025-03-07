@@ -16,11 +16,14 @@ public:
 // Constructors
   XDG() = default;
 
-  XDG(std::shared_ptr<MeshManager> mesh_manager) :
-    mesh_manager_(mesh_manager) {}
+  XDG(std::shared_ptr<MeshManager> mesh_manager, std::shared_ptr<RayTracer> ray_tracing_interface) :
+    mesh_manager_(mesh_manager), ray_tracing_interface_(ray_tracing_interface) {}
 
-  // factor method that allows for specification of a backend mesh library
-  static std::shared_ptr<XDG> create(MeshLibrary library);
+
+
+  // factor method that allows for specification of a backend mesh library and ray tracer
+  static std::shared_ptr<XDG> create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib);
+
 
 // Methods
   void prepare_raytracer();
@@ -72,6 +75,10 @@ Direction surface_normal(MeshID surface,
     mesh_manager_ = mesh_manager;
   }
 
+  void set_ray_tracing_interface(std::shared_ptr<RayTracer> ray_tracing_interface) {
+    ray_tracing_interface_ = ray_tracing_interface;
+  }
+
 // Accessors
   const std::shared_ptr<RayTracer>& ray_tracing_interface() const {
     return ray_tracing_interface_;
@@ -86,12 +93,12 @@ private:
   double _triangle_area_contribution(const PrimitiveRef& triangle) const;
 
 // Data members
-  const std::shared_ptr<RayTracer> ray_tracing_interface_ {std::make_shared<RayTracer>()};
+  std::shared_ptr<RayTracer> ray_tracing_interface_ {nullptr};
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
   std::unordered_map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
   std::unordered_map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
-  std::unordered_map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
+  std::unordered_map<MeshID, XdgGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   TreeID gloabal_scene_;
 };
 

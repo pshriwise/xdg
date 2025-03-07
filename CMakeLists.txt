@@ -87,6 +87,7 @@ src/geometry/closest.cpp
 src/error.cpp
 src/mesh_manager_interface.cpp
 src/ray_tracing_interface.cpp
+src/embree_ray_tracer.cpp
 src/triangle_intersect.cpp
 src/util/str_utils.cpp
 src/xdg.cpp

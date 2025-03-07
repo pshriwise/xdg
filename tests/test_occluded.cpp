@@ -1,6 +1,7 @@
 
 // for testing
 #include <catch2/catch_test_macros.hpp>
+#include "xdg/embree_ray_tracer.h"
 
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
@@ -13,10 +14,10 @@ using namespace xdg;
 TEST_CASE("Test Occluded")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
   mm->init(); // this should do nothing, just good practice to call it
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, rti);
   xdg->prepare_raytracer();
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);
 
   // setup ray to fire that won't hit the mock model
