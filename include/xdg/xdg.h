@@ -97,7 +97,7 @@ private:
   std::shared_ptr<MeshManager> mesh_manager_ {nullptr};
 
   std::unordered_map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
-  std::unordered_map<MeshID, TreeID> surface_to_scene_map_; //<! Map from mesh surface to embree scnee
+  std::unordered_map<MeshID, TreeID> surface_to_tree_map_; //<! Map from mesh surface to embree scnee
   std::unordered_map<MeshID, XdgGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
   TreeID gloabal_scene_;
 };
