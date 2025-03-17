@@ -23,7 +23,7 @@ public:
     // Methods
     void transport() {
       for (const auto& test_case : test_cases_) {
-        std::shared_ptr<XDG> xdg {XDG::create(test_case.second)};
+        std::shared_ptr<XDG> xdg {XDG::create(test_case.second, RTLibrary::EMBREE)};
         xdg->mesh_manager()->load_file(test_case.first);
         xdg->mesh_manager()->init();
         xdg->mesh_manager()->parse_metadata();
