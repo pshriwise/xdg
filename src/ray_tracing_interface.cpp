@@ -8,10 +8,14 @@ namespace xdg {
 
   RayTracer::~RayTracer() {}
 
-  TreeID RayTracer::next_tree_id() const 
-  {
-    return *std::max_element(trees().begin(), trees().end()) + 1;
+TreeID RayTracer::next_tree_id() const 
+{
+  const auto& tree_ids = trees();
+  if (tree_ids.empty()) {
+    return 1; // start at 1 to reserve 0 for ipc?
   }
+  return *std::max_element(tree_ids.begin(), tree_ids.end()) + 1;
+}
 
   const double RayTracer::bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id) 
   {

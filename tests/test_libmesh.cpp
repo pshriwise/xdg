@@ -55,7 +55,7 @@ TEST_CASE("Test BVH Build Brick")
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
 }
 
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
@@ -73,7 +73,7 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
 }
 
 TEST_CASE("Test Ray Fire Brick")

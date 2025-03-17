@@ -69,7 +69,7 @@ TEST_CASE("Test BVH Build")
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 2);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 2);
 }
 
 TEST_CASE("Test Ray Fire MOAB")

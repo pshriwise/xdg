@@ -27,8 +27,6 @@ public:
 // Methods
   virtual void init() = 0;
 
-  virtual TreeID create_tree() = 0;
-
   virtual TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) = 0;
 
   // Query Methods
@@ -59,7 +57,7 @@ public:
                 double& dist) const = 0;
 
 // Generic Accessors
-  int num_registered_scenes() const { return trees_.size(); };
+  int num_registered_trees() const { return trees_.size(); };
   const std::vector<MeshID>& trees() const { return trees_; }
 
   virtual const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const = 0;

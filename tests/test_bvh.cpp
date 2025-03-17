@@ -26,5 +26,5 @@ TEST_CASE("Test Mesh BVH")
     volume_to_scene_map[volume]= rti->register_volume(mm, volume);
   }
 
-  REQUIRE(rti->num_registered_scenes() == 1);
+  REQUIRE(rti->num_registered_trees() == 1);
 }

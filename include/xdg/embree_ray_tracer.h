@@ -27,7 +27,6 @@ public:
   ~EmbreeRayTracer();
   void init() override;
   RTCScene create_embree_scene();
-  TreeID create_tree() override;
   TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) override;
 
   // Query Methods
