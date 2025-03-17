@@ -87,6 +87,7 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
     std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
+    surface_data->box_bump = bump;
     surface_data->surface_id = surface;
     surface_data->mesh_manager = mesh_manager.get();
     surface_data->prim_ref_buffer = tri_ref_ptr + buffer_start;
