@@ -58,6 +58,18 @@ using MeshID = int32_t;
 // Invalid
 constexpr MeshID ID_NONE {-1};
 
+// GPRT stubs
+struct GPRTAccel {}; // equivalent to Embree RTCScene 
+struct GPRTGeom {}; // equivalent to Embree RTCGeometry
+struct GPRTContext {}; // equivalent to Embree RTCDevice
+
+// Scene/Tree ID
+using TreeID = int32_t;
+
+// Invalid
+constexpr TreeID TREEID_NONE {-1};
+
+
 // for abs(x) >= min_rcp_input the newton raphson rcp calculation does not fail
 constexpr float min_rcp_input = std::numeric_limits<float>::min() /* FIX ME */ *1E5 /* SHOULDNT NEED TO MULTIPLY BY THIS VALUE */;
 constexpr int BVH_MAX_DEPTH = 64;
