@@ -119,7 +119,7 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives) const
 {
-  RTCScene scene = tree_to_scene_map[tree];
+  RTCScene scene = tree_to_scene_map.at(tree);
   RTCDRayHit rayhit; // embree specfic rayhit struct (payload?)
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
@@ -151,7 +151,7 @@ EmbreeRayTracer::ray_fire(TreeID tree,
                     HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
 {
-  RTCScene scene = tree_to_scene_map[tree];
+  RTCScene scene = tree_to_scene_map.at(tree);
   RTCDRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
@@ -184,7 +184,7 @@ void EmbreeRayTracer::closest(TreeID tree,
                         double& distance,
                         MeshID& triangle)
 {
-  RTCScene scene = tree_to_scene_map[tree];
+  RTCScene scene = tree_to_scene_map.at(tree);
   RTCDPointQuery query;
   query.set_point(point);
 
@@ -215,7 +215,7 @@ bool EmbreeRayTracer::occluded(TreeID tree,
                          const Direction& direction,
                          double& distance) const
 {
-  RTCScene scene = tree_to_scene_map[tree];
+  RTCScene scene = tree_to_scene_map.at(tree);
   RTCDRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);
