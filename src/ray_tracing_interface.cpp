@@ -31,7 +31,6 @@ TreeID RayTracer::next_tree_id() const
     double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
     double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
     bump = std::max(bump, 1e-03);
-    bump = 1.0;
 
     return bump;
   }
