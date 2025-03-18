@@ -51,7 +51,7 @@ TEST_CASE("Test BVH Build Brick")
   REQUIRE(mesh_manager->num_volumes() == 1);
   REQUIRE(mesh_manager->num_surfaces() == 1);
 
-  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<EmbreeRayTracer>();
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
@@ -67,7 +67,7 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
   REQUIRE(mesh_manager->num_volumes() == 1);
   REQUIRE(mesh_manager->num_surfaces() == 6);
 
-  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<EmbreeRayTracer>();
 
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
