@@ -292,7 +292,7 @@ public:
 
   // sideset face mapping, stores the element and the side number
   // for each face in the mesh that lies on a boundary
-  std::unordered_map<MeshID, std::vector<MeshID>> sideset_element_map_;
+  std::unordered_map<MeshID, std::vector<MeshID>> sideset_face_map_;
 
   //! Mapping of subdomain interfaces (Identified by subdomain ID pairs) to the
   //! set of element faces that make up the interface
