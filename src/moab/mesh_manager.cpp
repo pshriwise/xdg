@@ -138,7 +138,7 @@ void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense
 
 // Mesh Methods
 moab::Range
-MOABMeshManager::_surface_elements(MeshID surface) const
+MOABMeshManager::_surface_faces(MeshID surface) const
 {
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
   moab::Range elements;
@@ -159,13 +159,13 @@ MOABMeshManager::num_volume_faces(MeshID volume) const
 int
 MOABMeshManager::num_surface_faces(MeshID surface) const
 {
-  return this->_surface_elements(surface).size();
+  return this->_surface_faces(surface).size();
 }
 
 std::vector<MeshID>
 MOABMeshManager::get_surface_faces(MeshID surface) const
 {
-  auto elements = this->_surface_elements(surface);
+  auto elements = this->_surface_faces(surface);
 
   std::vector<MeshID> element_ids(elements.size());
   for (int i = 0; i < elements.size(); i++) {

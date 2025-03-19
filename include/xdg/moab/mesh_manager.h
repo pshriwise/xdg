@@ -78,7 +78,7 @@ public:
 private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
-  moab::Range _surface_elements(MeshID surface) const;
+  moab::Range _surface_faces(MeshID surface) const;
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
 
