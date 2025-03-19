@@ -22,7 +22,7 @@ public:
 
 
   // factor method that allows for specification of a backend mesh library and ray tracer
-  static std::shared_ptr<XDG> create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib);
+  static std::shared_ptr<XDG> create(MeshLibrary mesh_lib = MeshLibrary::MOAB, RTLibrary ray_tracing_lib = RTLibrary::EMBREE);
 
 
 // Methods
@@ -99,7 +99,7 @@ private:
   std::unordered_map<MeshID, TreeID> volume_to_scene_map_;  //<! Map from mesh volume to embree scene
   std::unordered_map<MeshID, TreeID> surface_to_tree_map_; //<! Map from mesh surface to embree scnee
   std::unordered_map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
-  TreeID gloabal_scene_;
+  TreeID global_scene_; // TODO: does this need to be in the RayTacer class or the XDG? class
 };
 
 }

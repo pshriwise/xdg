@@ -74,7 +74,7 @@ protected:
   TreeID next_tree_id() const; // get next treeid
 
 // Common member variables across RayTracers
-  TreeID global_scene_;
+  TreeID global_tree_; //<! TreeID for the global tree
   std::map<MeshID, TreeID> surface_to_tree_map_; //<! Map from mesh surface to embree scene
   std::vector<TreeID> trees_; //<! All trees created by this ray tracer
   // Internal parameters

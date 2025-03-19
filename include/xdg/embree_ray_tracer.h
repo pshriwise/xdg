@@ -70,7 +70,7 @@ public:
   // Internal Embree Mappings
   std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
 
-  std::unordered_map<TreeID, RTCScene> tree_to_scene_map; // Map from XDG::TreeID to specific embree scene/tree 
+  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree 
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
