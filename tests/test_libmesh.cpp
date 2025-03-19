@@ -11,7 +11,7 @@
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/libmesh/mesh_manager.h"
 #include "xdg/xdg.h"
-#include "xdg/embree_ray_tracer.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 

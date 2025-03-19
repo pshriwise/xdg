@@ -1,12 +1,11 @@
 
 // for testing
 #include <catch2/catch_test_macros.hpp>
-#include "xdg/embree_ray_tracer.h"
 
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/xdg.h"
-
+#include "xdg/embree/ray_tracer.h"
 #include "mesh_mock.h"
 
 using namespace xdg;

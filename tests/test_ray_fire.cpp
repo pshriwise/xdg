@@ -6,7 +6,7 @@
 // xdg includes
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/embree_ray_tracer.h"
+#include "xdg/embree/ray_tracer.h"
 
 #include "mesh_mock.h"
 
