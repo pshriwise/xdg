@@ -56,7 +56,7 @@ public:
     return {0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ,10, 11};
   }
 
-  virtual std::vector<MeshID> get_surface_elements(MeshID surface) const override {
+  virtual std::vector<MeshID> get_surface_faces(MeshID surface) const override {
     int start = surface * 2;
     return {start, start + 1};
   }

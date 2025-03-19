@@ -57,7 +57,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
     else if (volume_id == surf_to_vol_senses.second) triangle_sense = Sense::REVERSE;
     else fatal_error("Volume {} is not a parent of surface {}", volume_id, surface_id);
 
-    auto surface_elements = mesh_manager->get_surface_elements(surface_id);
+    auto surface_elements = mesh_manager->get_surface_faces(surface_id);
     for (int i = 0; i < surface_elements.size(); ++i) {
       auto& primitive_ref = triangle_storage[i + storage_offset];
       primitive_ref.primitive_id = surface_elements[i];
@@ -84,7 +84,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   // create a new geometry for each surface
   int buffer_start = 0;
   for (auto surface : volume_surfaces) {
-    auto surface_triangles = mesh_manager->get_surface_elements(surface);
+    auto surface_triangles = mesh_manager->get_surface_faces(surface);
     RTCGeometry surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
     rtcSetGeometryUserPrimitiveCount(surface_geometry, surface_triangles.size());
     unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);

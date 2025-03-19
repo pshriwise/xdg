@@ -334,7 +334,7 @@ LibMeshManager::get_volume_elements(MeshID volume) const {
 }
 
 std::vector<MeshID>
-LibMeshManager::get_surface_elements(MeshID surface) const {
+LibMeshManager::get_surface_faces(MeshID surface) const {
   return surface_map_.at(surface);
 }
 

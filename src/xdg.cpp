@@ -156,7 +156,7 @@ double XDG::measure_volume(MeshID volume) const
   for (int i = 0; i < surfaces.size(); ++i) {
     MeshID& surface = surfaces[i];
     double surface_contribution {0.0};
-    auto triangles = mesh_manager()->get_surface_elements(surface);
+    auto triangles = mesh_manager()->get_surface_faces(surface);
     for (auto triangle : triangles) {
       surface_contribution += triangle_volume_contribution(mesh_manager()->triangle_vertices(triangle));
     }
@@ -170,7 +170,7 @@ double XDG::measure_volume(MeshID volume) const
 double XDG::measure_surface_area(MeshID surface) const
 {
   double area {0.0};
-  for (auto triangle : mesh_manager()->get_surface_elements(surface)) {
+  for (auto triangle : mesh_manager()->get_surface_faces(surface)) {
     area += triangle_area(mesh_manager()->triangle_vertices(triangle));
   }
   return area;

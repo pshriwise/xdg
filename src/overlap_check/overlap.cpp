@@ -73,7 +73,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
      implicit complement as well as the explicit volumes. Also removes an uneccesary layer of nesting. */
 
   for (const auto& surf:allSurfs){  
-    auto surfElements = mm->get_surface_elements(surf);
+    auto surfElements = mm->get_surface_faces(surf);
     totalElements += surfElements.size();
     for (const auto& tri:surfElements){
       auto triVert = mm->triangle_vertices(tri);
@@ -151,7 +151,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       {
         return vol != parentVols.first && vol != parentVols.second;
       });
-      auto elementsOnSurf = mm->get_surface_elements(surf);
+      auto elementsOnSurf = mm->get_surface_faces(surf);
       for (const auto& element:elementsOnSurf) {
         auto tri = mm->triangle_vertices(element);
         auto rayQueries = return_ray_queries(tri);

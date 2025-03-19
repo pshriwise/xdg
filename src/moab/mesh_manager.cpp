@@ -173,7 +173,7 @@ MOABMeshManager::get_volume_elements(MeshID volume) const
 }
 
 std::vector<MeshID>
-MOABMeshManager::get_surface_elements(MeshID surface) const
+MOABMeshManager::get_surface_faces(MeshID surface) const
 {
   auto elements = this->_surface_elements(surface);
 
