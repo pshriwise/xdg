@@ -147,6 +147,12 @@ MOABMeshManager::_surface_faces(MeshID surface) const
 }
 
 int
+MOABMeshManager::num_volume_elements(MeshID volume) const
+{
+  return this->get_volume_elements(volume).size();
+}
+
+int
 MOABMeshManager::num_volume_faces(MeshID volume) const
 {
   int out {0};
@@ -160,6 +166,21 @@ int
 MOABMeshManager::num_surface_faces(MeshID surface) const
 {
   return this->_surface_faces(surface).size();
+}
+
+std::vector<MeshID>
+MOABMeshManager::get_volume_elements(MeshID volume) const
+{
+  moab::EntityHandle vol_handle = volume_id_map_.at(volume);
+
+  moab::Range elements;
+  this->moab_interface()->get_entities_by_dimension(vol_handle, 3, elements);
+
+  std::vector<MeshID> element_ids(elements.size());
+  for (int i = 0; i < elements.size(); i++) {
+    element_ids[i] = this->moab_interface()->id_from_handle(elements[i]);
+  }
+  return element_ids;
 }
 
 std::vector<MeshID>

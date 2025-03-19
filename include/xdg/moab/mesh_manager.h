@@ -50,9 +50,13 @@ public:
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   // Mesh
+  int num_volume_elements(MeshID volume) const override;
+
   int num_volume_faces(MeshID volume) const override;
 
   int num_surface_faces(MeshID surface) const override;
+
+  std::vector<MeshID> get_volume_elements(MeshID volume) const override;
 
   std::vector<MeshID> get_surface_faces(MeshID surface) const override;
 

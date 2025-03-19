@@ -44,12 +44,20 @@ public:
     return -1;
   }
 
+  virtual int num_volume_elements(MeshID volume) const override {
+    return 0;
+  }
+
   virtual int num_volume_faces(MeshID volume) const override {
     return 12;
   }
 
   virtual int num_surface_faces(MeshID surface) const override {
     return 2;
+  }
+
+  virtual std::vector<MeshID> get_volume_elements(MeshID volume) const override {
+    return {0};
   }
 
   virtual std::vector<MeshID> get_volume_faces(MeshID volume) const override {
