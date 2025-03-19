@@ -33,7 +33,7 @@ public:
 
   virtual int num_surface_elements(MeshID surface) const = 0;
 
-  virtual std::vector<MeshID> get_volume_elements(MeshID volume) const = 0;
+  virtual std::vector<MeshID> get_volume_faces(MeshID volume) const;
 
   virtual std::vector<MeshID> get_surface_faces(MeshID surface) const = 0;
 

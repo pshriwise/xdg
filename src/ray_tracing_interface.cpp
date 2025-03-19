@@ -43,7 +43,7 @@ RayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
   auto volume_scene = this->create_scene();
 
   // allocate storage for this volume
-  auto volume_elements = mesh_manager->get_volume_elements(volume_id);
+  auto volume_elements = mesh_manager->get_volume_faces(volume_id);
   this->primitive_ref_storage_[volume_scene].resize(volume_elements.size());
   auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
 

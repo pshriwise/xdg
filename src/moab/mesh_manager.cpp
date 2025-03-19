@@ -163,16 +163,6 @@ MOABMeshManager::num_surface_elements(MeshID surface) const
 }
 
 std::vector<MeshID>
-MOABMeshManager::get_volume_elements(MeshID volume) const
-{
-  moab::Range elements;
-  for (auto surface : this->get_volume_surfaces(volume)) {
-    elements.merge(this->_surface_elements(surface));
-  }
-  return std::vector<MeshID>(elements.begin(), elements.end());
-}
-
-std::vector<MeshID>
 MOABMeshManager::get_surface_faces(MeshID surface) const
 {
   auto elements = this->_surface_elements(surface);

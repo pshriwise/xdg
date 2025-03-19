@@ -1,6 +1,7 @@
 #include "xdg/mesh_manager_interface.h"
 
 #include <algorithm>
+#include <set>
 
 #include "xdg/error.h"
 
@@ -48,6 +49,17 @@ bool
 MeshManager::volume_has_property(MeshID volume, PropertyType type) const
 {
   return volume_metadata_.count({volume, type}) > 0;
+}
+
+std::vector<MeshID>
+MeshManager::get_volume_faces(MeshID volume) const
+{
+  std::set<MeshID> elements;
+  for (auto surface : this->get_volume_surfaces(volume)) {
+    auto surface_elements = this->get_surface_faces(surface);
+    elements.insert(surface_elements.begin(), surface_elements.end());
+  }
+  return std::vector<MeshID>(elements.begin(), elements.end());
 }
 
 bool

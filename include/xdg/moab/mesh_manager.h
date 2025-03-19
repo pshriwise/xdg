@@ -54,8 +54,6 @@ public:
 
   int num_surface_elements(MeshID surface) const override;
 
-  std::vector<MeshID> get_volume_elements(MeshID volume) const override;
-
   std::vector<MeshID> get_surface_faces(MeshID surface) const override;
 
   std::vector<Vertex> element_vertices(MeshID element) const override;

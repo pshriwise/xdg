@@ -52,7 +52,7 @@ public:
     return 2;
   }
 
-  virtual std::vector<MeshID> get_volume_elements(MeshID volume) const override {
+  virtual std::vector<MeshID> get_volume_faces(MeshID volume) const override {
     return {0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ,10, 11};
   }
 
