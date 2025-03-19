@@ -44,11 +44,11 @@ public:
     return -1;
   }
 
-  virtual int num_volume_elements(MeshID volume) const override {
+  virtual int num_volume_faces(MeshID volume) const override {
     return 12;
   }
 
-  virtual int num_surface_elements(MeshID surface) const override {
+  virtual int num_surface_faces(MeshID surface) const override {
     return 2;
   }
 

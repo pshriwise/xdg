@@ -77,11 +77,11 @@ public:
     }
   }
 
-  int num_volume_elements(MeshID volume) const override {
+  int num_volume_faces(MeshID volume) const override {
     return mesh()->n_elem();
   }
 
-  int num_surface_elements(MeshID surface) const override {
+  int num_surface_faces(MeshID surface) const override {
     return mesh()->n_elem();
   }
 

@@ -147,17 +147,17 @@ MOABMeshManager::_surface_elements(MeshID surface) const
 }
 
 int
-MOABMeshManager::num_volume_elements(MeshID volume) const
+MOABMeshManager::num_volume_faces(MeshID volume) const
 {
   int out {0};
   for (auto surface : this->get_volume_surfaces(volume)) {
-    out += this->num_surface_elements(surface);
+    out += this->num_surface_faces(surface);
   }
   return out;
 }
 
 int
-MOABMeshManager::num_surface_elements(MeshID surface) const
+MOABMeshManager::num_surface_faces(MeshID surface) const
 {
   return this->_surface_elements(surface).size();
 }
