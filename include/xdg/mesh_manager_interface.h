@@ -37,24 +37,24 @@ public:
 
   virtual std::vector<MeshID> get_volume_elements(MeshID volume) const = 0;
 
-  virtual std::vector<MeshID> get_volume_faces(MeshID volume) const;
+  std::vector<MeshID> get_volume_faces(MeshID volume) const;
 
   virtual std::vector<MeshID> get_surface_faces(MeshID surface) const = 0;
 
   // TODO: can we accomplish this without allocating memory?
   virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
-  virtual std::array<Vertex, 3> triangle_vertices(MeshID element) const = 0;
+  virtual std::array<Vertex, 3> face_vertices(MeshID element) const = 0;
 
   BoundingBox element_bounding_box(MeshID element) const;
 
-  BoundingBox triangle_bounding_box(MeshID element) const;
+  BoundingBox face_bounding_box(MeshID element) const;
 
   BoundingBox volume_bounding_box(MeshID volume) const;
 
   BoundingBox surface_bounding_box(MeshID surface) const;
 
-  Direction triangle_normal(MeshID element) const;
+  Direction face_normal(MeshID element) const;
 
   // Topology
   // Returns parent with forward sense, then reverse

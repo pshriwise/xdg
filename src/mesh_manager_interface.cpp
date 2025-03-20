@@ -96,9 +96,9 @@ MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
   return ID_NONE;
 }
 
-Direction MeshManager::triangle_normal(MeshID element) const
+Direction MeshManager::face_normal(MeshID element) const
 {
-  auto vertices = this->triangle_vertices(element);
+  auto vertices = this->face_vertices(element);
   return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
 }
 
@@ -110,9 +110,9 @@ MeshManager::element_bounding_box(MeshID element) const
 }
 
 BoundingBox
-MeshManager::triangle_bounding_box(MeshID element) const
+MeshManager::face_bounding_box(MeshID element) const
 {
-  auto vertices = this->triangle_vertices(element);
+  auto vertices = this->face_vertices(element);
   return BoundingBox::from_points(vertices);
 }
 

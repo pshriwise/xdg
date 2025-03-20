@@ -60,10 +60,6 @@ public:
     return {0};
   }
 
-  virtual std::vector<MeshID> get_volume_faces(MeshID volume) const override {
-    return {0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ,10, 11};
-  }
-
   virtual std::vector<MeshID> get_surface_faces(MeshID surface) const override {
     int start = surface * 2;
     return {start, start + 1};
@@ -74,7 +70,7 @@ public:
     return {vertices[conn[0]], vertices[conn[1]], vertices[conn[2]]};
   }
 
-  virtual std::array<Vertex, 3> triangle_vertices(MeshID element) const override {
+  virtual std::array<Vertex, 3> face_vertices(MeshID element) const override {
     const auto vertices = element_vertices(element);
     return {vertices[0], vertices[1], vertices[2]};
   }

@@ -338,7 +338,8 @@ LibMeshManager::get_surface_faces(MeshID surface) const {
   return surface_map_.at(surface);
 }
 
-std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
+std::vector<Vertex>
+LibMeshManager::element_vertices(MeshID element) const {
   std::vector<Vertex> vertices;
   auto elem = mesh()->elem_ptr(element);
   for (unsigned int i = 0; i < elem->n_nodes(); ++i) {
@@ -349,7 +350,7 @@ std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
 }
 
 std::array<Vertex, 3>
-LibMeshManager::triangle_vertices(MeshID element) const {
+LibMeshManager::face_vertices(MeshID element) const {
   const auto& side_pair = sidepair(element);
   std::array<Vertex, 3> vertices;
   for (unsigned int i = 0; i < 3; ++i) {

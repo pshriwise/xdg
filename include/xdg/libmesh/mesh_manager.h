@@ -95,7 +95,7 @@ public:
 
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
-  std::array<Vertex, 3> triangle_vertices(MeshID triangle) const override;
+  std::array<Vertex, 3> face_vertices(MeshID triangle) const override;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 

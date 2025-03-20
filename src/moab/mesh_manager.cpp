@@ -205,7 +205,7 @@ std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
   return std::vector<Vertex>(out.begin(), out.end());
 }
 
-std::array<Vertex, 3> MOABMeshManager::triangle_vertices(MeshID element) const
+std::array<Vertex, 3> MOABMeshManager::face_vertices(MeshID element) const
 {
   auto vertices = this->element_vertices(element);
   return {vertices[0], vertices[1], vertices[2]};

@@ -40,7 +40,7 @@ void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
-  BoundingBox bounds = mesh_manager->triangle_bounding_box(primitive_ref.primitive_id);
+  BoundingBox bounds = mesh_manager->face_bounding_box(primitive_ref.primitive_id);
 
   args->bounds_o->lower_x = bounds.min_x - user_data->box_bump;
   args->bounds_o->lower_y = bounds.min_y - user_data->box_bump;
@@ -56,7 +56,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
-  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
+  auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
   RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
   RTCDRay& ray = rayhit->ray;
@@ -73,7 +73,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   if (plucker_dist > rayhit->ray.dtfar) return;
 
-  Direction normal = mesh_manager->triangle_normal(primitive_ref.primitive_id);
+  Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
   // if this is a normal ray fire, flip the normal as needed
   if (primitive_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
     normal = -normal;
@@ -107,7 +107,7 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   const MeshManager* mesh_manager = user_data->mesh_manager;
 
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
-  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
+  auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
   RTCDPointQuery* query = (RTCDPointQuery*) args->query;
   Position p {query->dblx, query->dbly, query->dblz};
@@ -132,7 +132,7 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   const MeshManager* mesh_manager = user_data->mesh_manager;
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
-  auto vertices = mesh_manager->triangle_vertices(primitive_ref.primitive_id);
+  auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
   // get the double precision ray from the args
   RTCDRay* ray = (RTCDRay*) args->ray;
