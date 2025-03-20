@@ -18,7 +18,7 @@ TEST_CASE("Test Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
-  mm->init(); // this should do nothing, but its good practice to call it
+  mm->init(); // this should do nothing, but it's good practice to call it
 
   XDG xdg{mm, rti};
 
