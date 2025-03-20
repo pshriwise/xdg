@@ -6,6 +6,7 @@
 
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
+#include "xdg/embree/ray_tracer.h"
 
 namespace xdg {
 
@@ -16,13 +17,23 @@ public:
 // Constructors
   XDG() = default;
 
-  XDG(std::shared_ptr<MeshManager> mesh_manager, std::shared_ptr<RayTracer> ray_tracing_interface) :
-    mesh_manager_(mesh_manager), ray_tracing_interface_(ray_tracing_interface) {}
+  XDG(std::shared_ptr<MeshManager> mesh_manager, RTLibrary ray_tracing_lib = RTLibrary::EMBREE) : // default construct with EMBREE
+    mesh_manager_(mesh_manager) 
 
+    {
+      // construct internal raytracer for XDG
+      switch (ray_tracing_lib)
+      {
+      case RTLibrary::EMBREE:
+        set_ray_tracing_interface(std::make_shared<EmbreeRayTracer>());
+        break;
+      case RTLibrary::GPRT:
+        break;
+      }
+    }
 
-
-  // factory method that allows for specification of a backend mesh library and ray tracer
-  static std::shared_ptr<XDG> create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib);
+  // factory method that allows for specification of a backend mesh library and ray tracer. Default to MOAB + EMBREE
+  static std::shared_ptr<XDG> create(MeshLibrary mesh_lib = MeshLibrary::MOAB, RTLibrary ray_tracing_lib = RTLibrary::EMBREE);
 
 
 // Methods

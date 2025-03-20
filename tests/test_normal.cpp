@@ -15,10 +15,9 @@ using namespace xdg;
 TEST_CASE("Test Get Normal")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
   mm->init(); // this should do nothing, but its good practice to call it
 
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, rti);
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, RTLibrary::EMBREE); 
   xdg->prepare_raytracer();
 
   MeshID volume = mm->volumes()[0];
