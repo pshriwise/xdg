@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
   }
 
   // create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file(args.get<std::string>("filename"));
   mm->init();

@@ -51,9 +51,9 @@ SimulationData sim_data;
 // create a mesh manager
 std::shared_ptr<XDG> xdg {nullptr};
 if (args.get<std::string>("--library") == "MOAB")
-  xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  xdg = XDG::create(MeshLibrary::MOAB);
 else if (args.get<std::string>("--library") == "LIBMESH")
-  xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  xdg = XDG::create(MeshLibrary::LIBMESH);
 else
   fatal_error("Invalid mesh library {} specified", args.get<std::string>("--library"));
 
