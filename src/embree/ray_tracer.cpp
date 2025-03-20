@@ -34,7 +34,6 @@ RTCScene EmbreeRayTracer::create_embree_scene() {
   return rtcscene;
 }
 
-// TODO: Does it make sense for a lot of this function to be defined in the base class?
 TreeID
 EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                            MeshID volume_id)
@@ -70,12 +69,15 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
   auto bump = bounding_box_bump(mesh_manager, volume_id); 
-
- // TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
- // implementation. Then another virtual function can be called register_volume_RT_specific. 
- // in this scenario register_volume isn't a virtual function but instead calls a virtual function.
- // That virtual function will be overrided to do the RT specific things in registering the volume.  
- // Primitive_ref_storage is the only non-local variable used in this context that is a member of the derived class.
+/*
+  TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
+  implementation. Then another virtual function can be called register_volume_RT_specific. 
+  in this scenario register_volume isn't a virtual function but instead calls a virtual function.
+  That virtual function will be overrided to do the RT specific things in registering the volume.  
+  Primitive_ref_storage is the only non-local variable used in this context that is a member of the derived class.
+  However when implementing GPRT the above may need to be written differently with GPU buffers in mind.
+  So we will leave it as is for now.
+*/
 
   // create a new geometry for each surface
   int buffer_start = 0;
