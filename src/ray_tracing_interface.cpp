@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "xdg/ray_tracing_interface.h"
 
 // So far, most of the methods in RayTracer require quite specific implementations to their RT backend.

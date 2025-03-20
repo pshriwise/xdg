@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include <algorithm>
 
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
