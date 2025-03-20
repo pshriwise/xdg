@@ -50,6 +50,11 @@ TEST_CASE("Test MOAB Initialization")
     auto prop = mesh_manager->get_surface_property(surface, PropertyType::BOUNDARY_CONDITION);
     REQUIRE(prop.value == "reflecting");
   }
+
+  // none of the volumes in this model should contain volumetric elements
+  for (auto volume : mesh_manager->volumes()) {
+    REQUIRE(mesh_manager->num_volume_elements(volume) == 0);
+  }
 }
 
 TEST_CASE("Test BVH Build")
