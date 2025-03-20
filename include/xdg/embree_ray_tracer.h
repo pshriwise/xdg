@@ -29,7 +29,6 @@ public:
   TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) override;
 
   // Query Methods
-
   bool point_in_volume(TreeID scene,
                       const Position& point,
                       const Direction* direction = nullptr,
@@ -58,7 +57,8 @@ public:
                 double& dist) const override;
 
   // Accessors 
-  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const override { return user_data_map_.at(surface_to_geometry_map_.at(surface)); };
+  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const override 
+  { return user_data_map_.at(surface_to_geometry_map_.at(surface)); };
 
   // Embree members
   RTCDevice device_;
@@ -74,13 +74,9 @@ public:
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
-// Data members
-
-private:
-
 };
 
-}
+} // namespace xdg
 
 
 #endif // include guard

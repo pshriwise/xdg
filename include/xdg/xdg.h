@@ -21,7 +21,7 @@ public:
 
 
 
-  // factor method that allows for specification of a backend mesh library and ray tracer
+  // factory method that allows for specification of a backend mesh library and ray tracer
   static std::shared_ptr<XDG> create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib);
 
 
