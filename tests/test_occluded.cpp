@@ -14,7 +14,7 @@ TEST_CASE("Test Occluded")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing, just good practice to call it
-  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, RTLibrary::EMBREE); 
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
   xdg->prepare_raytracer();
   auto rti = xdg->ray_tracing_interface();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);

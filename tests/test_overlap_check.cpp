@@ -14,7 +14,7 @@ using namespace xdg;
 TEST_CASE("Overlapping Volumes Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("overlap.h5m");
   mm->init();
@@ -35,7 +35,7 @@ TEST_CASE("Overlapping Volumes Test")
 TEST_CASE("Non-Overlapping Volumes Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("no_overlap.h5m");
   mm->init();
@@ -52,7 +52,7 @@ TEST_CASE("Non-Overlapping Volumes Test")
 TEST_CASE("Non-Overlapping Imprinted Volumes Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("no_overlap_imp.h5m");
   mm->init();
@@ -69,7 +69,7 @@ TEST_CASE("Non-Overlapping Imprinted Volumes Test")
 TEST_CASE("Enclosed Volume Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("enclosed.h5m");
   mm->init();
@@ -90,7 +90,7 @@ TEST_CASE("Enclosed Volume Test")
 TEST_CASE("Small Overlap Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("small_overlap.h5m");
   mm->init();
@@ -111,7 +111,7 @@ TEST_CASE("Small Overlap Test")
 TEST_CASE("Small Edge Overlap Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("overlap-edge.h5m");
   mm->init();
@@ -143,7 +143,7 @@ TEST_CASE("Small Edge Overlap Test")
 TEST_CASE("Beam Edge Overlap Test")
 {
   // Create a mesh manager
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
   const auto& mm = xdg->mesh_manager();
   mm->load_file("beam-overlaps.h5m");
   mm->init();

@@ -79,7 +79,7 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
 
 TEST_CASE("Test Ray Fire Brick")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
@@ -143,7 +143,7 @@ TEST_CASE("Test Cylinder-Brick Initialization")
 
 TEST_CASE("Test Ray Fire Cylinder-Brick")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
@@ -194,7 +194,7 @@ TEST_CASE("Test Ray Fire Cylinder-Brick")
 
 TEST_CASE("Test Ray Fire Jezebel")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
@@ -225,7 +225,7 @@ TEST_CASE("Test Ray Fire Jezebel")
 
 TEST_CASE("Test Point Location Jezebel")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
@@ -251,7 +251,7 @@ TEST_CASE("Test Point Location Jezebel")
 
 TEST_CASE("Test Point Location Cylinder-Brick")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, RTLibrary::EMBREE);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
   xdg->mesh_manager()->mesh_library();
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
   const auto& mesh_manager = xdg->mesh_manager();
