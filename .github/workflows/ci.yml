@@ -42,6 +42,8 @@ jobs:
         run: |
           cd ~
           git clone https://github.com/libMesh/libmesh.git
+          cd libmesh
+          git checkout v1.7.0
 
       - name: Environment Variables
         run: |
