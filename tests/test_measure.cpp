@@ -10,15 +10,16 @@
 // xdg test includes
 #include "mesh_mock.h"
 #include "util.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 
 TEST_CASE("Test Mesh Mock")
 {
   std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  mm->init(); // this should do nothing, but its good practice to call it
+  mm->init(); // this should do nothing, but it's good practice to call it
 
-  XDG xdg{mm};
+  XDG xdg{mm, RTLibrary::EMBREE};
 
   double volume = xdg.measure_volume(mm->volumes()[0]);
   REQUIRE_THAT(volume, Catch::Matchers::WithinAbs(693., 1e-6));

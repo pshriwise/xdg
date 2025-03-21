@@ -11,6 +11,7 @@
 // xdg test includes
 #include "mesh_mock.h"
 #include "util.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 

@@ -10,6 +10,7 @@
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
 #include "xdg/xdg.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 
@@ -62,13 +63,13 @@ TEST_CASE("Test BVH Build")
   REQUIRE(mesh_manager->num_volumes() == 2);
   REQUIRE(mesh_manager->num_surfaces() == 6);
 
-  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<EmbreeRayTracer>();
 
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 2);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 2);
 }
 
 TEST_CASE("Test Ray Fire MOAB")

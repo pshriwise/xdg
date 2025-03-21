@@ -11,6 +11,7 @@
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/libmesh/mesh_manager.h"
 #include "xdg/xdg.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 
@@ -51,11 +52,11 @@ TEST_CASE("Test BVH Build Brick")
   REQUIRE(mesh_manager->num_volumes() == 1);
   REQUIRE(mesh_manager->num_surfaces() == 1);
 
-  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<EmbreeRayTracer>();
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
 }
 
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
@@ -67,13 +68,13 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
   REQUIRE(mesh_manager->num_volumes() == 1);
   REQUIRE(mesh_manager->num_surfaces() == 6);
 
-  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<RayTracer>();
+  std::unique_ptr<RayTracer> ray_tracing_interface = std::make_unique<EmbreeRayTracer>();
 
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
 
-  REQUIRE(ray_tracing_interface->num_registered_scenes() == 1);
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
 }
 
 TEST_CASE("Test Ray Fire Brick")
