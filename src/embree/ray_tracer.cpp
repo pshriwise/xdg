@@ -42,8 +42,8 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
   auto volume_scene = this->create_embree_scene();
 
   // allocate storage for this volume
-  auto volume_elements = mesh_manager->get_volume_faces(volume_id);
-  this->primitive_ref_storage_[volume_scene].resize(volume_elements.size());
+  auto volume_faces = mesh_manager->get_volume_faces(volume_id);
+  this->primitive_ref_storage_[volume_scene].resize(volume_faces.size());
   auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
@@ -56,13 +56,13 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
     else if (volume_id == surf_to_vol_senses.second) triangle_sense = Sense::REVERSE;
     else fatal_error("Volume {} is not a parent of surface {}", volume_id, surface_id);
 
-    auto surface_elements = mesh_manager->get_surface_faces(surface_id);
-    for (int i = 0; i < surface_elements.size(); ++i) {
+    auto surface_faces = mesh_manager->get_surface_faces(surface_id);
+    for (int i = 0; i < surface_faces.size(); ++i) {
       auto& primitive_ref = triangle_storage[i + storage_offset];
-      primitive_ref.primitive_id = surface_elements[i];
+      primitive_ref.primitive_id = surface_faces[i];
       primitive_ref.sense = triangle_sense;
     }
-    storage_offset += surface_elements.size();
+    storage_offset += surface_faces.size();
  }
 
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
