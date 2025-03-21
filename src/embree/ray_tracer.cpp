@@ -3,7 +3,6 @@
 #include "xdg/geometry_data.h"
 #include "xdg/ray.h"
 
-
 namespace xdg {
 
 void error(void* dum, RTCError code, const char* str) {
@@ -39,8 +38,8 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
                            MeshID volume_id)
 {
   TreeID tree = next_tree_id();
-  trees_.push_back(tree); 
-  auto volume_scene = this->create_embree_scene();  
+  trees_.push_back(tree);
+  auto volume_scene = this->create_embree_scene();
 
   // allocate storage for this volume
   auto volume_elements = mesh_manager->get_volume_elements(volume_id);
@@ -68,12 +67,12 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
 
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
-  auto bump = bounding_box_bump(mesh_manager, volume_id); 
+  auto bump = bounding_box_bump(mesh_manager, volume_id);
 /*
   TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
-  implementation. Then another virtual function can be called register_volume_RT_specific. 
+  implementation. Then another virtual function can be called register_volume_RT_specific.
   in this scenario register_volume isn't a virtual function but instead calls a virtual function.
-  That virtual function will be overrided to do the RT specific things in registering the volume.  
+  That virtual function will be overrided to do the RT specific things in registering the volume.
   Primitive_ref_storage is the only non-local variable used in this context that is a member of the derived class.
   However when implementing GPRT the above may need to be written differently with GPU buffers in mind.
   So we will leave it as is for now.

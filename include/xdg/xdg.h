@@ -10,7 +10,6 @@
 
 namespace xdg {
 
-
 class XDG {
 
 public:

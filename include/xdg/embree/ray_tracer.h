@@ -1,7 +1,6 @@
 #ifndef _XDG_EMBREE_RAY_TRACING_INTERFACE_H
 #define _XDG_EMBREE_RAY_TRACING_INTERFACE_H
 
-
 #include <memory>
 #include <vector>
 #include <unordered_map>
@@ -14,8 +13,6 @@
 #include "xdg/ray_tracing_interface.h"
 #include "xdg/ray.h"
 #include "xdg/error.h"
-
-
 
 namespace xdg {
 
@@ -56,8 +53,8 @@ public:
                 const Direction& direction,
                 double& dist) const override;
 
-  // Accessors 
-  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const override 
+  // Accessors
+  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const override
   { return user_data_map_.at(surface_to_geometry_map_.at(surface)); };
 
   // Embree members
@@ -70,7 +67,7 @@ public:
   // Internal Embree Mappings
   std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
 
-  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree 
+  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
