@@ -5,7 +5,7 @@
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/xdg.h"
-
+#include "xdg/embree/ray_tracer.h"
 #include "mesh_mock.h"
 
 using namespace xdg;
@@ -16,7 +16,7 @@ TEST_CASE("Test Occluded")
   mm->init(); // this should do nothing, just good practice to call it
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
   xdg->prepare_raytracer();
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
+  auto rti = xdg->ray_tracing_interface();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);
 
   // setup ray to fire that won't hit the mock model

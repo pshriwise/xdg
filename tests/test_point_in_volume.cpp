@@ -4,7 +4,7 @@
 // xdg includes
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/ray_tracing_interface.h"
-
+#include "xdg/embree/ray_tracer.h"
 #include "mesh_mock.h"
 
 using namespace xdg;
@@ -15,7 +15,7 @@ TEST_CASE("Test Point in Volume")
   mm->init(); // this should do nothing, just good practice to call it
   REQUIRE(mm->mesh_library() == MeshLibrary::INTERNAL);
 
-  std::shared_ptr<RayTracer> rti = std::make_shared<RayTracer>();
+  std::shared_ptr<RayTracer> rti = std::make_shared<EmbreeRayTracer>();
   TreeID volume_tree = rti->register_volume(mm, mm->volumes()[0]);
 
   Position point {0.0, 0.0, 0.0};

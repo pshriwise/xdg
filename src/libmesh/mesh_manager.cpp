@@ -30,7 +30,7 @@ void LibMeshManager::load_file(const std::string &filepath) {
 }
 
 LibMeshManager::~LibMeshManager() {
-  mesh_->clear();
+  if (mesh_ != nullptr) mesh_->clear();
   libmesh_init.reset();
 }
 

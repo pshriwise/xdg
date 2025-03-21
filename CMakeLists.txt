@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(openmc C CXX)
 
-option(XDG_ENABLE_MOAB    "Enable support for the MOAB mesh library"    ON)
-option(XDG_ENABLE_MFEM    "Enable support for the MFEM mesh library"    OFF)
-option(XDG_ENABLE_LIBMESH "Enable support for the libMesh mesh library" OFF)
-option(XDG_BUILD_TESTS    "Enable C++ unit testing"                     ON)
-option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                   ON)
+option(XDG_ENABLE_MOAB    "Enable support for the MOAB mesh library"          ON)
+option(XDG_ENABLE_MFEM    "Enable support for the MFEM mesh library"         OFF)
+option(XDG_ENABLE_LIBMESH "Enable support for the libMesh mesh library"      OFF)
+option(XDG_ENABLE_EMBREE  "Enable support for the Embree ray tracing library" ON)
+option(XDG_BUILD_TESTS    "Enable C++ unit testing"                           ON)
+option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                         ON)
 
 # Set version numbers
 set(XDG_VERSION_MAJOR 0)
@@ -37,29 +38,31 @@ if (XDG_ENABLE_MOAB)
 find_package(MOAB REQUIRED HINTS ${MOAB_DIR})
 endif()
 
-# find Embree for CPU ray tracing
+if (XDG_ENABLE_EMBREE)
+  # find Embree for CPU ray tracing
 
-# Because Embree doesn't support version ranges there's a limitation
-# that the "requested" major version matches that of the Embree package.
-# For version ranges, this appears to go in as the lower bound of the
-# version range.
+  # Because Embree doesn't support version ranges there's a limitation
+  # that the "requested" major version matches that of the Embree package.
+  # For version ranges, this appears to go in as the lower bound of the
+  # version range.
 
-# attempt once for Embree versions between 4 and 5
-find_package(embree 4.0.0...<4.1.0 PATHS ${CMAKE_PREFIX_PATH})
-# if Embree wasn't found, try again for versions between 3 and 4
-if (NOT DEFINED EMBREE_VERSION)
-   message(WARNING "Could not find an Embree version > v4.0. \nSearching for older versions of Embree...")
-   find_package(embree 3.0.0...<4.0.0 REQUIRED PATHS ${CMAKE_PREFIX_PATH})
-endif()
+  # attempt once for Embree versions between 4 and 5
+  find_package(embree 4.0.0...<4.1.0 PATHS ${CMAKE_PREFIX_PATH})
+  # if Embree wasn't found, try again for versions between 3 and 4
+  if (NOT DEFINED EMBREE_VERSION)
+    message(WARNING "Could not find an Embree version > v4.0. \nSearching for older versions of Embree...")
+    find_package(embree 3.0.0...<4.0.0 REQUIRED PATHS ${CMAKE_PREFIX_PATH})
+  endif()
 
-if (NOT DEFINED EMBREE_VERSION)
-  message(FATAL_ERROR "Embree package was not found")
-endif()
-if (NOT ${EMBREE_VERSION} VERSION_GREATER 3.6.0)
-  message(FATAL_ERROR "XDG requires Embree v3.6.1 or higher.")
-endif()
+  if (NOT DEFINED EMBREE_VERSION)
+    message(FATAL_ERROR "Embree package was not found")
+  endif()
+  if (NOT ${EMBREE_VERSION} VERSION_GREATER 3.6.0)
+    message(FATAL_ERROR "XDG requires Embree v3.6.1 or higher.")
+  endif()
 
-message(STATUS "Found Embree ${EMBREE_VERSION} at ${EMBREE_ROOT_DIR}")
+  message(STATUS "Found Embree ${EMBREE_VERSION} at ${EMBREE_ROOT_DIR}")
+endif()  
 
 # Catch2 testing module
 if (XDG_BUILD_TESTS)
@@ -93,6 +96,12 @@ src/xdg.cpp
 src/overlap_check/overlap.cpp
 src/overlap_check/progressBar.cpp
 )
+
+if (XDG_ENABLE_EMBREE)
+list(APPEND xdg_sources
+src/embree/ray_tracer.cpp
+)
+endif()
 
 if (XDG_ENABLE_LIBMESH)
 list(APPEND xdg_sources
@@ -140,11 +149,13 @@ endif()
 
 add_library(xdg SHARED ${xdg_sources})
 
-# pass precompile definition depending on embree version
-if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
-  target_compile_definitions(xdg PUBLIC XDG_EMBREE4)
-else()
-  target_compile_definitions(xdg PUBLIC XDG_EMBREE3)
+if(XDG_ENABLE_EMBREE)
+  # pass precompile definition depending on embree version
+  if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
+    target_compile_definitions(xdg PUBLIC XDG_EMBREE4)
+  else()
+    target_compile_definitions(xdg PUBLIC XDG_EMBREE3)
+  endif()
 endif()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -174,7 +185,13 @@ if (XDG_ENABLE_LIBMESH)
   target_compile_definitions(xdg PUBLIC XDG_ENABLE_LIBMESH)
 endif()
 
-target_link_libraries(xdg embree fmt::fmt)
+# ==========================
+# Link ray tracing libraries
+# ==========================
+
+if (XDG_ENABLE_EMBREE)
+  target_link_libraries(xdg embree fmt::fmt)
+endif()
 
 # ===================
 # Link mesh libraries

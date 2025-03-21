@@ -8,6 +8,7 @@
 #include "xdg/xdg.h"
 
 #include "mesh_mock.h"
+#include "xdg/embree/ray_tracer.h"
 
 using namespace xdg;
 
