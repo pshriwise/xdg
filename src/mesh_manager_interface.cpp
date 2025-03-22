@@ -1,6 +1,7 @@
 #include "xdg/mesh_manager_interface.h"
 
 #include <algorithm>
+#include <set>
 
 #include "xdg/error.h"
 
@@ -50,6 +51,17 @@ MeshManager::volume_has_property(MeshID volume, PropertyType type) const
   return volume_metadata_.count({volume, type}) > 0;
 }
 
+std::vector<MeshID>
+MeshManager::get_volume_faces(MeshID volume) const
+{
+  std::set<MeshID> elements;
+  for (auto surface : this->get_volume_surfaces(volume)) {
+    auto surface_elements = this->get_surface_faces(surface);
+    elements.insert(surface_elements.begin(), surface_elements.end());
+  }
+  return std::vector<MeshID>(elements.begin(), elements.end());
+}
+
 bool
 MeshManager::surface_has_property(MeshID surface, PropertyType type) const
 {
@@ -84,9 +96,9 @@ MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
   return ID_NONE;
 }
 
-Direction MeshManager::triangle_normal(MeshID element) const
+Direction MeshManager::face_normal(MeshID element) const
 {
-  auto vertices = this->triangle_vertices(element);
+  auto vertices = this->face_vertices(element);
   return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
 }
 
@@ -98,9 +110,9 @@ MeshManager::element_bounding_box(MeshID element) const
 }
 
 BoundingBox
-MeshManager::triangle_bounding_box(MeshID element) const
+MeshManager::face_bounding_box(MeshID element) const
 {
-  auto vertices = this->triangle_vertices(element);
+  auto vertices = this->face_vertices(element);
   return BoundingBox::from_points(vertices);
 }
 
@@ -118,7 +130,7 @@ MeshManager::volume_bounding_box(MeshID volume) const
 BoundingBox
 MeshManager::surface_bounding_box(MeshID surface) const
 {
-  auto elements = this->get_surface_elements(surface);
+  auto elements = this->get_surface_faces(surface);
   BoundingBox bb;
   for (const auto& element : elements) {
     bb.update(this->element_bounding_box(element));

@@ -223,6 +223,21 @@ TEST_CASE("Test Ray Fire Jezebel")
   }
 }
 
+TEST_CASE("Test Volume Element Count Jezebel")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+
+  auto elements = mesh_manager->get_volume_elements(volume);
+  REQUIRE(elements.size() == 10333);
+}
 TEST_CASE("Test Point Location Jezebel")
 {
   std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
@@ -279,4 +294,23 @@ TEST_CASE("Test Point Location Cylinder-Brick")
   origin = {0.0, 0.0, 100.0};
   volume_id = xdg->find_volume(origin, direction);
   REQUIRE(volume_id == xdg->mesh_manager()->implicit_complement());
+}
+
+TEST_CASE("Test Volume Element Count Cylinder-Brick")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("cyl-brick.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+  auto elements = mesh_manager->get_volume_elements(volume);
+  REQUIRE(elements.size() == 7587);
+
+  volume = 2;
+  elements = mesh_manager->get_volume_elements(volume);
+  REQUIRE(elements.size() == 9037);
 }

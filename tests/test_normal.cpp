@@ -35,12 +35,12 @@ TEST_CASE("Test Get Normal")
 
   // call for the normal w/o a triangle, it should be the same as the returned triangle from the closest call
   Direction normal = xdg->surface_normal(surface, origin);
-  REQUIRE(normal == mm->triangle_normal(triangle));
+  REQUIRE(normal == mm->face_normal(triangle));
 
   // move the origin, but pass the triangle
   // This should result in the same normal as well b/c the triangle is used intead of a call to 'closest'
   origin = {-2.0, 0.0, 0.0};
   std::vector<MeshID> exclude_primitives {triangle};
   normal = xdg->surface_normal(surface, origin, &exclude_primitives);
-  REQUIRE(normal == mm->triangle_normal(triangle));
+  REQUIRE(normal == mm->face_normal(triangle));
 }

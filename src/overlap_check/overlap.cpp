@@ -72,11 +72,11 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   /* Loop over surface instead of all volumes as it results in duplicating the number of checks when it does the nodes in the
      implicit complement as well as the explicit volumes. Also removes an uneccesary layer of nesting. */
 
-  for (const auto& surf:allSurfs){  
-    auto surfElements = mm->get_surface_elements(surf);
+  for (const auto& surf:allSurfs){
+    auto surfElements = mm->get_surface_faces(surf);
     totalElements += surfElements.size();
     for (const auto& tri:surfElements){
-      auto triVert = mm->triangle_vertices(tri);
+      auto triVert = mm->face_vertices(tri);
       // Push vertices in triangle to end of array
       allVerts.push_back(triVert[0]);
       allVerts.push_back(triVert[1]);
@@ -109,7 +109,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
   }
 
-  if (overlap_map.empty()) { 
+  if (overlap_map.empty()) {
     std::cout << "No Overlaps found at vertices! \n" << std::endl;
   }
 
@@ -127,13 +127,13 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     return;
   }
 
-  std::cout << "Checking for overlapped regions along element edges..." << std::endl; 
-  
+  std::cout << "Checking for overlapped regions along element edges..." << std::endl;
+
   ProgressBar edgeProgBar;
   std::vector<Position> edgeOverlapLocs;
 
   // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
-  int totalEdgeRays = totalElements*(3)*(allVols.size()-2); 
+  int totalEdgeRays = totalElements*(3)*(allVols.size()-2);
   int edgeRaysCast = 0;
 
 #pragma omp parallel shared(overlap_map, edgeRaysCast)
@@ -151,14 +151,14 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       {
         return vol != parentVols.first && vol != parentVols.second;
       });
-      auto elementsOnSurf = mm->get_surface_elements(surf);
+      auto elementsOnSurf = mm->get_surface_faces(surf);
       for (const auto& element:elementsOnSurf) {
-        auto tri = mm->triangle_vertices(element);
+        auto tri = mm->face_vertices(element);
         auto rayQueries = return_ray_queries(tri);
         for (const auto& query:rayQueries)
         {
           auto volHit = check_along_edge(xdg, mm, query, volsToCheck, edgeOverlapLocs);
-          if (volHit != -1) 
+          if (volHit != -1)
           {
             overlap_map[{volHit, parentVols.first}] = edgeOverlapLocs.back();
           }
@@ -171,7 +171,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
   }
 
-  if (overlap_map.empty()) { 
+  if (overlap_map.empty()) {
     std::cout << "No Overlaps found along edges! \n" << std::endl;
   }
 
@@ -203,8 +203,8 @@ void report_overlaps(const OverlapMap& overlap_map) {
   }
 }
 
-/* Return rayQueries along element edges. Currently limited to Triangles as ElementVertices is defined as a std::array<xdg::vertex, 3> 
-   but the rest of the function body could easily work with a container of any size so could readily be generalised 
+/* Return rayQueries along element edges. Currently limited to Triangles as ElementVertices is defined as a std::array<xdg::vertex, 3>
+   but the rest of the function body could easily work with a container of any size so could readily be generalised
    to work with quads. */
 std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
 {
@@ -216,9 +216,9 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
     const auto& v1 = element[vertex];
     const auto& v2 = element[nextVertex];
 
-    Direction dir = v2 - v1;    
+    Direction dir = v2 - v1;
     double edgeLength = dir.length();
-    dir /= edgeLength; 
+    dir /= edgeLength;
 
     // Add the edge ray query
     rayQueries.push_back({v1, dir, edgeLength});
@@ -227,10 +227,10 @@ std::vector<EdgeRayQuery> return_ray_queries(const ElementVertices &element)
 }
 
 // Fire a ray along a single edge direction firing against all volumes except for the current surfaces' parent volumes (fowards+reverse sense). Returns volume ID of the surface hit
-MeshID check_along_edge(std::shared_ptr<XDG> xdg, 
-                        std::shared_ptr<MeshManager> mm, 
-                        const EdgeRayQuery& rayquery, 
-                        const std::vector<MeshID>& volsToCheck, 
+MeshID check_along_edge(std::shared_ptr<XDG> xdg,
+                        std::shared_ptr<MeshManager> mm,
+                        const EdgeRayQuery& rayquery,
+                        const std::vector<MeshID>& volsToCheck,
                         std::vector<Position>& edgeOverlapLocs)
 {
   auto origin = rayquery.origin;
@@ -240,7 +240,7 @@ MeshID check_along_edge(std::shared_ptr<XDG> xdg,
   int counter=0;
   for (const auto& testVol:volsToCheck)
   {
-    auto ray = xdg->ray_fire(testVol, origin, direction, distanceMax); 
+    auto ray = xdg->ray_fire(testVol, origin, direction, distanceMax);
     double rayDistance = ray.first;
     MeshID surfHit = ray.second;
     if (surfHit != -1) // if surface hit (Valid MeshID returned)
@@ -248,7 +248,7 @@ MeshID check_along_edge(std::shared_ptr<XDG> xdg,
       counter++;
       volHit = mm->get_parent_volumes(surfHit);
 
-      Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z}; 
+      Position collisionPoint = {origin.x + rayDistance*direction.x, origin.y + rayDistance*direction.y, origin.z + rayDistance*direction.z};
       // Check if overlap location already added to list from another ray
       if (std::find(edgeOverlapLocs.begin(), edgeOverlapLocs.end(), collisionPoint) == edgeOverlapLocs.end()) {
         edgeOverlapLocs.push_back(collisionPoint);

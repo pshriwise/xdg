@@ -150,7 +150,7 @@ Direction XDG::surface_normal(MeshID surface,
     //   fatal_error("Point {} was closest to surface {}, not surface {}, in volume {}.", point, geom_data.surface_id, surface, surface_vols.first);
     // }
   }
-  return mesh_manager()->triangle_normal(element);
+  return mesh_manager()->face_normal(element);
 }
 
 double XDG::measure_volume(MeshID volume) const
@@ -167,9 +167,9 @@ double XDG::measure_volume(MeshID volume) const
   for (int i = 0; i < surfaces.size(); ++i) {
     MeshID& surface = surfaces[i];
     double surface_contribution {0.0};
-    auto triangles = mesh_manager()->get_surface_elements(surface);
+    auto triangles = mesh_manager()->get_surface_faces(surface);
     for (auto triangle : triangles) {
-      surface_contribution += triangle_volume_contribution(mesh_manager()->triangle_vertices(triangle));
+      surface_contribution += triangle_volume_contribution(mesh_manager()->face_vertices(triangle));
     }
     if (surface_senses[i] == Sense::REVERSE) surface_contribution *= -1.0;
     volume_total += surface_contribution;
@@ -181,8 +181,8 @@ double XDG::measure_volume(MeshID volume) const
 double XDG::measure_surface_area(MeshID surface) const
 {
   double area {0.0};
-  for (auto triangle : mesh_manager()->get_surface_elements(surface)) {
-    area += triangle_area(mesh_manager()->triangle_vertices(triangle));
+  for (auto triangle : mesh_manager()->get_surface_faces(surface)) {
+    area += triangle_area(mesh_manager()->face_vertices(triangle));
   }
   return area;
 }

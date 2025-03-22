@@ -78,20 +78,24 @@ public:
   }
 
   int num_volume_elements(MeshID volume) const override {
+    return get_volume_elements(volume).size();
+  }
+
+  int num_volume_faces(MeshID volume) const override {
     return mesh()->n_elem();
   }
 
-  int num_surface_elements(MeshID surface) const override {
+  int num_surface_faces(MeshID surface) const override {
     return mesh()->n_elem();
   }
 
-  std::vector<MeshID> get_volume_elements(MeshID volume) const override;
+  std::vector<MeshID> get_volume_elements(MeshID volume) const;
 
-  std::vector<MeshID> get_surface_elements(MeshID surface) const override;
+  std::vector<MeshID> get_surface_faces(MeshID surface) const override;
 
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
-  std::array<Vertex, 3> triangle_vertices(MeshID triangle) const override;
+  std::array<Vertex, 3> face_vertices(MeshID triangle) const override;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
@@ -292,7 +296,7 @@ public:
 
   // sideset face mapping, stores the element and the side number
   // for each face in the mesh that lies on a boundary
-  std::unordered_map<MeshID, std::vector<MeshID>> sideset_element_map_;
+  std::unordered_map<MeshID, std::vector<MeshID>> sideset_face_map_;
 
   //! Mapping of subdomain interfaces (Identified by subdomain ID pairs) to the
   //! set of element faces that make up the interface

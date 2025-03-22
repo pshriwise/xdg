@@ -69,7 +69,7 @@ void LibMeshManager::init() {
   // the elements associated with each sideset
   for (auto entry : boundary_info.get_sideset_map()) {
     const libMesh::Elem* other_elem = entry.first->neighbor_ptr(entry.second.first);
-    sideset_element_map_[entry.second.second].push_back(sidepair_id({entry.first, entry.second.first}));
+    sideset_face_map_[entry.second.second].push_back(sidepair_id({entry.first, entry.second.first}));
   }
 
   // search for any implicit sidesets (faces that are the boundary between two
@@ -191,7 +191,7 @@ void LibMeshManager::merge_sidesets_into_interfaces() {
   // Partial replacement is allowed. If any elements remain in the
   // interface sets after this operation, they will be treated as interfaces
   // between subdomains
-  for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
+  for (const auto& [sideset_id, sideset_elems] : sideset_face_map_) {
     if (sideset_elems.size() == 0) continue;
 
     // determine the subdomain IDs for the sideset
@@ -230,7 +230,7 @@ void LibMeshManager::merge_sidesets_into_interfaces() {
 void LibMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // start by creating surfaces for each sideset. These have explicit IDs
   // and may be used to define boundary conditions.
-  for (const auto& [sideset_id, sideset_elems] : sideset_element_map_) {
+  for (const auto& [sideset_id, sideset_elems] : sideset_face_map_) {
     surfaces().push_back(sideset_id);
     for (const auto& elem : sideset_elems) {
       surface_map_[sideset_id].push_back(elem);
@@ -334,11 +334,12 @@ LibMeshManager::get_volume_elements(MeshID volume) const {
 }
 
 std::vector<MeshID>
-LibMeshManager::get_surface_elements(MeshID surface) const {
+LibMeshManager::get_surface_faces(MeshID surface) const {
   return surface_map_.at(surface);
 }
 
-std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
+std::vector<Vertex>
+LibMeshManager::element_vertices(MeshID element) const {
   std::vector<Vertex> vertices;
   auto elem = mesh()->elem_ptr(element);
   for (unsigned int i = 0; i < elem->n_nodes(); ++i) {
@@ -349,7 +350,7 @@ std::vector<Vertex> LibMeshManager::element_vertices(MeshID element) const {
 }
 
 std::array<Vertex, 3>
-LibMeshManager::triangle_vertices(MeshID element) const {
+LibMeshManager::face_vertices(MeshID element) const {
   const auto& side_pair = sidepair(element);
   std::array<Vertex, 3> vertices;
   for (unsigned int i = 0; i < 3; ++i) {
