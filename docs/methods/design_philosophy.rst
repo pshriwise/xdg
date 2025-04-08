@@ -7,8 +7,19 @@ A UML diagram of the current XDG class hierarchy is shown below:
 
 .. raw:: html
 
-    <iframe src="https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=000000&edit=_blank&layers=1&nav=1&title=xdg-uml.drawio&dark=0#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1jOOYsrMjI29D81mtemU_79hzjtlid_aa%26export%3Ddownload"
-            width="100%" height="600" frameborder="0" style="max-width: 100%; height: auto;"></iframe>
+.. raw:: html
+
+    <div id="xdg-diagram-container"></div>
+    <script>
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const darkMode = isDark ? 1 : 0;
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=000000&edit=_blank&layers=1&nav=1&title=xdg-uml.drawio&dark=${darkMode}#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1jOOYsrMjI29D81mtemU_79hzjtlid_aa%26export%3Ddownload`;
+      iframe.width = "800";
+      iframe.height = "600";
+      iframe.frameBorder = "0";
+      document.getElementById('xdg-diagram-container').appendChild(iframe);
+    </script>
 
 The primary design goals of XDG are centered on the following:
 
