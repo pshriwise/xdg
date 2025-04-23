@@ -29,6 +29,12 @@ TEST_CASE("Test Brick")
 
   REQUIRE(mesh_manager->num_volumes() == 1);
   REQUIRE(mesh_manager->num_surfaces() == 1);
+
+  // get a random element from volume 1
+  auto elements = mesh_manager->get_volume_elements(1);
+  REQUIRE(!elements.empty());
+  MeshID random_element = elements[0];
+  REQUIRE(mesh_manager->element_volume_id(random_element) == 1);
 }
 
 
@@ -56,7 +62,8 @@ TEST_CASE("Test BVH Build Brick")
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
-  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
+  // volume elements will be detected on the libmesh mesh, so two trees will be registered
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 2);
 }
 
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
@@ -73,8 +80,8 @@ TEST_CASE("Test BVH Build Brick w/ Sidesets")
   for (auto volume : mesh_manager->volumes()) {
     ray_tracing_interface->register_volume(mesh_manager, volume);
   }
-
-  REQUIRE(ray_tracing_interface->num_registered_trees() == 1);
+  // volume elements will be detected on the libmesh mesh, so two trees will be registered
+  REQUIRE(ray_tracing_interface->num_registered_trees() == 2);
 }
 
 TEST_CASE("Test Ray Fire Brick")
@@ -112,6 +119,16 @@ TEST_CASE("Test Cylinder-Brick Initialization")
   REQUIRE(mesh_manager->num_volumes() == 2);
 
   REQUIRE(mesh_manager->num_surfaces() == 12);
+
+  // get an element from each volume and check its volume ID
+  auto vol1_elems = mesh_manager->get_volume_elements(1);
+  REQUIRE(!vol1_elems.empty());
+  REQUIRE(mesh_manager->element_volume_id(vol1_elems[0]) == 1);
+
+  auto vol2_elems = mesh_manager->get_volume_elements(2);
+  REQUIRE(!vol2_elems.empty());
+  REQUIRE(mesh_manager->element_volume_id(vol2_elems[0]) == 2);
+
 
   mesh_manager->parse_metadata();
 
@@ -313,4 +330,23 @@ TEST_CASE("Test Volume Element Count Cylinder-Brick")
   volume = 2;
   elements = mesh_manager->get_volume_elements(volume);
   REQUIRE(elements.size() == 9037);
+}
+
+TEST_CASE("Test Find Element Brick")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("brick.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+
+  MeshID element = xdg->find_element(volume, {0.0, 0.0, 0.0});
+  REQUIRE(element != ID_NONE);
+
+  element = xdg->find_element(volume, {0.0, 0.0, 100.0});
+  REQUIRE(element == ID_NONE);
 }
