@@ -111,8 +111,8 @@ enum class SurfaceElementType {
 };
 
 enum class VolumeElementType {
-  HEX = 0,
-  TET = 1,
+  TET = 0,
+  HEX = 1,
 };
 
 } // namespace xdg
