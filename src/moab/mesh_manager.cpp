@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <set>
 
 #include "xdg/moab/mesh_manager.h"
 
@@ -271,38 +272,83 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 
 std::vector<int> 
 MOABMeshManager::get_surface_connectivity(MeshID surface) const
-{
-  moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
-  auto faces = _surface_faces(surface);
-
-  moab::Range conn;
-  this->moab_interface()->get_connectivity(faces, conn);
-
+{ 
   std::vector<int> connectivity;
-  connectivity.insert(connectivity.end(), conn.begin(), conn.end());
-
+  auto faces = get_surface_faces(surface);
+  int nodes;
+  for (auto face : faces) { 
+    moab::EntityHandle element_handle;
+    std::vector<EntityHandle> conn;
+    this->moab_interface()->handle_from_id(moab::MBTRI, face, element_handle);
+    this->moab_interface()->get_connectivity(&element_handle, 1, conn);
+    connectivity.push_back(conn[0]);
+    connectivity.push_back(conn[1]);
+    connectivity.push_back(conn[2]);
+  }
   return connectivity;
 }
 
 std::vector<Vertex> 
 MOABMeshManager::get_surface_vertices(MeshID surface) const
 {
-  auto conn = get_surface_connectivity(surface);  
-  
-  // convert to moab::EntityHandle for get_coords
+  auto conn = get_surface_connectivity(surface);
   std::vector<moab::EntityHandle> verts;
-  verts.insert(verts.end(), conn.begin(), conn.end());
 
-  std::vector<double> coords(conn.size() * 3);
+  verts.insert(verts.end(), conn.begin(), conn.end());
+  std::vector<double> coords(verts.size() * 3);
+
   this->moab_interface()->get_coords(verts.data(), verts.size(), coords.data());
 
-  std::vector<Vertex> vertices;
-  vertices.reserve(conn.size());
-  for (size_t i = 0; i < verts.size(); ++i) {
-      vertices.emplace_back(coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]);
+  std::vector<Vertex> vertices(verts.size());
+  for (int i = 0; i < verts.size(); i++) {
+    vertices[i] = Vertex(coords[3*i], coords[3*i+1], coords[3*i+2]);
   }
 
-  return vertices;
+  return vertices; 
+}
+
+std::pair<std::vector<Vertex>, std::vector<int>> 
+MOABMeshManager::get_surface_mesh(MeshID surface) const
+{
+  std::vector<int> connectivity;
+  std::vector<moab::EntityHandle> verts;
+  auto faces = get_surface_faces(surface);
+
+  for (auto face : faces) { 
+    moab::EntityHandle element_handle;
+    std::vector<EntityHandle> conn;
+    this->moab_interface()->handle_from_id(moab::MBTRI, face, element_handle);
+    this->moab_interface()->get_connectivity(&element_handle, 1, conn);
+    connectivity.push_back(conn[0]);
+    connectivity.push_back(conn[1]);
+    connectivity.push_back(conn[2]);
+    verts.insert(verts.end(), conn.begin(), conn.end());
+  }
+
+  // Remove duplicate vertices
+  std::sort(verts.begin(), verts.end());
+  verts.erase(std::unique(verts.begin(), verts.end()), verts.end());
+
+  // Retrieve vertex coordinates
+  std::vector<double> coords(verts.size() * 3);
+  this->moab_interface()->get_coords(verts.data(), verts.size(), coords.data());
+
+  // Map vertices to their coordinates
+  std::vector<Vertex> vertices(verts.size());
+  for (size_t i = 0; i < verts.size(); i++) {
+    vertices[i] = Vertex(coords[3 * i], coords[3 * i + 1], coords[3 * i + 2]);
+  }
+
+  // Remap connectivity indices to local vertex indices
+  std::map<moab::EntityHandle, int> handle_to_index;
+  for (size_t i = 0; i < verts.size(); i++) {
+    handle_to_index[verts[i]] = i;
+  }
+  for (size_t i = 0; i < connectivity.size(); i++) {
+    connectivity[i] = handle_to_index[connectivity[i]];
+  }
+
+  return {vertices, connectivity};
 }
 
 SurfaceElementType 
