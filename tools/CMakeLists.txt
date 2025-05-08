@@ -1,6 +1,3 @@
-
-
-
 set(TOOL_NAMES
 particle_sim
 ray_fire
@@ -15,3 +12,7 @@ foreach(tool ${TOOL_NAMES})
     target_link_libraries(${tool_exec} xdg argparse)
     install(TARGETS ${tool_exec} DESTINATION ${CMAKE_INSTALL_BINDIR}/tools)
 endforeach()
+
+if (XDG_ENABLE_GPRT)
+  add_subdirectory(gprt)
+endif()

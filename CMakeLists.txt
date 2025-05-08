@@ -5,6 +5,7 @@ option(XDG_ENABLE_MOAB    "Enable support for the MOAB mesh library"          ON
 option(XDG_ENABLE_MFEM    "Enable support for the MFEM mesh library"         OFF)
 option(XDG_ENABLE_LIBMESH "Enable support for the libMesh mesh library"      OFF)
 option(XDG_ENABLE_EMBREE  "Enable support for the Embree ray tracing library" ON)
+option(XDG_ENABLE_GPRT    "Enable support for the GPRT ray tracing library"  OFF)
 option(XDG_BUILD_TESTS    "Enable C++ unit testing"                           ON)
 option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                         ON)
 
@@ -86,6 +87,11 @@ endif()
 # argparse
 add_subdirectory(vendor/argparse)
 
+# GPRT
+if (XDG_ENABLE_GPRT)
+  add_subdirectory(vendor/GPRT)
+endif() 
+
 list(APPEND xdg_sources
 src/geometry/measure.cpp
 src/geometry/plucker.cpp
@@ -103,6 +109,12 @@ src/overlap_check/progressBar.cpp
 if (XDG_ENABLE_EMBREE)
 list(APPEND xdg_sources
 src/embree/ray_tracer.cpp
+)
+endif()
+
+if (XDG_ENABLE_GPRT)
+list(APPEND xdg_sources
+src/gprt/ray_tracer.cpp
 )
 endif()
 
@@ -188,12 +200,24 @@ if (XDG_ENABLE_LIBMESH)
   target_compile_definitions(xdg PUBLIC XDG_ENABLE_LIBMESH)
 endif()
 
+if (XDG_ENABLE_EMBREE)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_EMBREE)
+endif()
+
+if (XDG_ENABLE_GPRT)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_GPRT)
+endif()
+
 # ==========================
 # Link ray tracing libraries
 # ==========================
 
 if (XDG_ENABLE_EMBREE)
   target_link_libraries(xdg embree fmt::fmt)
+endif()
+
+if (XDG_ENABLE_GPRT)
+  target_link_libraries(xdg $<BUILD_INTERFACE:gprt>)
 endif()
 
 # ===================
