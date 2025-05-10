@@ -13,6 +13,7 @@
 #include "xdg/libmesh/mesh_manager.h"
 #endif
 
+#include "xdg/xdg.h"
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
 namespace xdg {
@@ -95,6 +96,11 @@ MeshID XDG::find_volume(const Position& point,
     }
   }
   return ID_NONE;
+}
+
+MeshID XDG::find_element(const Position& point) const
+{
+  return ray_tracing_interface()->find_element(point);
 }
 
 MeshID XDG::find_element(MeshID volume,
