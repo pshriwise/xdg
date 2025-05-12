@@ -297,6 +297,20 @@ MOABMeshManager::parse_metadata()
     if (tokens.size() == 1 && tokens[0] == "picked")
       continue;
 
+    // if no metadata keywords are present in the tokens, ignore this group
+    bool has_keywords = false;
+    for (const auto& token : tokens) {
+      if (MOAB_PROPERTY_MAP.count(token) > 0) {
+        has_keywords = true;
+        break;
+      }
+    }
+
+    if (!has_keywords) {
+      write_message(fmt::format("Ignoring group: {}", group_name));
+      continue;
+    }
+
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
     if (tokens.size() % 2 != 0) {
