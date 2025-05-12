@@ -188,6 +188,10 @@ if (XDG_ENABLE_LIBMESH)
   target_compile_definitions(xdg PUBLIC XDG_ENABLE_LIBMESH)
 endif()
 
+if (XDG_ENABLE_EMBREE)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_EMBREE)
+endif()
+
 # ==========================
 # Link ray tracing libraries
 # ==========================
