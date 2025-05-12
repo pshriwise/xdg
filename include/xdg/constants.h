@@ -52,16 +52,17 @@ static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
   {MeshLibrary::LIBMESH, "LIBMESH"}
 };
 
+static const std::map<RTLibrary, std::string> RT_LIB_TO_STR =
+{
+  {RTLibrary::EMBREE, "EMBREE"},
+  {RTLibrary::GPRT, "GPRT"},
+};
+
 // Mesh identifer type
 using MeshID = int32_t;
 
 // Invalid
 constexpr MeshID ID_NONE {-1};
-
-// GPRT stubs
-struct GPRTAccel {}; // equivalent to Embree RTCScene
-struct GPRTGeom {}; // equivalent to Embree RTCGeometry
-struct GPRTContext {}; // equivalent to Embree RTCDevice
 
 // Scene/Tree ID
 using TreeID = int32_t;
@@ -102,6 +103,17 @@ enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME
 
 //
 enum class HitOrientation { ANY, EXITING, ENTERING };
+
+// Enumerator for different element types (maybe we want more here?)
+enum class SurfaceElementType {
+  TRI = 0,
+  QUAD = 1,
+};
+
+enum class VolumeElementType {
+  TET = 0,
+  HEX = 1,
+};
 
 } // namespace xdg
 
