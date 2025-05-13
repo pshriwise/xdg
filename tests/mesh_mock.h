@@ -118,6 +118,10 @@ public:
   // Other
   virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERNAL; }
 
+  // accessors
+  const std::vector<position>& _vertices() const { return vertices; }
+  const std::vector<std::array<int, 3>>& _triangle_connectivity() const { return triangle_connectivity; }
+
 // Data members
 private:
   const BoundingBox bounding_box {-2.0, -3.0, -4.0, 5.0, 6.0, 7.0};
