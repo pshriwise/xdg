@@ -273,31 +273,21 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 std::vector<int> 
 MOABMeshManager::get_surface_connectivity(MeshID surface) const
 { 
-  std::vector<int> connectivity;
-  auto faces = get_surface_faces(surface);
-  int nodes;
-  for (auto face : faces) { 
-    moab::EntityHandle element_handle;
-    std::vector<EntityHandle> conn;
-    this->moab_interface()->handle_from_id(moab::MBTRI, face, element_handle);
-    this->moab_interface()->get_connectivity(&element_handle, 1, conn);
-    connectivity.push_back(conn[0]);
-    connectivity.push_back(conn[1]);
-    connectivity.push_back(conn[2]);
-  }
-  return connectivity;
-}
+  moab::Range connect_range;
+  this->moab_interface()->get_connectivity(_surface_faces(surface), connect_range, false);
+  return { connect_range.begin(), connect_range.end() }; // construct vector in place
+} 
 
 std::vector<Vertex> 
 MOABMeshManager::get_surface_vertices(MeshID surface) const
 {
-  auto conn = get_surface_connectivity(surface);
-  std::vector<moab::EntityHandle> verts;
+  moab::Range faces = _surface_faces(surface);
+  moab::Range verts;
+  this->moab_interface()->get_adjacencies(faces, 0, false, verts, moab::Interface::UNION);
 
-  verts.insert(verts.end(), conn.begin(), conn.end());
+  // Retrieve vertex coordinates
   std::vector<double> coords(verts.size() * 3);
-
-  this->moab_interface()->get_coords(verts.data(), verts.size(), coords.data());
+  this->moab_interface()->get_coords(verts, coords.data());
 
   std::vector<Vertex> vertices(verts.size());
   for (int i = 0; i < verts.size(); i++) {
@@ -310,28 +300,31 @@ MOABMeshManager::get_surface_vertices(MeshID surface) const
 std::pair<std::vector<Vertex>, std::vector<int>> 
 MOABMeshManager::get_surface_mesh(MeshID surface) const
 {
-  std::vector<int> connectivity;
-  std::vector<moab::EntityHandle> verts;
-  auto faces = get_surface_faces(surface);
+  moab::Range faces = _surface_faces(surface);
+  moab::Range verts;
+  this->moab_interface()->get_adjacencies(faces, 0, false, verts, moab::Interface::UNION);
 
-  for (auto face : faces) { 
-    moab::EntityHandle element_handle;
-    std::vector<EntityHandle> conn;
-    this->moab_interface()->handle_from_id(moab::MBTRI, face, element_handle);
-    this->moab_interface()->get_connectivity(&element_handle, 1, conn);
-    connectivity.push_back(conn[0]);
-    connectivity.push_back(conn[1]);
-    connectivity.push_back(conn[2]);
-    verts.insert(verts.end(), conn.begin(), conn.end());
+  // Create a mapping from global vertex handles to local surface indices
+  std::unordered_map<moab::EntityHandle, int> handle_to_index;
+  int local_index = 0;
+  for (auto vert : verts) {
+    handle_to_index[vert] = local_index++;
   }
 
-  // Remove duplicate vertices
-  std::sort(verts.begin(), verts.end());
-  verts.erase(std::unique(verts.begin(), verts.end()), verts.end());
+  std::vector<int> connectivity;
+  for (auto face : faces) {
+    std::vector<moab::EntityHandle> conn;
+    this->moab_interface()->get_connectivity(&face, 1, conn); // global indices
+
+    // Remap global indices to local indices on the surface
+    connectivity.push_back(handle_to_index[conn[0]]);
+    connectivity.push_back(handle_to_index[conn[1]]);
+    connectivity.push_back(handle_to_index[conn[2]]);
+  }
 
   // Retrieve vertex coordinates
   std::vector<double> coords(verts.size() * 3);
-  this->moab_interface()->get_coords(verts.data(), verts.size(), coords.data());
+  this->moab_interface()->get_coords(verts, coords.data());
 
   // Map vertices to their coordinates
   std::vector<Vertex> vertices(verts.size());
@@ -339,18 +332,8 @@ MOABMeshManager::get_surface_mesh(MeshID surface) const
     vertices[i] = Vertex(coords[3 * i], coords[3 * i + 1], coords[3 * i + 2]);
   }
 
-  // Remap connectivity indices to local vertex indices
-  std::map<moab::EntityHandle, int> handle_to_index;
-  for (size_t i = 0; i < verts.size(); i++) {
-    handle_to_index[verts[i]] = i;
-  }
-  for (size_t i = 0; i < connectivity.size(); i++) {
-    connectivity[i] = handle_to_index[connectivity[i]];
-  }
-
   return {vertices, connectivity};
 }
-
 SurfaceElementType 
 MOABMeshManager::get_surface_element_type(MeshID surface) const
 {
