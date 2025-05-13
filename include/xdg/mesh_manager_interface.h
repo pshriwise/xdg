@@ -46,8 +46,6 @@ public:
 
   virtual std::array<Vertex, 3> face_vertices(MeshID element) const = 0;
 
-  virtual std::vector<int> get_surface_connectivity(MeshID surface) const = 0;
-
   virtual std::vector<Vertex> get_surface_vertices(MeshID surface) const = 0;
 
   // Return a pair of {vertices, connectivity} for a given surface in the mesh

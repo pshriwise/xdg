@@ -99,11 +99,6 @@ public:
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
-  std::vector<int> get_surface_connectivity(MeshID surface) const override
-  {
-    fatal_error("LibMeshManager::get_surface_connectivity() not implemented yet");
-  }
-
   std::vector<Vertex> get_surface_vertices(MeshID surface) const override
   {
     fatal_error("LibMeshManager::get_surface_vertices() not implemented yet");

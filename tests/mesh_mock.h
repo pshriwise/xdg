@@ -75,18 +75,6 @@ public:
     return {vertices[0], vertices[1], vertices[2]};
   }
 
-  std::vector<int> get_surface_connectivity(MeshID surface) const override
-  {
-    std::vector<int> flat_connectivity;
-    flat_connectivity.reserve(triangle_connectivity.size() * 3);
-    
-    for (const auto& tri : triangle_connectivity) {
-      flat_connectivity.insert(flat_connectivity.end(), tri.begin(), tri.end());
-    }
-
-    return flat_connectivity;
-  }
-
   std::vector<Vertex> get_surface_vertices(MeshID surface) const override
   {
     fatal_error("MockMesh does not support get_surface_vertices()");
