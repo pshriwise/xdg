@@ -270,26 +270,16 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
   return surface_ids;
 }
 
-std::vector<int> 
-MOABMeshManager::get_surface_connectivity(MeshID surface) const
-{ 
-  moab::Range connect_range;
-  this->moab_interface()->get_connectivity(_surface_faces(surface), connect_range, false);
-  return { connect_range.begin(), connect_range.end() }; // construct vector in place
-} 
-
 std::vector<Vertex> 
 MOABMeshManager::get_surface_vertices(MeshID surface) const
 {
   moab::Range faces = _surface_faces(surface);
   moab::Range verts;
   this->moab_interface()->get_adjacencies(faces, 0, false, verts, moab::Interface::UNION);
-
-  // Retrieve vertex coordinates
   std::vector<double> coords(verts.size() * 3);
   this->moab_interface()->get_coords(verts, coords.data());
-
   std::vector<Vertex> vertices(verts.size());
+
   for (int i = 0; i < verts.size(); i++) {
     vertices[i] = Vertex(coords[3*i], coords[3*i+1], coords[3*i+2]);
   }
