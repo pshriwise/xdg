@@ -22,31 +22,68 @@ TEST_CASE("Test Mesh Mock")
 
 TEST_CASE("Mesh Mock Get Surface Mesh")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
-  mm->init(); // this should do nothing
+    std::shared_ptr<MeshManager> mesh_manager = std::make_shared<MeshMock>();
+    mesh_manager->init(); // This should do nothing for the mock
 
-  float fpTol = 1e-5;
+    float fpTol = 1e-5;
 
-  size_t surface_index = 0;
-  for (const auto surface : mesh_manager->surfaces()) {
-    auto surfaceMesh = mesh_manager->get_surface_mesh(surface);
-    auto vertices = surfaceMesh.first;
-    auto connectivity = surfaceMesh.second;
+    // Define the expected connectivity and vertices for each surface
+    std::vector<std::vector<int>> expected_connectivity = {
+        {0, 1, 2, 2, 1, 3}, // Surface 0
+        {4, 5, 6, 6, 5, 7}, // Surface 1
+        {0, 4, 3, 3, 4, 7}, // Surface 2
+        {1, 5, 2, 2, 5, 6}, // Surface 3
+        {0, 1, 4, 4, 1, 5}, // Surface 4
+        {3, 7, 2, 2, 7, 6}  // Surface 5
+    };
 
-    // Test connectivity
-    REQUIRE(connectivity.size() == 2);
-    for (size_t i = 0; i < connectivity.size(); ++i) {
-      REQUIRE(connectivity[i] == expected_connectivity[surface_index][i]);
+    std::vector<std::vector<Vertex>> expected_vertices = {
+        // Surface 0
+        {
+            {5.0, -3.0, 7.0}, {5.0, 6.0, 7.0}, {-2.0, -3.0, 7.0}, {-2.0, 6.0, 7.0}
+        },
+        // Surface 1
+        {
+            {5.0, -3.0, -4.0}, {5.0, 6.0, -4.0}, {-2.0, -3.0, -4.0}, {-2.0, 6.0, -4.0}
+        },
+        // Surface 2
+        {
+            {5.0, -3.0, 7.0}, {5.0, -3.0, -4.0}, {-2.0, -3.0, 7.0}, {-2.0, -3.0, -4.0}
+        },
+        // Surface 3
+        {
+            {5.0, 6.0, 7.0}, {5.0, 6.0, -4.0}, {-2.0, 6.0, 7.0}, {-2.0, 6.0, -4.0}
+        },
+        // Surface 4
+        {
+            {5.0, -3.0, 7.0}, {5.0, 6.0, 7.0}, {5.0, -3.0, -4.0}, {5.0, 6.0, -4.0}
+        },
+        // Surface 5
+        {
+            {-2.0, -3.0, 7.0}, {-2.0, 6.0, 7.0}, {-2.0, -3.0, -4.0}, {-2.0, 6.0, -4.0}
+        }
+    };
+
+    size_t surface_index = 0;
+    for (const auto surface : mesh_manager->surfaces()) {
+        auto surfaceMesh = mesh_manager->get_surface_mesh(surface);
+        auto vertices = surfaceMesh.first;
+        auto connectivity = surfaceMesh.second;
+
+        // Test connectivity
+        REQUIRE(connectivity.size() == expected_connectivity[surface_index].size());
+        for (size_t i = 0; i < connectivity.size(); ++i) {
+            REQUIRE(connectivity[i] == expected_connectivity[surface_index][i]);
+        }
+
+        // Test vertices
+        REQUIRE(vertices.size() == expected_vertices[surface_index].size());
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            REQUIRE_THAT(vertices[i].x, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].x, fpTol));
+            REQUIRE_THAT(vertices[i].y, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].y, fpTol));
+            REQUIRE_THAT(vertices[i].z, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].z, fpTol));
+        }
+
+        ++surface_index;
     }
-
-    // Test vertices
-    REQUIRE(vertices.size() == 4);
-    for (size_t i = 0; i < vertices.size(); ++i) {
-      REQUIRE_THAT(vertices[i].x, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].x, fpTol));
-      REQUIRE_THAT(vertices[i].y, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].y, fpTol));
-      REQUIRE_THAT(vertices[i].z, Catch::Matchers::WithinAbs(expected_vertices[surface_index][i].z, fpTol));
-    }
-
-    ++surface_index;
-  }
 }
