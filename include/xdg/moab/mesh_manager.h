@@ -90,6 +90,7 @@ private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
   moab::Range _surface_faces(MeshID surface) const;
+  std::vector<Vertex> _get_coords(moab::Range& verts) const;
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
 
