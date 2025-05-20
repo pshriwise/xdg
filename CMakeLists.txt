@@ -8,6 +8,8 @@ option(XDG_ENABLE_EMBREE  "Enable support for the Embree ray tracing library" ON
 option(XDG_BUILD_TESTS    "Enable C++ unit testing"                           ON)
 option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                         ON)
 
+option(XDG_INTERSECTOR_REPORT "Enable verbose output from primitive intersectors" OFF)
+
 # Set version numbers
 set(XDG_VERSION_MAJOR 0)
 set(XDG_VERSION_MINOR 14)
@@ -152,6 +154,10 @@ if("${isSystemDir}" STREQUAL "-1")
 endif()
 
 add_library(xdg SHARED ${xdg_sources})
+
+if (XDG_INTERSECTOR_REPORT)
+  target_compile_definitions(xdg PUBLIC XDG_PLUCKER_REPORT)
+endif()
 
 if(XDG_ENABLE_EMBREE)
   # pass precompile definition depending on embree version
