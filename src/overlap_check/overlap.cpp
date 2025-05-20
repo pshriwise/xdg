@@ -86,7 +86,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
   }
 
-  std::cout << "Number of vertices checked = " << allVerts.size() << "\n" << std::endl;
   // number of locations we'll be checking
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
   int numChecked = 1;
@@ -99,7 +98,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     option::BarWidth{50},
     option::Start{"["},
     option::End{"]"},
-    option::PostfixText{"Checking Vertices"},
+    option::PostfixText{fmt::format("Checking {} Vertices", allVerts.size())},
     option::ForegroundColor{Color::green},
     option::ShowPercentage{true},
     option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}
@@ -140,14 +139,17 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     return;
   }
 
-  std::cout << "Checking for overlapped regions along element edges..." << std::endl;
+  // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
+  int totalEdgeRays = totalElements*(3)*(allVols.size()-2);
+
+  std::cout << fmt::format("Checking for overlapped regions along {} element edges...", totalEdgeRays) << std::endl;
 
   using namespace indicators;
   BlockProgressBar edge_bar{
     option::BarWidth{50},
     option::Start{"["},
     option::End{"]"},
-    option::PostfixText{"Checking Edges"},
+    option::PostfixText{fmt::format("Checking {} Edges", totalEdgeRays)},
     option::ForegroundColor{Color::green},
     option::ShowPercentage{true},
     option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}
@@ -155,8 +157,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
   std::vector<Position> edgeOverlapLocs;
 
-  // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
-  int totalEdgeRays = totalElements*(3)*(allVols.size()-2);
   int edgeRaysCast = 0;
 
 #pragma omp parallel shared(overlap_map, edgeRaysCast)
