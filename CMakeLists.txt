@@ -85,6 +85,8 @@ endif()
 
 # argparse
 add_subdirectory(vendor/argparse)
+# indicators (progress bars)
+add_subdirectory(vendor/indicators)
 
 list(APPEND xdg_sources
 src/geometry/measure.cpp
@@ -151,6 +153,8 @@ if("${isSystemDir}" STREQUAL "-1")
 endif()
 
 add_library(xdg SHARED ${xdg_sources})
+
+target_link_libraries(xdg indicators::indicators)
 
 if(XDG_ENABLE_EMBREE)
   # pass precompile definition depending on embree version
