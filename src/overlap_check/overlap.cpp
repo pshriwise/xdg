@@ -1,8 +1,8 @@
-#include "xdg/overlap.h"
-#include "xdg/progressBar.h"
 #include <fstream>
 #include <map>
 
+#include "xdg/util/progress_bars.h"
+#include "xdg/overlap.h"
 
 using namespace xdg;
 
@@ -84,15 +84,13 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     }
   }
 
-  std::cout << "Number of vertices checked = " << allVerts.size() << "\n" << std::endl;
   // number of locations we'll be checking
   int numLocations = allVerts.size(); // + pnts_per_edge * all_edges.size();
   int numChecked = 1;
 
   Direction dir = {0.1, 0.1, 0.1};
   dir = dir.normalize();
-
-  ProgressBar vertexProgBar;
+  auto vertex_bar = block_progress_bar(fmt::format("Checking {} Vertices", allVerts.size()));
   std::vector<Position> vertexOverlapLocs;
 
   std::cout << "Checking for overlapped regions at element vertices..." << std::endl;
@@ -105,9 +103,11 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
       check_location_for_overlap(xdg, allVols, vert, dir, overlap_map, verboseOutput, vertexOverlapLocs);
 
 #pragma omp critical
-      vertexProgBar.set_value(100.0 * (double)numChecked++ / (double)numLocations);
+      vertex_bar.set_progress(100.0 * (double)numChecked++ / (double)numLocations);
     }
   }
+
+  vertex_bar.mark_as_completed();
 
   if (overlap_map.empty()) {
     std::cout << "No Overlaps found at vertices! \n" << std::endl;
@@ -127,13 +127,15 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
     return;
   }
 
-  std::cout << "Checking for overlapped regions along element edges..." << std::endl;
-
-  ProgressBar edgeProgBar;
-  std::vector<Position> edgeOverlapLocs;
-
   // Number of rays cast along edges = number_of_elements * (number_of_edges * 2) * (number_of_vols - parent_vols)
   int totalEdgeRays = totalElements*(3)*(allVols.size()-2);
+
+  std::cout << fmt::format("Checking for overlapped regions along {} element edges...", totalEdgeRays) << std::endl;
+
+  auto edge_bar = block_progress_bar(fmt::format("Checking {} Edges", totalEdgeRays));
+
+  std::vector<Position> edgeOverlapLocs;
+
   int edgeRaysCast = 0;
 
 #pragma omp parallel shared(overlap_map, edgeRaysCast)
@@ -164,12 +166,14 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
           }
           #pragma omp atomic
             edgeRaysCast++;
-          #pragma omp critical
-            edgeProgBar.set_value(100.0 * (double)edgeRaysCast / (double)totalEdgeRays);
+          // #pragma omp critical
+            edge_bar.set_progress(100.0 * (double)edgeRaysCast / (double)totalEdgeRays);
         }
       }
     }
   }
+
+  edge_bar.mark_as_completed();
 
   if (overlap_map.empty()) {
     std::cout << "No Overlaps found along edges! \n" << std::endl;

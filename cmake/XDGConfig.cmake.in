@@ -14,6 +14,8 @@ if(@XDG_ENABLE_LIBMESH@)
   pkg_check_modules(LIBMESH REQUIRED @LIBMESH_PC_FILE@>=1.7.0 IMPORTED_TARGET)
 endif()
 
+find_package(indicators HINTS @CMAKE_INSTALL_PREFIX@)
+
 if (NOT TARGET xdg::xdg)
     include("${XDG_CMAKE_DIR}/XDGTargets.cmake")
 endif()
