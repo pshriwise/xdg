@@ -1,10 +1,8 @@
 #include <fstream>
 #include <map>
 
-#include <indicators/block_progress_bar.hpp>
-
+#include "xdg/util/progress_bars.h"
 #include "xdg/overlap.h"
-
 
 using namespace xdg;
 
@@ -92,17 +90,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
   Direction dir = {0.1, 0.1, 0.1};
   dir = dir.normalize();
-
-  using namespace indicators;
-  BlockProgressBar vertex_bar{
-    option::BarWidth{50},
-    option::Start{"["},
-    option::End{"]"},
-    option::PostfixText{fmt::format("Checking {} Vertices", allVerts.size())},
-    option::ForegroundColor{Color::green},
-    option::ShowPercentage{true},
-    option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}
-  };
+  auto vertex_bar = block_progress_bar(fmt::format("Checking {} Vertices", allVerts.size()));
   std::vector<Position> vertexOverlapLocs;
 
   std::cout << "Checking for overlapped regions at element vertices..." << std::endl;
@@ -145,15 +133,7 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
   std::cout << fmt::format("Checking for overlapped regions along {} element edges...", totalEdgeRays) << std::endl;
 
   using namespace indicators;
-  BlockProgressBar edge_bar{
-    option::BarWidth{50},
-    option::Start{"["},
-    option::End{"]"},
-    option::PostfixText{fmt::format("Checking {} Edges", totalEdgeRays)},
-    option::ForegroundColor{Color::green},
-    option::ShowPercentage{true},
-    option::FontStyles{std::vector<FontStyle>{FontStyle::bold}}
-  };
+  auto edge_bar = block_progress_bar(fmt::format("Checking {} Edges", totalEdgeRays));
 
   std::vector<Position> edgeOverlapLocs;
 
