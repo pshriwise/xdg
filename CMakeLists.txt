@@ -86,6 +86,8 @@ endif()
 # argparse
 add_subdirectory(vendor/argparse)
 # indicators (progress bars)
+# ensure indicators targets are exported and installed
+set(INDICATORS_INSTALL ON CACHE STRING "Ensure indicators targets are provided")
 add_subdirectory(vendor/indicators)
 
 list(APPEND xdg_sources
@@ -99,8 +101,8 @@ src/triangle_intersect.cpp
 src/util/str_utils.cpp
 src/xdg.cpp
 src/overlap_check/overlap.cpp
-src/overlap_check/progressBar.cpp
 )
+
 
 if (XDG_ENABLE_EMBREE)
 list(APPEND xdg_sources
