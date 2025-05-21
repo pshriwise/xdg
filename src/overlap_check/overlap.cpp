@@ -132,7 +132,6 @@ void check_instance_for_overlaps(std::shared_ptr<XDG> xdg,
 
   std::cout << fmt::format("Checking for overlapped regions along {} element edges...", totalEdgeRays) << std::endl;
 
-  using namespace indicators;
   auto edge_bar = block_progress_bar(fmt::format("Checking {} Edges", totalEdgeRays));
 
   std::vector<Position> edgeOverlapLocs;
