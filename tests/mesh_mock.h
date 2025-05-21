@@ -75,6 +75,16 @@ public:
     return {vertices[0], vertices[1], vertices[2]};
   }
 
+  std::vector<Vertex> get_surface_vertices(MeshID surface) const override
+  {
+    fatal_error("MockMesh does not support get_surface_vertices()");
+  }
+
+  std::pair<std::vector<Vertex>, std::vector<int>> get_surface_mesh(MeshID surface) const override
+  {
+    fatal_error("MockMesh does not support get_surface_mesh()");
+  }
+
   // Topology
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override {
     return {0, ID_NONE};
@@ -99,6 +109,10 @@ public:
 
   virtual void parse_metadata() override {
     fatal_error("MockMesh does not support parse_metadata()");
+  }
+
+  virtual SurfaceElementType get_surface_element_type(MeshID surface) const override {
+    return SurfaceElementType::TRI; // hardcoded to Tri for this mock
   }
 
   // Other
