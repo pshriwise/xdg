@@ -43,10 +43,6 @@ bool plucker_tet_containment_test(const Position& point,
   const Position& v2,
   const Position& v3);
 
-void VolumeElementBoundsFunc(RTCBoundsFunctionArguments* args);
-void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args);
-void TetrahedronOcclusionFunc(RTCOccludedFunctionNArguments* args);
-
 } // namespace xdg
 
 #endif // include guard
