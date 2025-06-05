@@ -80,8 +80,21 @@ bool contains(const Position& p) const {
 
 double max_chord_length() const {
   Vec3da w = width();
-  double max_chord = std::sqrt(w.dot(w));
-  return max_chord * std::pow(10, -std::numeric_limits<float>::digits10);
+  return  std::sqrt(w.dot(w));
+}
+
+/**
+ * @brief Returns a distance by which the box should be dilated to account for mixed precision effects
+ *
+ * This method calculates a small distance that can be used to dilate the bounding box
+ * to account for potential numerical precision issues when working with mixed precision
+ * calculations. The distance is based on the maximum chord length of the box and the
+ * precision of float values.
+ *
+ * @return double The dilation distance
+ */
+double dilation() const {
+  return max_chord_length() * std::pow(10, -std::numeric_limits<float>::digits10);
 }
 
 template <typename T>

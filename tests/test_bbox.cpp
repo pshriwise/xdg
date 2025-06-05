@@ -73,9 +73,15 @@ TEST_CASE("Test BoundingBox")
   REQUIRE_FALSE(c.contains(outside));
 
   // Test max_chord_length() method
-  double max_chord = c.max_chord_length();
-  REQUIRE(max_chord > 0.0);
-  REQUIRE(max_chord < 1.0);
+  REQUIRE(a.max_chord_length() == Catch::Approx(std::sqrt(3.0)));
+  REQUIRE(b.max_chord_length() == Catch::Approx(std::sqrt(3.0)));
+  // box c at this point is 7x9x11
+  REQUIRE(c.max_chord_length() == Catch::Approx(std::sqrt(49.0 + 81.0 + 121.0)));
+
+  // Test dilation() method
+  REQUIRE(a.dilation() == Catch::Approx(std::sqrt(3.0) * std::pow(10, -std::numeric_limits<float>::digits10)));
+  REQUIRE(b.dilation() == Catch::Approx(std::sqrt(3.0) * std::pow(10, -std::numeric_limits<float>::digits10)));
+  REQUIRE(c.dilation() == Catch::Approx(std::sqrt(49.0 + 81.0 + 121.0) * std::pow(10, -std::numeric_limits<float>::digits10)));
 
   // Test from_points() static method
   std::vector<Position> points = {
@@ -107,9 +113,15 @@ TEST_CASE("Test BoundingBox")
   REQUIRE(small_box.center().x == Catch::Approx(1.5e-10));
 
   // Stress test with mixed positive/negative numbers
-  BoundingBox mixed_box{-1e10, 1e10, -1e10, 1e10, -1e10, 1e10};
+  BoundingBox mixed_box{-1e10, -1e10, -1e10, 1e10, 1e10, 1e10};
   REQUIRE(mixed_box.width().x == Catch::Approx(2e10));
   REQUIRE(mixed_box.center().x == Catch::Approx(0.0));
+  REQUIRE(mixed_box.min_x == -1e10);
+  REQUIRE(mixed_box.min_y == -1e10);
+  REQUIRE(mixed_box.min_z == -1e10);
+  REQUIRE(mixed_box.max_x == 1e10);
+  REQUIRE(mixed_box.max_y == 1e10);
+  REQUIRE(mixed_box.max_z == 1e10);
 
   // Stress test update() with extreme values
   BoundingBox stress_box;
