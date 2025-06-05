@@ -266,11 +266,8 @@ public:
     return mesh_id_to_sidepair_.at(sidepair);
   }
 
-  MeshID next_sidepair_id() const {
-    if (mesh_id_to_sidepair_.size() == 0) {
-      return 1;
-    }
-    return std::max_element(mesh_id_to_sidepair_.begin(), mesh_id_to_sidepair_.end())->first + 1;
+  MeshID next_sidepair_id() {
+    return next_sidepair_id_++;
   }
 
   struct MeshIDPairHash {
@@ -311,6 +308,8 @@ public:
   //! Mapping of surfaces to the volumes on either side. Volumes are ordered
   //! based on their sense with respect to the surface triangles
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
+
+  int32_t next_sidepair_id_ {1}; //!< Next available sidepair ID, starts at one
 };
 
 } // namespace xdg
