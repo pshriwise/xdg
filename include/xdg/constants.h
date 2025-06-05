@@ -19,6 +19,9 @@ constexpr double INFTY {std::numeric_limits<double>::max()};
   constexpr double INFTYF {std::numeric_limits<float>::max()};
 #endif
 
+// TODO : Consider this as an option for managing missed hits?
+constexpr double PLUCKER_TOL {10 * std::numeric_limits<double>::epsilon()};
+
 // Whether information pertains to a surface or volume
 enum class GeometryType {
  SURFACE = 2,
