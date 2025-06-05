@@ -78,7 +78,7 @@ bool contains(const Position& p) const {
          p.z >= min_z && p.z <= max_z;
 }
 
-double maximum_chord_length() const {
+double max_chord_length() const {
   Vec3da w = width();
   double max_chord = std::sqrt(w.dot(w));
   return max_chord * std::pow(10, -std::numeric_limits<float>::digits10);

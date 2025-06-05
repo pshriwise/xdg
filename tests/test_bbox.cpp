@@ -72,8 +72,8 @@ TEST_CASE("Test BoundingBox")
   REQUIRE(c.contains(inside));
   REQUIRE_FALSE(c.contains(outside));
 
-  // Test maximum_chord_length() method
-  double max_chord = c.maximum_chord_length();
+  // Test max_chord_length() method
+  double max_chord = c.max_chord_length();
   REQUIRE(max_chord > 0.0);
   REQUIRE(max_chord < 1.0);
 
