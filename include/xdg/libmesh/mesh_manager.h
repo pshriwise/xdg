@@ -248,9 +248,6 @@ public:
     if (sidepair_to_mesh_id_.count(sidepair) == 0) {
       MeshID id = next_sidepair_id();
       mesh_id_to_sidepair_[id] = sidepair;
-      if (sidepair_to_mesh_id_.count(sidepair) > 0) {
-        fatal_error("SidePair already exists in sidepair_to_mesh_id_");
-      }
       sidepair_to_mesh_id_[sidepair] = id;
       return id;
     } else {
