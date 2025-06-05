@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
@@ -71,6 +72,9 @@ public:
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
+
+private:
+  std::unordered_set<MeshID> global_surface_cache_;
 };
 
 } // namespace xdg

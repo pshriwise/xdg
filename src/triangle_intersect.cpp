@@ -1,4 +1,5 @@
 #include <algorithm> // for find
+#include <iostream>
 
 #include "xdg/geometry/closest.h"
 #include "xdg/primitive_ref.h"
@@ -73,14 +74,38 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   if (plucker_dist > rayhit->ray.dtfar) return;
 
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
+
+  /* which volume are we in?
+
+     Reverse    |    Forwards
+          ----->|
+                |
+    In this scenario we do not flip the normal
+
+     Reverse   |    Forwards
+               |<-----
+               |
+    In this scenario we flip the normal
+  */ 
+std::cout << "Intersecting surface = " << user_data->surface_id << std::endl;
+  std::cout << "ray.volume = " << ray.volume
+          << " | user_data->forward_vol = " << user_data->forward_vol
+          << " | user_data->reverse_vol = " << user_data->reverse_vol
+          << std::endl;
+
+
   // if this is a normal ray fire, flip the normal as needed
-  if (args->geomID == user_data->reverse_sense && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  if (ray.volume == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  {  
     normal = -normal;
+    std::cout << "primitive_ref.primitive_id = " << primitive_ref.primitive_id << std::endl;
+  }
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
    if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
    if (primitive_mask_cull(rayhit, primitive_ref.primitive_id)) return;
   }
+
 
   // if we've gotten through all of the filters, set the ray information
   rayhit->ray.set_tfar(plucker_dist);
