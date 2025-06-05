@@ -37,6 +37,11 @@ bool plucker_tet_containment_test(const Position& point,
                                   const Vertex& v2,
                                   const Vertex& v3);
 
+// Embree call back functions for element search
+void VolumeElementBoundsFunc(RTCBoundsFunctionArguments* args);
+void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args);
+void TetrahedronOcclusionFunc(RTCOccludedFunctionNArguments* args);
+
 } // namespace xdg
 
 #endif // include guard
