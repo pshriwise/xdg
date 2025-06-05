@@ -32,85 +32,82 @@ RTCScene EmbreeRayTracer::create_embree_scene() {
   rtcSetSceneBuildQuality(rtcscene, RTC_BUILD_QUALITY_HIGH);
   return rtcscene;
 }
-
-TreeID
-EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
-                           MeshID volume_id)
+TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
+                                        MeshID volume_id)
 {
   TreeID tree = next_tree_id();
   trees_.push_back(tree);
   auto volume_scene = this->create_embree_scene();
 
-  // allocate storage for this volume
-  auto volume_faces = mesh_manager->get_volume_faces(volume_id);
-  this->primitive_ref_storage_[volume_scene].resize(volume_faces.size());
-  auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
-
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
-  int storage_offset {0};
+
+  // Get the number of prims that need to be added
+  size_t total_face_count = 0;
   for (auto& surface_id : volume_surfaces) {
-    // get the sense of this surface with respect to the volume
-    Sense triangle_sense {Sense::UNSET};
-    auto surf_to_vol_senses = mesh_manager->get_parent_volumes(surface_id);
-    if (volume_id == surf_to_vol_senses.first) triangle_sense = Sense::FORWARD;
-    else if (volume_id == surf_to_vol_senses.second) triangle_sense = Sense::REVERSE;
-    else fatal_error("Volume {} is not a parent of surface {}", volume_id, surface_id);
-
-    auto surface_faces = mesh_manager->get_surface_faces(surface_id);
-    for (int i = 0; i < surface_faces.size(); ++i) {
-      auto& primitive_ref = triangle_storage[i + storage_offset];
-      primitive_ref.primitive_id = surface_faces[i];
-      primitive_ref.sense = triangle_sense;
+    if (global_surface_cache_.find(surface_id) == global_surface_cache_.end()) {
+      total_face_count += mesh_manager->get_surface_faces(surface_id).size();
     }
-    storage_offset += surface_faces.size();
- }
+  }
 
+  this->primitive_ref_storage_[volume_scene].resize(total_face_count);
+  auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
 
   auto bump = bounding_box_bump(mesh_manager, volume_id);
-/*
-  TODO: none of the above is ray tracer specific. This can be a part of the common register_volume
-  implementation. Then another virtual function can be called register_volume_RT_specific.
-  in this scenario register_volume isn't a virtual function but instead calls a virtual function.
-  That virtual function will be overrided to do the RT specific things in registering the volume.
-  Primitive_ref_storage is the only non-local variable used in this context that is a member of the derived class.
-  However when implementing GPRT the above may need to be written differently with GPU buffers in mind.
-  So we will leave it as is for now.
-*/
 
-  // create a new geometry for each surface
-  int buffer_start = 0;
-  for (auto surface : volume_surfaces) {
-    auto surface_triangles = mesh_manager->get_surface_faces(surface);
+  int storage_offset = 0;
+  for (auto& surface : volume_surfaces) {
+    // Skip if surface already cached by another volume
+    if (global_surface_cache_.find(surface) != global_surface_cache_.end()) {
+      continue;
+    }
+
+    // Mark surface as handled globally
+    global_surface_cache_.insert(surface);
+
+    auto surface_faces = mesh_manager->get_surface_faces(surface);
+    size_t num_faces = surface_faces.size();
+
+    // Fill primitive refs
+    for (size_t i = 0; i < num_faces; ++i) {
+      triangle_storage[storage_offset + i].primitive_id = surface_faces[i];
+    }
+
     RTCGeometry surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
-    rtcSetGeometryUserPrimitiveCount(surface_geometry, surface_triangles.size());
-    unsigned int embree_surface = rtcAttachGeometry(volume_scene, surface_geometry);
+    rtcSetGeometryUserPrimitiveCount(surface_geometry, num_faces);
+    rtcAttachGeometry(volume_scene, surface_geometry);
     this->surface_to_geometry_map_[surface] = surface_geometry;
 
-    std::shared_ptr<GeometryUserData> surface_data = std::make_shared<GeometryUserData>();
+    auto parents = mesh_manager->get_parent_volumes(surface);
+    if (volume_id != parents.first && volume_id != parents.second) {
+      fatal_error("Volume {} is not a parent of surface {}", volume_id, surface);
+    }
+
+    auto surface_data = std::make_shared<GeometryUserData>();
     surface_data->box_bump = bump;
     surface_data->surface_id = surface;
     surface_data->mesh_manager = mesh_manager.get();
-    surface_data->prim_ref_buffer = tri_ref_ptr + buffer_start;
+    surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
+    surface_data->forward_vol = parents.first;
+    surface_data->reverse_vol = parents.second;
+  std::cout << "Registering surface = " << surface_data->surface_id << std::endl;
+  std::cout
+          << "user_data->forward_vol = " << surface_data->forward_vol
+          << " | user_data->reverse_vol = " << surface_data->reverse_vol
+          << std::endl;
+
     user_data_map_[surface_geometry] = surface_data;
+    rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
-    // TODO: This could be a problem if user_data_map_ is reallocated?
-    rtcSetGeometryUserData(surface_geometry, user_data_map_[surface_geometry].get());
-
-    for (int i = 0; i < surface_triangles.size(); ++i) {
-      auto& triangle_ref = surface_data->prim_ref_buffer[i];
-    }
-    buffer_start += surface_triangles.size();
-
-    // set the bounds function
     rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
-
     rtcCommitGeometry(surface_geometry);
-  }
-  rtcCommitScene(volume_scene);
 
+    storage_offset += num_faces;
+  }
+
+  rtcCommitScene(volume_scene);
   tree_to_scene_map_[tree] = volume_scene;
   return tree;
 }
@@ -129,6 +126,7 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
   rayhit.ray.orientation = HitOrientation::ANY;
   rayhit.ray.set_tfar(INFTY);
   rayhit.ray.set_tnear(0.0);
+  rayhit.ray.volume = tree;
 
   if (exclude_primitives != nullptr) rayhit.ray.exclude_primitives = exclude_primitives;
 
@@ -162,6 +160,8 @@ EmbreeRayTracer::ray_fire(TreeID tree,
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = orientation;
   rayhit.ray.mask = -1; // no mask
+  rayhit.ray.volume = tree;
+
   if (exclude_primitves != nullptr) rayhit.ray.exclude_primitives = exclude_primitves;
 
   // fire the ray
@@ -176,6 +176,7 @@ EmbreeRayTracer::ray_fire(TreeID tree,
   if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     return {INFTY, ID_NONE};
   else
+
     if (exclude_primitves) exclude_primitves->push_back(rayhit.hit.primitive_ref->primitive_id);
     return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
