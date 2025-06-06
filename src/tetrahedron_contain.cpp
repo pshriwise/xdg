@@ -8,18 +8,6 @@
 namespace xdg
 {
 
-double face_side_test(const Position& point, const Position& v0, const Position& v1, const Position& v2) {
-  // Compute the face normal using the cross product of two edge vectors
-  auto face_normal = cross(v1 - v0, v2 - v0).normalize();
-
-  auto vec_a = v0 - point;
-  auto vec_b = v1 - point;
-  auto vec_c = v2 - point;
-
-  auto cross_product = cross(vec_a, vec_b).normalize();
-  return dot(cross_product, vec_c);
-}
-
 bool plucker_tet_containment_test(const Position& point,
                                   const Position& v0,
                                   const Position& v1,
