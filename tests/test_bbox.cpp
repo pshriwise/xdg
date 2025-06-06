@@ -11,8 +11,12 @@
 
 using namespace xdg;
 
+
 TEST_CASE("Test BoundingBox")
 {
+
+  // set the precision for floating point number output to 15 decimal places
+  Catch::StringMaker<double>::precision = 15;
 
   BoundingBox a {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
 

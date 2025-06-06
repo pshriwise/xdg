@@ -1,8 +1,10 @@
 #ifndef _XDG_BOUNDING_BOX_H
 #define _XDG_BOUNDING_BOX_H
 
-#include "xdg/vec3da.h"
 #include <fmt/format.h>
+
+#include "xdg/constants.h"
+#include "xdg/vec3da.h"
 namespace xdg {
 
 union BoundingBox {
@@ -94,7 +96,7 @@ double max_chord_length() const {
  * @return double The dilation distance
  */
 double dilation() const {
-  return max_chord_length() * std::pow(10, -std::numeric_limits<float>::digits10);
+  return max_chord_length() * DILATION_FACTOR;
 }
 
 template <typename T>

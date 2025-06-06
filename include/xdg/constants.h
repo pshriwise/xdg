@@ -1,6 +1,7 @@
 #ifndef _XDG_CONSTANTS
 #define _XDG_CONSTANTS
 
+#include <cmath>
 #include <map>
 #include <limits>
 #include <string>
@@ -18,6 +19,8 @@ constexpr double INFTY {std::numeric_limits<double>::max()};
 #else
   constexpr double INFTYF {std::numeric_limits<float>::max()};
 #endif
+
+constexpr double DILATION_FACTOR {std::pow(10, -std::numeric_limits<float>::digits10)};
 
 // Whether information pertains to a surface or volume
 enum class GeometryType {
