@@ -80,8 +80,10 @@ endif()
 # fmt
 find_package(fmt QUIET NO_SYSTEM_ENVIRONMENT_PATH)
 if (NOT fmt_FOUND)
-set(FMT_INSTALL ON CACHE BOOL "Generate the fmt install target")
-add_subdirectory(vendor/fmt)
+  set(FMT_INSTALL ON CACHE BOOL "Generate the fmt install target")
+  add_subdirectory(vendor/fmt)
+else()
+  message(STATUS "Found fmt ${fmt_VERSION} at ${fmt_DIR}")
 endif()
 
 # argparse
