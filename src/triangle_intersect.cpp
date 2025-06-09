@@ -87,12 +87,6 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
                |
     In this scenario we flip the normal
   */ 
-std::cout << "Intersecting surface = " << user_data->surface_id << std::endl;
-  std::cout << "ray.volume = " << ray.volume
-          << " | user_data->forward_vol = " << user_data->forward_vol
-          << " | user_data->reverse_vol = " << user_data->reverse_vol
-          << std::endl;
-
 
   // if this is a normal ray fire, flip the normal as needed
   if (ray.volume == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
