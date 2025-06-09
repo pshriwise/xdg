@@ -92,7 +92,6 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   if (ray.volume == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
   {  
     normal = -normal;
-    std::cout << "primitive_ref.primitive_id = " << primitive_ref.primitive_id << std::endl;
   }
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
