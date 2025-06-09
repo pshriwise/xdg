@@ -23,12 +23,11 @@ bool orientation_cull(const Direction& ray_dir, const Direction& normal, HitOrie
   return false;
 }
 
-bool primitive_mask_cull(RTCDRayHit* rayhit, int primID) {
+bool primitive_mask_cull(RTCDualRayHit* rayhit, int primID) {
   if (!rayhit->ray.exclude_primitives) return false;
 
-  RTCDRay& ray = rayhit->ray;
-  RTCDHit& hit = rayhit->hit;
-
+  RTCSurfaceRay& ray = rayhit->ray;
+  RTCDualHit& hit = rayhit->hit;
 
   // if the primitive mask is set, cull if the primitive is not in the mask
   return std::find(ray.exclude_primitives->begin(), ray.exclude_primitives->end(), primID) != ray.exclude_primitives->end();
@@ -58,9 +57,9 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
-  RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
-  RTCDRay& ray = rayhit->ray;
-  RTCDHit& hit = rayhit->hit;
+  RTCDualRayHit* rayhit = (RTCDualRayHit*)args->rayhit;
+  RTCSurfaceRay& ray = rayhit->ray;
+  RTCDualHit& hit = rayhit->hit;
 
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
   Direction ray_direction = {ray.ddir[0], ray.ddir[1], ray.ddir[2]};
@@ -135,7 +134,7 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
   // get the double precision ray from the args
-  RTCDRay* ray = (RTCDRay*) args->ray;
+  RTCSurfaceRay* ray = (RTCSurfaceRay*) args->ray;
 
   double plucker_dist;
   if (plucker_ray_tri_intersect(vertices, ray->dorg, ray->ddir, plucker_dist)) {

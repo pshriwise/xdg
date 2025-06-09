@@ -6,7 +6,6 @@
 
 namespace xdg
 {
-
 /**
  * @brief Determines if a point is inside or on the boundary of a tetrahedron
  * using Plücker coordinates.

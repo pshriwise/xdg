@@ -89,9 +89,6 @@ struct RTCSurfaceRay : RTCDualRay {
   const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
 };
 
-// temporary alias for the dual ray
-using RTCDRay = RTCSurfaceRay;
-
 struct RTCElementRay : RTCDualRay {
   RTCElementRay() {
     this->element = ID_NONE;
@@ -102,8 +99,8 @@ struct RTCElementRay : RTCDualRay {
 };
 
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
-struct RTCDHit : RTCHit {
-  RTCDHit() {
+struct RTCDualHit : RTCHit {
+  RTCDualHit() {
     this->geomID = RTC_INVALID_GEOMETRY_ID;
     this->primID = RTC_INVALID_GEOMETRY_ID;
     this->Ng_x = 0.0;
@@ -118,9 +115,9 @@ struct RTCDHit : RTCHit {
 };
 
 /*! Stucture combining the ray and ray-hit structures to be passed to Embree queries */
-struct RTCDRayHit {
+struct RTCDualRayHit {
   struct RTCSurfaceRay ray; //<! Extended version of the Embree RTCRay struct with double precision values
-  struct RTCDHit hit; //<! Extended version of the Embree RTDRayHit struct with double precision values
+  struct RTCDualHit hit; //<! Extended version of the Embree RTDRayHit struct with double precision values
 
   //! \brief Compute the dot product of the ray direction and current hit normal
   double dot_prod() {

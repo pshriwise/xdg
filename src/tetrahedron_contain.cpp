@@ -77,9 +77,9 @@ void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const PrimitiveRef primitive_ref = user_data->prim_ref_buffer[args->primID];
   auto vertices = mesh_manager->element_vertices(primitive_ref.primitive_id);
 
-  RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
+  RTCDualRayHit* rayhit = (RTCDualRayHit*)args->rayhit;
   RTCSurfaceRay& ray = rayhit->ray;
-  RTCDHit& hit = rayhit->hit;
+  RTCDualHit& hit = rayhit->hit;
 
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
 
