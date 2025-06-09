@@ -13,7 +13,8 @@ XDG stands on the shoulders of the `Direct Accelerated Geometry Monte Carlo
 (DAGMC) <https://svalinn.github.io/DAGMC/index.html>`_ toolkit and it's
 development team, from which it draws significant guidance and inspiration. The
 intent of this library is to provide expanded DAGMC functionality across
-multiple mesh libraries and formats.
+multiple mesh libraries and formats.  Various members of the DAGMC development
+team are collaborators and contributors to the XDG project.
 
 .. .. carousel::
 ..     :show_controls:
