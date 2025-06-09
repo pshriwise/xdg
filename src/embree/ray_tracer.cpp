@@ -32,6 +32,7 @@ RTCScene EmbreeRayTracer::create_embree_scene() {
   rtcSetSceneBuildQuality(rtcscene, RTC_BUILD_QUALITY_HIGH);
   return rtcscene;
 }
+
 TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
                                         MeshID volume_id)
 {
@@ -41,70 +42,70 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
 
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
 
-  // Get the number of prims that need to be added
-  size_t total_face_count = 0;
+  // allocate total storage for all the primtives in a volume
+  size_t vol_face_count = 0;
   for (auto& surface_id : volume_surfaces) {
-    if (global_surface_cache_.find(surface_id) == global_surface_cache_.end()) {
-      total_face_count += mesh_manager->get_surface_faces(surface_id).size();
+    if (!surface_to_geometry_map_.count(surface_id)) {
+      vol_face_count += mesh_manager->get_surface_faces(surface_id).size();
     }
   }
-
-  this->primitive_ref_storage_[volume_scene].resize(total_face_count);
+  this->primitive_ref_storage_[volume_scene].resize(vol_face_count);
   auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
   PrimitiveRef* tri_ref_ptr = triangle_storage.data();
-
   auto bump = bounding_box_bump(mesh_manager, volume_id);
 
   int storage_offset = 0;
   for (auto& surface : volume_surfaces) {
-    // Skip if surface already cached by another volume
-    if (global_surface_cache_.find(surface) != global_surface_cache_.end()) {
-      continue;
+    RTCGeometry surface_geometry;
+    std::shared_ptr<GeometryUserData> surface_data;
+
+    // Check if this surface already has a cached surface geometry
+    if (!surface_to_geometry_map_.count(surface)) 
+    { // First time: create geometry, user data and primtive_refs
+      auto surface_faces = mesh_manager->get_surface_faces(surface);
+      size_t surf_face_count = surface_faces.size();
+
+      // fill primitive refs
+      for (size_t i = 0; i < surf_face_count; ++i) {
+        triangle_storage[storage_offset + i].primitive_id = surface_faces[i];
+      }
+
+      surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
+      rtcSetGeometryUserPrimitiveCount(surface_geometry, surf_face_count);
+      rtcAttachGeometry(volume_scene, surface_geometry);
+      surface_to_geometry_map_[surface] = surface_geometry;
+
+      surface_data = std::make_shared<GeometryUserData>();
+      surface_data->box_bump = bump;
+      surface_data->surface_id = surface;
+      surface_data->mesh_manager = mesh_manager.get();
+      surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
+
+      user_data_map_[surface_geometry] = surface_data;
+      rtcSetGeometryUserData(surface_geometry, surface_data.get());
+
+      rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
+      rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
+      rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
+      rtcCommitGeometry(surface_geometry);
+
+      storage_offset += surf_face_count;
+    } 
+    else { // Already exists: get geometry and user data
+      surface_geometry = surface_to_geometry_map_[surface];
+      surface_data = user_data_map_.at(surface_geometry);
+      rtcAttachGeometry(volume_scene, surface_geometry);
     }
 
-    // Mark surface as handled globally
-    global_surface_cache_.insert(surface);
-
-    auto surface_faces = mesh_manager->get_surface_faces(surface);
-    size_t num_faces = surface_faces.size();
-
-    // Fill primitive refs
-    for (size_t i = 0; i < num_faces; ++i) {
-      triangle_storage[storage_offset + i].primitive_id = surface_faces[i];
-    }
-
-    RTCGeometry surface_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
-    rtcSetGeometryUserPrimitiveCount(surface_geometry, num_faces);
-    rtcAttachGeometry(volume_scene, surface_geometry);
-    this->surface_to_geometry_map_[surface] = surface_geometry;
-
+    // Set the correct parent TreeID
     auto parents = mesh_manager->get_parent_volumes(surface);
-    if (volume_id != parents.first && volume_id != parents.second) {
+    if (volume_id == parents.first) {
+      surface_data->forward_vol = tree;
+    } else if (volume_id == parents.second) {
+      surface_data->reverse_vol = tree;
+    } else {
       fatal_error("Volume {} is not a parent of surface {}", volume_id, surface);
     }
-
-    auto surface_data = std::make_shared<GeometryUserData>();
-    surface_data->box_bump = bump;
-    surface_data->surface_id = surface;
-    surface_data->mesh_manager = mesh_manager.get();
-    surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
-    surface_data->forward_vol = parents.first;
-    surface_data->reverse_vol = parents.second;
-  std::cout << "Registering surface = " << surface_data->surface_id << std::endl;
-  std::cout
-          << "user_data->forward_vol = " << surface_data->forward_vol
-          << " | user_data->reverse_vol = " << surface_data->reverse_vol
-          << std::endl;
-
-    user_data_map_[surface_geometry] = surface_data;
-    rtcSetGeometryUserData(surface_geometry, surface_data.get());
-
-    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
-    rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
-    rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
-    rtcCommitGeometry(surface_geometry);
-
-    storage_offset += num_faces;
   }
 
   rtcCommitScene(volume_scene);
