@@ -14,8 +14,8 @@ struct GeometryUserData {
   MeshManager* mesh_manager {nullptr}; //! Pointer to the mesh manager for this geometry
   PrimitiveRef* prim_ref_buffer {nullptr}; //! Pointer to the mesh primitives in the geometry
   double box_bump; //! Bump distance for the bounding boxes in this geometry
-  MeshID forward_sense {ID_NONE}; // ID of the forward sense volume
-  MeshID reverse_sense {ID_NONE}; // ID of the reverse sense volume
+  TreeID forward_vol {ID_NONE};
+  TreeID reverse_vol {ID_NONE};
 };
 
 } // namespace xdg

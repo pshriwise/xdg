@@ -84,6 +84,7 @@ struct RTCDRay: RTCRay {
   double dtfar; //!< double precision version of the ray far distance
   HitOrientation orientation; //!< Enum indicating what hits to accept based on orientation
   const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
+  TreeID volume {ID_NONE}; // volume the ray is being fired in
 };
 
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
