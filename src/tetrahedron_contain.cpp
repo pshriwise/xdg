@@ -52,14 +52,7 @@ void VolumeElementBoundsFunc(RTCBoundsFunctionArguments* args)
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
   BoundingBox bounds = mesh_manager->element_bounding_box(primitive_ref.primitive_id);
-
-  // the bump value can be localized to this element
-  // TODO: replace with bounds.maximum_chord_length()
-  double dx = bounds.max_x - bounds.min_x;
-  double dy = bounds.max_y - bounds.min_y;
-  double dz = bounds.max_z - bounds.min_z;
-  double max_distance = std::sqrt(dx*dx + dy*dy + dz*dz);
-  double bump = max_distance * std::pow(10, -std::numeric_limits<float>::digits10);
+  double bump = bounds.dilation();
 
   args->bounds_o->lower_x = bounds.min_x - bump;
   args->bounds_o->lower_y = bounds.min_y - bump;
