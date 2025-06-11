@@ -89,8 +89,8 @@ struct RTCSurfaceDualRay : RTCDualRay {
   const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
 };
 
-struct RTCElementRay : RTCDualRay {
-  RTCElementRay() {
+struct RTCElementDualRay : RTCDualRay {
+  RTCElementDualRay() {
     this->element = ID_NONE;
   }
 

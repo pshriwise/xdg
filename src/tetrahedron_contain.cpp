@@ -100,7 +100,7 @@ void TetrahedronOcclusionFunc(RTCOccludedFunctionNArguments* args)
 
   auto vertices = mesh_manager->element_vertices(primitive_ref.primitive_id);
 
-  RTCElementRay* ray = (RTCElementRay*)args->ray;
+  RTCElementDualRay* ray = (RTCElementDualRay*)args->ray;
   Position ray_origin = {ray->dorg[0], ray->dorg[1], ray->dorg[2]};
 
   // check the containment of the point
