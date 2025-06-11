@@ -217,7 +217,7 @@ bool EmbreeRayTracer::occluded(TreeID tree,
                          double& distance) const
 {
   RTCScene scene = tree_to_scene_map_.at(tree);
-  RTCSurfaceRay ray;
+  RTCSurfaceDualRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);
   ray.set_tfar(INFTY);

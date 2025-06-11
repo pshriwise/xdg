@@ -81,7 +81,7 @@ struct RTCDualRay : RTCRay {
 };
 
 
-struct RTCSurfaceRay : RTCDualRay {
+struct RTCSurfaceDualRay : RTCDualRay {
 
   // Member variables
   RayFireType rf_type; //!< Enum indicating the type of query this ray is used for
@@ -116,7 +116,7 @@ struct RTCDualHit : RTCHit {
 
 /*! Stucture combining the ray and ray-hit structures to be passed to Embree queries */
 struct RTCDualRayHit {
-  struct RTCSurfaceRay ray; //<! Extended version of the Embree RTCRay struct with double precision values
+  struct RTCSurfaceDualRay ray; //<! Extended version of the Embree RTCRay struct with double precision values
   struct RTCDualHit hit; //<! Extended version of the Embree RTDRayHit struct with double precision values
 
   //! \brief Compute the dot product of the ray direction and current hit normal
