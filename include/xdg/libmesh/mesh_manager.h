@@ -99,6 +99,21 @@ public:
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
+  std::vector<Vertex> get_surface_vertices(MeshID surface) const override
+  {
+    fatal_error("LibMeshManager::get_surface_vertices() not implemented yet");
+  }
+
+  std::pair<std::vector<Vertex>, std::vector<int>> get_surface_mesh(MeshID surface) const override
+  {
+    fatal_error("LibMeshManager::get_surface_mesh not implemented yet");
+  }
+
+  SurfaceElementType get_surface_element_type(MeshID surface) const override
+  {
+    fatal_error("LibMeshManager::get_surface_element_type() not implemented yet");
+  }
+
   MeshID create_volume() override;
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
@@ -248,9 +263,6 @@ public:
     if (sidepair_to_mesh_id_.count(sidepair) == 0) {
       MeshID id = next_sidepair_id();
       mesh_id_to_sidepair_[id] = sidepair;
-      if (sidepair_to_mesh_id_.count(sidepair) > 0) {
-        fatal_error("SidePair already exists in sidepair_to_mesh_id_");
-      }
       sidepair_to_mesh_id_[sidepair] = id;
       return id;
     } else {
@@ -266,11 +278,8 @@ public:
     return mesh_id_to_sidepair_.at(sidepair);
   }
 
-  MeshID next_sidepair_id() const {
-    if (mesh_id_to_sidepair_.size() == 0) {
-      return 1;
-    }
-    return std::max_element(mesh_id_to_sidepair_.begin(), mesh_id_to_sidepair_.end())->first + 1;
+  MeshID next_sidepair_id() {
+    return next_sidepair_id_++;
   }
 
   struct MeshIDPairHash {
@@ -311,6 +320,8 @@ public:
   //! Mapping of surfaces to the volumes on either side. Volumes are ordered
   //! based on their sense with respect to the surface triangles
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
+
+  int32_t next_sidepair_id_ {1}; //!< Next available sidepair ID, starts at one
 };
 
 } // namespace xdg

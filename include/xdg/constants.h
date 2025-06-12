@@ -1,6 +1,7 @@
 #ifndef _XDG_CONSTANTS
 #define _XDG_CONSTANTS
 
+#include <cmath>
 #include <map>
 #include <limits>
 #include <string>
@@ -18,6 +19,11 @@ constexpr double INFTY {std::numeric_limits<double>::max()};
 #else
   constexpr double INFTYF {std::numeric_limits<float>::max()};
 #endif
+
+constexpr double DILATION_FACTOR {std::pow(10, -std::numeric_limits<float>::digits10)};
+
+// TODO : Consider this as an option for managing missed hits?
+constexpr double PLUCKER_TOL {10 * std::numeric_limits<double>::epsilon()};
 
 // Whether information pertains to a surface or volume
 enum class GeometryType {
@@ -103,6 +109,17 @@ enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME
 
 //
 enum class HitOrientation { ANY, EXITING, ENTERING };
+
+// Enumerator for different element types (maybe we want more here?)
+enum class SurfaceElementType {
+  TRI = 0,
+  QUAD = 1,
+};
+
+enum class VolumeElementType {
+  TET = 0,
+  HEX = 1,
+};
 
 } // namespace xdg
 

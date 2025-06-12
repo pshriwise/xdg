@@ -7,8 +7,6 @@
 
 #include "xdg/vec3da.h"
 
-#include <fmt/format.h>
-
 #include "xdg/constants.h"
 #include "xdg/embree_interface.h"
 
@@ -23,9 +21,9 @@ class TriangleRef;
     double precision versions of the origin, direction
     and intersection distance.
  */
-struct RTCDRay: RTCRay {
+struct RTCDualRay : RTCRay {
 
-  RTCDRay() {
+  RTCDualRay() {
     this->tnear = 0.0;
     this->tfar = INFTYF;
     this->mask = -1;
@@ -78,18 +76,32 @@ struct RTCDRay: RTCRay {
     tnear = d;
   }
 
-  // Member variables
-  RayFireType rf_type; //!< Enum indicating the type of query this ray is used for
   Vec3da dorg, ddir; //!< double precision versions of the origin and ray direction
   double dtfar; //!< double precision version of the ray far distance
+};
+
+
+struct RTCSurfaceDualRay : RTCDualRay {
+
+  // Member variables
+  RayFireType rf_type; //!< Enum indicating the type of query this ray is used for
   HitOrientation orientation; //!< Enum indicating what hits to accept based on orientation
   const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
   TreeID volume_tree {ID_NONE}; // volume the ray is being fired in
 };
 
+struct RTCElementDualRay : RTCDualRay {
+  RTCElementDualRay() {
+    this->element = ID_NONE;
+  }
+
+  // Member variables
+  MeshID element; //!< ID of the element this ray is associated with
+};
+
 /*! Structure extending Embree's RayHit to include a double precision version of the primitive normal */
-struct RTCDHit : RTCHit {
-  RTCDHit() {
+struct RTCDualHit : RTCHit {
+  RTCDualHit() {
     this->geomID = RTC_INVALID_GEOMETRY_ID;
     this->primID = RTC_INVALID_GEOMETRY_ID;
     this->Ng_x = 0.0;
@@ -104,9 +116,9 @@ struct RTCDHit : RTCHit {
 };
 
 /*! Stucture combining the ray and ray-hit structures to be passed to Embree queries */
-struct RTCDRayHit {
-  struct RTCDRay ray; //<! Extended version of the Embree RTCRay struct with double precision values
-  struct RTCDHit hit; //<! Extended version of the Embree RTDRayHit struct with double precision values
+struct RTCDualRayHit {
+  struct RTCSurfaceDualRay ray; //<! Extended version of the Embree RTCRay struct with double precision values
+  struct RTCDualHit hit; //<! Extended version of the Embree RTDRayHit struct with double precision values
 
   //! \brief Compute the dot product of the ray direction and current hit normal
   double dot_prod() {
@@ -148,19 +160,5 @@ struct RTCDPointQuery : RTCPointQuery {
 };
 
 } // namespace xdg
-
-namespace fmt {
-
-template<>
-struct formatter<xdg::Vec3da> : formatter<std::string> {
-  template<typename FormatContext>
-  auto format(const xdg::Vec3da& v, FormatContext& ctx)
-  {
-    return formatter<std::string>::format(
-      fmt::format("({}, {}, {})", v.x, v.y, v.z), ctx);
-  }
-};
-
-} // namespace fmt
 
 #endif // include guard
