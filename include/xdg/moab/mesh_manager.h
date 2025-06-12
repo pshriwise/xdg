@@ -109,6 +109,9 @@ private:
   std::unordered_map<MeshID, moab::EntityHandle> volume_id_map_;
   std::unordered_map<MeshID, moab::EntityHandle> surface_id_map_;
 
+  // Maps elements to their volume ID
+  std::unordered_map<MeshID, MeshID> element_volume_ids_;
+
   // tag handles
   moab::Tag geometry_dimension_tag_;
   moab::Tag global_id_tag_;
