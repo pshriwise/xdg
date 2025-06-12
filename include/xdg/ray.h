@@ -88,7 +88,7 @@ struct RTCSurfaceDualRay : RTCDualRay {
   RayFireType rf_type {RayFireType::VOLUME}; //!< Enum indicating the type of query this ray is used for
   HitOrientation orientation {HitOrientation::EXITING}; //!< Enum indicating what hits to accept based on orientation
   const std::vector<MeshID>* exclude_primitives {nullptr}; //! < Set of primitives to exclude from the query
-  TreeID volume {ID_NONE}; // volume the ray is being fired in
+  TreeID volume_tree {ID_NONE}; // volume the ray is being fired in
 };
 
 struct RTCElementDualRay : RTCDualRay {

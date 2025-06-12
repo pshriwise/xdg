@@ -1,5 +1,4 @@
 #include <algorithm> // for find
-#include <iostream>
 
 #include "xdg/geometry/closest.h"
 #include "xdg/primitive_ref.h"
