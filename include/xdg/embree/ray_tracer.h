@@ -71,8 +71,6 @@ public:
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
-
-private:
 };
 
 } // namespace xdg
