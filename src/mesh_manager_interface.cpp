@@ -128,12 +128,23 @@ MeshManager::volume_bounding_box(MeshID volume) const
 }
 
 BoundingBox
+MeshManager::global_bounding_box() const
+{
+  BoundingBox bb;
+  auto volumes = this->volumes();
+  for (auto volume : volumes) {
+    bb.update(this->volume_bounding_box(volume));
+  }
+  return bb;
+}
+
+BoundingBox
 MeshManager::surface_bounding_box(MeshID surface) const
 {
   auto elements = this->get_surface_faces(surface);
   BoundingBox bb;
   for (const auto& element : elements) {
-    bb.update(this->element_bounding_box(element));
+    bb.update(this->face_bounding_box(element));
   }
   return bb;
 }
