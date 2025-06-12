@@ -76,14 +76,14 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   /* which volume are we in?
 
-     Reverse    |    Forwards
-          ----->|
-                |
+      Reverse    |    Forwards
+           ----->|
+                 |
     In this scenario we do not flip the normal
 
-     Reverse   |    Forwards
-               |<-----
-               |
+      Reverse   |    Forwards
+                |<-----
+                |
     In this scenario we flip the normal
   */ 
 
