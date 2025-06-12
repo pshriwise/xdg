@@ -96,7 +96,7 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
       surface_data = user_data_map_.at(surface_geometry);
       // set the box dilation value to the larger of the two box bump values for 
       // the volumes on either side of this surface
-      surface_data->bump = std::max(surface_data->bump, bump);
+      surface_data->box_bump = std::max(surface_data->box_bump, bump);
       rtcAttachGeometry(volume_scene, surface_geometry);
     }
 
@@ -130,7 +130,7 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
   rayhit.ray.orientation = HitOrientation::ANY;
   rayhit.ray.set_tfar(INFTY);
   rayhit.ray.set_tnear(0.0);
-  rayhit.ray.volume = tree;
+  rayhit.ray.volume_tree = tree;
 
   if (exclude_primitives != nullptr) rayhit.ray.exclude_primitives = exclude_primitives;
 
@@ -164,7 +164,7 @@ EmbreeRayTracer::ray_fire(TreeID tree,
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = orientation;
   rayhit.ray.mask = -1; // no mask
-  rayhit.ray.volume = tree;
+  rayhit.ray.volume_tree = tree;
 
   if (exclude_primitves != nullptr) rayhit.ray.exclude_primitives = exclude_primitves;
 

@@ -88,7 +88,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   */ 
 
   // if this is a normal ray fire, flip the normal as needed
-  if (ray.volume == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  if (ray.volume_tree == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
   {  
     normal = -normal;
   }
