@@ -94,6 +94,9 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     else { // Already exists: get geometry and user data
       surface_geometry = surface_to_geometry_map_[surface];
       surface_data = user_data_map_.at(surface_geometry);
+      // set the box dilation value to the larger of the two box bump values for 
+      // the volumes on either side of this surface
+      surface_data->bump = std::max(surface_data->bump, bump);
       rtcAttachGeometry(volume_scene, surface_geometry);
     }
 
