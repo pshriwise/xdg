@@ -121,7 +121,7 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
                                 const std::vector<MeshID>* exclude_primitives) const
 {
   RTCScene scene = tree_to_scene_map_.at(tree);
-  RTCDRayHit rayhit; // embree specfic rayhit struct (payload?)
+  RTCDualRayHit rayhit; // embree specfic rayhit struct (payload?)
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
   else rayhit.ray.set_dir({1. / std::sqrt(2.0), 1 / std::sqrt(2.0), 0.0});
@@ -153,7 +153,7 @@ EmbreeRayTracer::ray_fire(TreeID tree,
                     std::vector<MeshID>* const exclude_primitves)
 {
   RTCScene scene = tree_to_scene_map_.at(tree);
-  RTCDRayHit rayhit;
+  RTCDualRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
   rayhit.ray.set_dir(direction);
@@ -217,7 +217,7 @@ bool EmbreeRayTracer::occluded(TreeID tree,
                          double& distance) const
 {
   RTCScene scene = tree_to_scene_map_.at(tree);
-  RTCDRay ray;
+  RTCSurfaceDualRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);
   ray.set_tfar(INFTY);
