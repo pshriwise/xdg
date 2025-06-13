@@ -23,7 +23,20 @@ public:
   ~EmbreeRayTracer();
   void init() override;
   RTCScene create_embree_scene();
-  TreeID register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume) override;
+
+  std::pair<TreeID, TreeID> register_volume(const std::shared_ptr<MeshManager>& mesh_manager, MeshID volume) override;
+
+  TreeID create_surface_tree(const std::shared_ptr<MeshManager>& mesh_manager, MeshID volume) override;
+
+  TreeID create_element_tree(const std::shared_ptr<MeshManager>& mesh_manager, MeshID volume) override;
+
+  void create_global_surface_tree() override;
+
+  void create_global_element_tree() override;
+
+  MeshID find_element(const Position& point) const override;
+
+  MeshID find_element(TreeID tree, const Position& point) const override;
 
   // Query Methods
   bool point_in_volume(TreeID scene,
@@ -54,8 +67,8 @@ public:
                 double& dist) const override;
 
   // Accessors
-  const std::shared_ptr<GeometryUserData>& geometry_data(MeshID surface) const override
-  { return user_data_map_.at(surface_to_geometry_map_.at(surface)); };
+  const std::shared_ptr<SurfaceUserData>& geometry_data(MeshID surface) const override
+  { return surface_user_data_map_.at(surface_to_geometry_map_.at(surface)); };
 
   // Embree members
   RTCDevice device_;
@@ -65,12 +78,16 @@ public:
   std::map<MeshID, RTCGeometry> surface_to_geometry_map_; //<! Map from mesh surface to embree geometry
 
   // Internal Embree Mappings
-  std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
+  std::unordered_map<RTCGeometry, std::shared_ptr<SurfaceUserData>> surface_user_data_map_;
+  std::unordered_map<RTCGeometry, std::shared_ptr<VolumeElementsUserData>> volume_user_data_map_;
 
   std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
+
+  RTCScene global_surface_scene_ {nullptr};
+  RTCScene global_element_scene_ {nullptr};
 };
 
 } // namespace xdg

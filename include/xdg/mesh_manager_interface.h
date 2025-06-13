@@ -15,6 +15,7 @@ class MeshManager {
 public:
 
   // Abstract Methods
+  virtual ~MeshManager() = default;
 
   // Setup
   virtual void load_file(const std::string& filepath) = 0;
@@ -57,9 +58,11 @@ public:
 
   BoundingBox face_bounding_box(MeshID element) const;
 
+  BoundingBox surface_bounding_box(MeshID surface) const;
+
   BoundingBox volume_bounding_box(MeshID volume) const;
 
-  BoundingBox surface_bounding_box(MeshID surface) const;
+  BoundingBox global_bounding_box() const;
 
   Direction face_normal(MeshID element) const;
 
