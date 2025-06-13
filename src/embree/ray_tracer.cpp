@@ -62,9 +62,7 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     // Check if this surface already has a cached surface geometry
     if (!surface_to_geometry_map_.count(surface)) 
     { // First visit: Create new RTCGeometry and GeometryUserData
-      auto registeredSurface = register_surface(mesh_manager, surface, volume_scene, storage_offset);
-      surface_geometry = registeredSurface.first;
-      surface_data = registeredSurface.second;
+      std::tie(surface_geometry, surface_data) = register_surface(mesh_manager, surface, volume_scene, storage_offset);
     } 
     else { // Second Visit: Recover existing RTCGeometry and GeometryUserData
       surface_geometry = surface_to_geometry_map_[surface];
@@ -76,10 +74,10 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     }
 
     // Set the correct parent TreeID
-    auto parents = mesh_manager->get_parent_volumes(surface);
-    if (volume_id == parents.first) {
+    auto [forward_parent, reverse_parent] = mesh_manager->surface_senses(surface);
+    if (volume_id == forward_parent) {
       surface_data->forward_vol = tree;
-    } else if (volume_id == parents.second) {
+    } else if (volume_id == reverse_parent) {
       surface_data->reverse_vol = tree;
     } else {
       fatal_error("Volume {} is not a parent of surface {}", volume_id, surface);
