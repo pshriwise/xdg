@@ -14,6 +14,8 @@ struct GeometryUserData {
   MeshManager* mesh_manager {nullptr}; //! Pointer to the mesh manager for this geometry
   PrimitiveRef* prim_ref_buffer {nullptr}; //! Pointer to the mesh primitives in the geometry
   double box_bump; //! Bump distance for the bounding boxes in this geometry
+  TreeID forward_vol {ID_NONE};
+  TreeID reverse_vol {ID_NONE};
 };
 
 struct VolumeElementsUserData {

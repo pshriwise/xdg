@@ -73,14 +73,31 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   if (plucker_dist > rayhit->ray.dtfar) return;
 
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
+
+  /* which volume are we in?
+
+      Reverse    |    Forwards
+           ----->|
+                 |
+    In this scenario we do not flip the normal
+
+      Reverse   |    Forwards
+                |<-----
+                |
+    In this scenario we flip the normal
+  */ 
+
   // if this is a normal ray fire, flip the normal as needed
-  if (primitive_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  if (ray.volume_tree == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  {  
     normal = -normal;
+  }
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
    if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
    if (primitive_mask_cull(rayhit, primitive_ref.primitive_id)) return;
   }
+
 
   // if we've gotten through all of the filters, set the ray information
   rayhit->ray.set_tfar(plucker_dist);
