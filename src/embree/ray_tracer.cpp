@@ -59,10 +59,11 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     RTCGeometry surface_geometry;
     std::shared_ptr<GeometryUserData> surface_data;
 
-    // Check if this surface already has a cached surface geometry
+    // Check if this surface already has a cached RTCGeometry and GeometryUserData
     if (!surface_to_geometry_map_.count(surface)) 
     { // First visit: Create new RTCGeometry and GeometryUserData
       std::tie(surface_geometry, surface_data) = register_surface(mesh_manager, surface, volume_scene, storage_offset);
+      surface_data->box_bump = bump; // set the box dilation value
     } 
     else { // Second Visit: Recover existing RTCGeometry and GeometryUserData
       surface_geometry = surface_to_geometry_map_[surface];
