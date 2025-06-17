@@ -74,19 +74,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
 
-  /* which volume are we in?
-
-      Reverse    |    Forwards
-           ----->|
-                 |
-    In this scenario we do not flip the normal
-
-      Reverse   |    Forwards
-                |<-----
-                |
-    In this scenario we flip the normal
-  */ 
-
+  // Check if ray is entering or exiting the volume it was fired against
   // if this is a normal ray fire, flip the normal as needed
   if (ray.volume_tree == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
   {  
