@@ -71,6 +71,12 @@ public:
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
+
+private:
+  std::pair<RTCGeometry, std::shared_ptr<GeometryUserData>> register_surface(const std::shared_ptr<MeshManager>& mesh_manager,
+                                                                             MeshID surface, 
+                                                                             RTCScene& volume_scene, 
+                                                                             int& storage_offset);
 };
 
 } // namespace xdg

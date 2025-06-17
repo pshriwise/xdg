@@ -1,9 +1,7 @@
 #include <algorithm>
 #include "xdg/ray_tracing_interface.h"
 
-// So far, most of the methods in RayTracer require quite specific implementations to their RT backend.
-// register_volume() is an exception to this.
-// I imagine the find_volume algorithm may have some common logic which can sit in here once its implemented.
+// Any methods which are identical for all RT backends should be defined here
 
 namespace xdg {
 
