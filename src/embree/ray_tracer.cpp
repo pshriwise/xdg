@@ -41,13 +41,12 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
   auto volume_scene = this->create_embree_scene();
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
 
-  bool surface_registered = false;
-
   // allocate total storage for all the primtives in a volume
   size_t vol_face_count = 0;
-  for (auto& surface_id : volume_surfaces) {
-    if (!surface_registered) {
-      vol_face_count += mesh_manager->get_surface_faces(surface_id).size();
+  for (auto& surface : volume_surfaces) {
+    
+    if (!surface_to_scene_map_.count(surface)) {
+      vol_face_count += mesh_manager->get_surface_faces(surface).size();
     }
   }
 
@@ -62,7 +61,7 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     std::shared_ptr<GeometryUserData> surface_data;
 
     // Check if this surface already has a cached RTCGeometry and GeometryUserData
-    if (!surface_registered) 
+    if (!surface_to_scene_map_.count(surface)) 
     { // First visit: Create new RTCGeometry and GeometryUserData
       std::tie(surface_scene, surface_data) = create_surface_instance(mesh_manager, surface, volume_scene, storage_offset);
       surface_data->box_bump = bump; // set the box dilation value
