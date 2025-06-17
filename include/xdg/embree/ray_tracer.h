@@ -67,13 +67,14 @@ public:
   // Internal Embree Mappings
   std::unordered_map<RTCGeometry, std::shared_ptr<GeometryUserData>> user_data_map_;
 
-  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree
+  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree volume_scene
+  std::unordered_map<MeshID, RTCScene> surface_to_scene_map_; // Map from MeshID to specific embree surface_scene
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
 
 private:
-  std::pair<RTCGeometry, std::shared_ptr<GeometryUserData>> register_surface(const std::shared_ptr<MeshManager>& mesh_manager,
+  std::pair<RTCScene, std::shared_ptr<GeometryUserData>> create_surface_instance(const std::shared_ptr<MeshManager>& mesh_manager,
                                                                              MeshID surface, 
                                                                              RTCScene& volume_scene, 
                                                                              int& storage_offset);
