@@ -71,13 +71,12 @@ public:
   std::unordered_map<MeshID, RTCScene> surface_to_scene_map_; // Map from MeshID to specific embree surface_scene
 
   // storage
-  std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
+  std::unordered_map<MeshID, std::vector<PrimitiveRef>> primitive_ref_storage_;
 
 private:
   std::pair<RTCScene, std::shared_ptr<GeometryUserData>> create_surface_instance(const std::shared_ptr<MeshManager>& mesh_manager,
                                                                              MeshID surface, 
-                                                                             RTCScene& volume_scene, 
-                                                                             int& storage_offset);
+                                                                             RTCScene& volume_scene);
 };
 
 } // namespace xdg
