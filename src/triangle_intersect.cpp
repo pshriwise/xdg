@@ -104,48 +104,40 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
+// Attempts to descend down into the underlying BLAS scene
+/*  
   RTCDPointQuery* query = (RTCDPointQuery*) args->query;
   std::cout << "StackSize: " << args->context->instStackSize << std::endl;
-  // Are we in an instance?
-if (args->context->instStackSize > 0) {
-  RTCScene current_scene = *(RTCScene*)args->userPtr;
   
-  // This geomID should be valid in current_scene
-  RTCGeometry geom = rtcGetGeometry(current_scene, args->geomID);
-  if (!geom) {
-    std::cerr << "ERROR: Invalid geometry handle for geomID " << args->geomID << " in scene " << current_scene << "\n";
-    std::abort();
+  if (args->context->instStackSize > 0) {
+    RTCScene current_scene = *(RTCScene*)args->userPtr;
+    
+    // This geomID should be valid in current_scene
+    RTCGeometry geom = rtcGetGeometry(current_scene, args->geomID);
+    
+    const GeometryUserData* user_data = (const GeometryUserData*) rtcGetGeometryUserData(geom);
+    RTCScene instanced_scene = user_data->instanced_scene;
+
+    RTCPointQueryContext local_context;
+    rtcInitPointQueryContext(&local_context);
+
+    RTCDPointQuery local_query = *query;
+    rtcPointQuery(instanced_scene, &local_query, &local_context, TriangleClosestFunc, &instanced_scene);
   }
-  
-  const GeometryUserData* user_data = (const GeometryUserData*) rtcGetGeometryUserData(geom);
-  RTCScene instanced_scene = user_data->instanced_scene;
+*/ 
 
-  RTCPointQueryContext local_context;
-  rtcInitPointQueryContext(&local_context);
-
-  RTCDPointQuery local_query = *query;
-  rtcPointQuery(instanced_scene, &local_query, &local_context, TriangleClosestFunc, &instanced_scene);
-
-  std::cout << "Local query radius: " << local_query.dradius << std::endl;
-  std::cout << "Global query radius: " << query->dradius << std::endl;
-  if (local_query.dradius < query->dradius) {
-    *query = local_query;
-    return true;
-  }
-  return false;
-}
-
-  
-
-  // We're in a real geometry now — this is where we check actual triangles
+  // original point query function which was used directly on RTCGeometries
   RTCGeometry g = rtcGetGeometry(*(RTCScene*)args->userPtr, args->geomID);
+  // get the array of DblTri's stored on the geometry
   const GeometryUserData* user_data = (const GeometryUserData*) rtcGetGeometryUserData(g);
-  const MeshManager* mesh_manager = user_data->mesh_manager;
-  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
-  Position p {query->dblx, query->dbly, query->dblz};
+  const MeshManager* mesh_manager = user_data->mesh_manager;
+
+  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
+  RTCDPointQuery* query = (RTCDPointQuery*) args->query;
+  Position p {query->dblx, query->dbly, query->dblz};
 
   Position result = closest_location_on_triangle(vertices, p);
 
@@ -161,6 +153,7 @@ if (args->context->instStackSize > 0) {
     return false;
   }
 }
+
 
 void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*) args->geometryUserPtr;
