@@ -16,6 +16,7 @@ struct GeometryUserData {
   double box_bump; //! Bump distance for the bounding boxes in this geometry
   MeshID forward_vol {ID_NONE}; // ID of the forward sense volume
   MeshID reverse_vol {ID_NONE}; // ID of the reverse sense volume
+  RTCScene instanced_scene {nullptr}; //! The RTCScene associated with this geometry
 };
 
 struct VolumeElementsUserData {

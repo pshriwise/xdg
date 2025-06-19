@@ -74,6 +74,7 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
     // Create an instance of the surface BLAS and attach it to the volume TLAS
     RTCGeometry instance_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_INSTANCE);
     rtcSetGeometryInstancedScene(instance_geometry, surface_scene); // set the instance to surface BLAS
+    rtcSetGeometryUserData(instance_geometry, surface_data.get()); // set the user data for the instance
     rtcCommitGeometry(instance_geometry);
     rtcAttachGeometry(volume_scene, instance_geometry);
     rtcReleaseGeometry(instance_geometry); // release the geometry once controlled by volume_scene
@@ -117,6 +118,7 @@ EmbreeRayTracer::create_surface_instance(const std::shared_ptr<MeshManager>& mes
   surface_data->surface_id = surface;
   surface_data->mesh_manager = mesh_manager.get();
   surface_data->prim_ref_buffer = triangle_storage.data();
+  surface_data->instanced_scene = surface_scene; // set the BLAS scene
   rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
   // update mappings
