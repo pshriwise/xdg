@@ -126,8 +126,6 @@ public:
 
   const std::vector<MeshID>& trees() const { return trees_; }
 
-  virtual const std::shared_ptr<SurfaceUserData>& geometry_data(MeshID surface) const = 0;
-
 // TODO: Think about which variables will be shared between RayTracers independent of which library is used
 // Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 protected:

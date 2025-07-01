@@ -66,10 +66,6 @@ public:
                 const Direction& direction,
                 double& dist) const override;
 
-  // Accessors
-  const std::shared_ptr<SurfaceUserData>& geometry_data(MeshID surface) const override
-  { return surface_user_data_map_.at(surface_to_geometry_map_.at(surface)); };
-
   // Embree members
   RTCDevice device_;
   std::vector<RTCGeometry> geometries_; //<! All geometries created by this ray tracer
