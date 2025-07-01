@@ -39,12 +39,10 @@ std::pair<SurfaceTreeID, ElementTreeID>
 EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager>& mesh_manager,
                                  MeshID volume_id)
 {
-
+  // set up ray tracing tree for boundary faces of the volume
   TreeID faces_tree = create_surface_tree(mesh_manager, volume_id);
-
   // set up point location tree for any volumetric elements
   TreeID element_tree = create_element_tree(mesh_manager, volume_id);
-
   return {faces_tree, element_tree};
 }
 
@@ -75,13 +73,13 @@ EmbreeRayTracer::create_surface_tree(const std::shared_ptr<MeshManager>& mesh_ma
     RTCGeometry surface_geometry;
     std::shared_ptr<SurfaceUserData> surface_data;
 
-    // Check if this surface already has a cached RTCGeometry and GeometryUserData
+    // Check if this surface already has cached geometry information
     if (!surface_to_geometry_map_.count(surface))
-    { // First visit: Create new RTCGeometry and GeometryUserData
+    { // First visit: Create new RTCGeometry and user data
       std::tie(surface_geometry, surface_data) = register_surface(mesh_manager, surface, volume_scene, storage_offset);
       surface_data->box_bump = bump; // set the box dilation value
     }
-    else { // Second Visit: Recover existing RTCGeometry and GeometryUserData
+    else { // Second Visit: Recover existing RTCGeometry and user data
       surface_geometry = surface_to_geometry_map_[surface];
       surface_data = surface_user_data_map_.at(surface_geometry);
       // set the box dilation value to the larger of the two box bump values for

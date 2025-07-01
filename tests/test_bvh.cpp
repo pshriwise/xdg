@@ -28,6 +28,8 @@ TEST_CASE("Test Mesh BVH")
   }
 
   REQUIRE(rti->num_registered_trees() == 2);
+  REQUIRE(rti->num_registered_surface_trees() == 1);
+  REQUIRE(rti->num_registered_element_trees() == 1);
 
   mm = std::make_shared<MeshMock>();
   mm->init(); // this should do nothing
