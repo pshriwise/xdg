@@ -104,6 +104,29 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
+// Attempts to descend down into the underlying BLAS scene
+/*  
+  RTCDPointQuery* query = (RTCDPointQuery*) args->query;
+  std::cout << "StackSize: " << args->context->instStackSize << std::endl;
+  
+  if (args->context->instStackSize > 0) {
+    RTCScene current_scene = *(RTCScene*)args->userPtr;
+    
+    // This geomID should be valid in current_scene
+    RTCGeometry geom = rtcGetGeometry(current_scene, args->geomID);
+    
+    const GeometryUserData* user_data = (const GeometryUserData*) rtcGetGeometryUserData(geom);
+    RTCScene instanced_scene = user_data->instanced_scene;
+
+    RTCPointQueryContext local_context;
+    rtcInitPointQueryContext(&local_context);
+
+    RTCDPointQuery local_query = *query;
+    rtcPointQuery(instanced_scene, &local_query, &local_context, TriangleClosestFunc, &instanced_scene);
+  }
+*/ 
+
+  // original point query function which was used directly on RTCGeometries
   RTCGeometry g = rtcGetGeometry(*(RTCScene*)args->userPtr, args->geomID);
   // get the array of DblTri's stored on the geometry
   const GeometryUserData* user_data = (const GeometryUserData*) rtcGetGeometryUserData(g);
@@ -130,6 +153,7 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
     return false;
   }
 }
+
 
 void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   const GeometryUserData* user_data = (const GeometryUserData*) args->geometryUserPtr;
