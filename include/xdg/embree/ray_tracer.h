@@ -77,7 +77,8 @@ public:
   std::unordered_map<RTCGeometry, std::shared_ptr<SurfaceUserData>> surface_user_data_map_;
   std::unordered_map<RTCGeometry, std::shared_ptr<VolumeElementsUserData>> volume_user_data_map_;
 
-  std::unordered_map<TreeID, RTCScene> tree_to_scene_map_; // Map from XDG::TreeID to specific embree scene/tree
+  std::unordered_map<SurfaceTreeID, RTCScene> surface_volume_tree_to_scene_map_; // Map from SurfaceVolumeTreeID to specific embree scene/tree
+  std::unordered_map<ElementTreeID, RTCScene> element_volume_tree_to_scene_map_; // Map from ElementVolumeTreeID to specific embree scene/tree
 
   // storage
   std::unordered_map<RTCScene, std::vector<PrimitiveRef>> primitive_ref_storage_;
@@ -89,6 +90,7 @@ private:
                                                                              int& storage_offset);
   RTCScene global_surface_scene_ {nullptr};
   RTCScene global_element_scene_ {nullptr};
+
 };
 
 } // namespace xdg

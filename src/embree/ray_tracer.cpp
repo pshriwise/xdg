@@ -35,7 +35,7 @@ RTCScene EmbreeRayTracer::create_embree_scene() {
   return rtcscene;
 }
 
-std::pair<TreeID, TreeID>
+std::pair<SurfaceTreeID, ElementTreeID>
 EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager>& mesh_manager,
                                  MeshID volume_id)
 {
@@ -48,12 +48,12 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager>& mesh_manage
   return {faces_tree, element_tree};
 }
 
-TreeID
+SurfaceTreeID
 EmbreeRayTracer::create_surface_tree(const std::shared_ptr<MeshManager>& mesh_manager,
                            MeshID volume_id)
 {
-  TreeID tree = next_tree_id();
-  trees_.push_back(tree);
+  SurfaceTreeID tree = next_surface_tree_id();
+  surface_trees_.push_back(tree);
   auto volume_scene = this->create_embree_scene();
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
 
@@ -102,7 +102,7 @@ EmbreeRayTracer::create_surface_tree(const std::shared_ptr<MeshManager>& mesh_ma
   }
 
   rtcCommitScene(volume_scene);
-  tree_to_scene_map_[tree] = volume_scene;
+  surface_volume_tree_to_scene_map_[tree] = volume_scene;
   return tree;
 }
 
@@ -148,7 +148,7 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   return {surface_geometry, surface_data};
 }
 
-TreeID
+ElementTreeID
 EmbreeRayTracer::create_element_tree(const std::shared_ptr<MeshManager>& mesh_manager,
                                      MeshID volume)
 {
@@ -183,9 +183,9 @@ EmbreeRayTracer::create_element_tree(const std::shared_ptr<MeshManager>& mesh_ma
   rtcCommitGeometry(element_geometry);
   rtcCommitScene(volume_element_scene);
 
-  TreeID tree = next_tree_id();
-  trees_.push_back(tree);
-  tree_to_scene_map_[tree] = volume_element_scene;
+  ElementTreeID tree = next_element_tree_id();
+  element_trees_.push_back(tree);
+  element_volume_tree_to_scene_map_[tree] = volume_element_scene;
   return tree;
 }
 
@@ -201,9 +201,9 @@ void EmbreeRayTracer::create_global_surface_tree()
   }
 
   rtcCommitScene(global_surface_scene_);
-  TreeID tree = next_tree_id();
-  trees_.push_back(tree);
-  tree_to_scene_map_[tree] = global_surface_scene_;
+  SurfaceTreeID tree = next_surface_tree_id();
+  surface_trees_.push_back(tree);
+  surface_volume_tree_to_scene_map_[tree] = global_surface_scene_;
   global_surface_tree_ = tree;
 }
 
@@ -219,9 +219,9 @@ void EmbreeRayTracer::create_global_element_tree()
   }
   rtcCommitScene(global_element_scene_);
 
-  TreeID tree = next_tree_id();
-  trees_.push_back(tree);
-  tree_to_scene_map_[tree] = global_element_scene_;
+  ElementTreeID tree = next_element_tree_id();
+  element_trees_.push_back(tree);
+  element_volume_tree_to_scene_map_[tree] = global_element_scene_;
   global_element_tree_ = tree;
 }
 
@@ -231,16 +231,16 @@ MeshID EmbreeRayTracer::find_element(const Position& point) const
 }
 
 
-MeshID EmbreeRayTracer::find_element(TreeID tree,
+MeshID EmbreeRayTracer::find_element(ElementTreeID tree,
                                      const Position& point) const
 {
 
-  if (!tree_to_scene_map_.count(tree)) {
+  if (!element_volume_tree_to_scene_map_.count(tree)) {
     warning(fmt::format("Tree {} does not have a point location tree", tree));
     return ID_NONE;
   }
 
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = element_volume_tree_to_scene_map_.at(tree);
 
   RTCElementDualRay ray;
   ray.set_org(point);
@@ -258,12 +258,12 @@ MeshID EmbreeRayTracer::find_element(TreeID tree,
   return ray.element;
 }
 
-bool EmbreeRayTracer::point_in_volume(TreeID tree,
+bool EmbreeRayTracer::point_in_volume(SurfaceTreeID tree,
                                 const Position& point,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives) const
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDualRayHit rayhit; // embree specfic rayhit struct (payload?)
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
@@ -289,14 +289,14 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
 }
 
 std::pair<double, MeshID>
-EmbreeRayTracer::ray_fire(TreeID tree,
+EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
                     HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDualRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
@@ -327,12 +327,12 @@ EmbreeRayTracer::ray_fire(TreeID tree,
     return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 
-void EmbreeRayTracer::closest(TreeID tree,
+void EmbreeRayTracer::closest(SurfaceTreeID tree,
                         const Position& point,
                         double& distance,
                         MeshID& triangle)
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDPointQuery query;
   query.set_point(point);
 
@@ -350,7 +350,7 @@ void EmbreeRayTracer::closest(TreeID tree,
   triangle = query.primitive_ref->primitive_id;
 }
 
-void EmbreeRayTracer::closest(TreeID scene,
+void EmbreeRayTracer::closest(SurfaceTreeID scene,
                         const Position& point,
                         double& distance)
 {
@@ -358,12 +358,12 @@ void EmbreeRayTracer::closest(TreeID scene,
   closest(scene, point, distance, triangle);
 }
 
-bool EmbreeRayTracer::occluded(TreeID tree,
+bool EmbreeRayTracer::occluded(SurfaceTreeID tree,
                          const Position& origin,
                          const Direction& direction,
                          double& distance) const
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCSurfaceDualRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);

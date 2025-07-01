@@ -122,28 +122,31 @@ public:
                 double& dist) const = 0;
 
   // Generic Accessors
-  int num_registered_trees() const { return trees_.size(); };
+  int num_registered_trees() const { return surface_trees_.size() + element_trees_.size(); };
+  int num_registered_surface_trees() const { return surface_trees_.size(); };
+  int num_registered_element_trees() const { return element_trees_.size(); };
 
-  const std::vector<MeshID>& trees() const { return trees_; }
-
-// TODO: Think about which variables will be shared between RayTracers independent of which library is used
-// Right now I have moved pretty much everything into EmbreeRayTracer whilst this sits as an abstract interface
 protected:
   // Common functions across RayTracers
   const double bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id); // return a bump value based on the size of a bounding box (minimum 1e-3). Should this be a part of mesh_manager?
 
-  TreeID next_tree_id() const; // get next treeid
+  SurfaceTreeID next_surface_tree_id(); // get next surface treeid
+  ElementTreeID next_element_tree_id(); // get next element treeid
 
   // Common member variables across RayTracers
 
-  TreeID global_surface_tree_ {TREE_NONE}; //<! TreeID for the global surface tree
-  TreeID global_element_tree_ {TREE_NONE}; //<! TreeID for the global element tree
+  SurfaceTreeID global_surface_tree_ {TREE_NONE}; //<! TreeID for the global surface tree
+  ElementTreeID global_element_tree_ {TREE_NONE}; //<! TreeID for the global element tree
 
-  std::map<MeshID, TreeID> surface_to_tree_map_; //<! Map from mesh surface to embree scene
-  std::map<MeshID, TreeID> point_location_tree_map_; //<! Map from mesh volume to point location tree
+  std::map<MeshID, SurfaceTreeID> surface_to_tree_map_; //<! Map from mesh surface to embree scene
+  std::map<MeshID, ElementTreeID> point_location_tree_map_; //<! Map from mesh volume to point location tree
 
-  std::vector<TreeID> trees_; //<! All trees created by this ray tracer
+  std::vector<SurfaceTreeID> surface_trees_; //<! All surface trees created by this ray tracer
+  std::vector<ElementTreeID> element_trees_; //<! All element trees created by this ray tracer
+
   // Internal parameters
+  SurfaceTreeID next_surface_tree_id_ {0};
+  ElementTreeID next_element_tree_id_ {0};
   double numerical_precision_ {1e-3};
 };
 

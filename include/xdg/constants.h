@@ -72,6 +72,8 @@ constexpr MeshID ID_NONE {-1};
 
 // Scene/Tree ID
 using TreeID = int32_t;
+using SurfaceTreeID = TreeID;
+using ElementTreeID = TreeID;
 
 // Null tree ID
 constexpr TreeID TREE_NONE {-1};
