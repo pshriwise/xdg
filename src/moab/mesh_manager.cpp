@@ -212,7 +212,6 @@ std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
   moab::EntityHandle element_handle;
   this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
-  // if (rval == moab::MB_ENTITY_NOT_FOUND) fatal_error("Could not find entity with ID in the mesh database {}", element);
   auto out = this->mb_direct()->get_element_coords(element_handle);
   return std::vector<Vertex>(out.begin(), out.end());
 }
