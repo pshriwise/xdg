@@ -5,6 +5,7 @@ TEST_NAMES
 test_bbox
 test_bvh
 test_closest
+test_find_element
 test_mesh_internal
 test_occluded
 test_ray_fire

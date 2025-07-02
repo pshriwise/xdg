@@ -297,7 +297,8 @@ public:
   protected:
   // TODO: make this global so it isn't owned by a single mesh manager
   std::unique_ptr<libMesh::LibMeshInit> libmesh_init {nullptr};
-  // this attribute must come after libmesh_init so that it is destroyed last
+
+  // THIS MUST COME AFTER libmesh_init SO THAT IT IS DESTROYED LAST
   std::unique_ptr<libMesh::Mesh> mesh_ {nullptr};
 
   // Ugh, double mapping

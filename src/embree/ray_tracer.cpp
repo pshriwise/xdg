@@ -2,6 +2,8 @@
 #include "xdg/error.h"
 #include "xdg/geometry_data.h"
 #include "xdg/ray.h"
+#include "xdg/tetrahedron_contain.h"
+
 
 namespace xdg {
 
@@ -33,11 +35,23 @@ RTCScene EmbreeRayTracer::create_embree_scene() {
   return rtcscene;
 }
 
-TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager,
-                                        MeshID volume_id)
+std::pair<SurfaceTreeID, ElementTreeID>
+EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager>& mesh_manager,
+                                 MeshID volume_id)
 {
-  TreeID tree = next_tree_id();
-  trees_.push_back(tree);
+  // set up ray tracing tree for boundary faces of the volume
+  TreeID faces_tree = create_surface_tree(mesh_manager, volume_id);
+  // set up point location tree for any volumetric elements
+  TreeID element_tree = create_element_tree(mesh_manager, volume_id);
+  return {faces_tree, element_tree};
+}
+
+SurfaceTreeID
+EmbreeRayTracer::create_surface_tree(const std::shared_ptr<MeshManager>& mesh_manager,
+                           MeshID volume_id)
+{
+  SurfaceTreeID tree = next_surface_tree_id();
+  surface_trees_.push_back(tree);
   auto volume_scene = this->create_embree_scene();
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
 
@@ -57,18 +71,18 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
 
   for (auto& surface : volume_surfaces) {
     RTCGeometry surface_geometry;
-    std::shared_ptr<GeometryUserData> surface_data;
+    std::shared_ptr<SurfaceUserData> surface_data;
 
-    // Check if this surface already has a cached RTCGeometry and GeometryUserData
-    if (!surface_to_geometry_map_.count(surface)) 
-    { // First visit: Create new RTCGeometry and GeometryUserData
+    // Check if this surface already has cached geometry information
+    if (!surface_to_geometry_map_.count(surface))
+    { // First visit: Create new RTCGeometry and user data
       std::tie(surface_geometry, surface_data) = register_surface(mesh_manager, surface, volume_scene, storage_offset);
       surface_data->box_bump = bump; // set the box dilation value
-    } 
-    else { // Second Visit: Recover existing RTCGeometry and GeometryUserData
+    }
+    else { // Second Visit: Recover existing RTCGeometry and user data
       surface_geometry = surface_to_geometry_map_[surface];
-      surface_data = user_data_map_.at(surface_geometry);
-      // set the box dilation value to the larger of the two box bump values for 
+      surface_data = surface_user_data_map_.at(surface_geometry);
+      // set the box dilation value to the larger of the two box bump values for
       // the volumes on either side of this surface
       surface_data->box_bump = std::max(surface_data->box_bump, bump);
       rtcAttachGeometry(volume_scene, surface_geometry);
@@ -86,14 +100,14 @@ TreeID EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_
   }
 
   rtcCommitScene(volume_scene);
-  tree_to_scene_map_[tree] = volume_scene;
+  surface_volume_tree_to_scene_map_[tree] = volume_scene;
   return tree;
 }
 
-std::pair<RTCGeometry, std::shared_ptr<GeometryUserData>>
+std::pair<RTCGeometry, std::shared_ptr<SurfaceUserData>>
 EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manager,
-                                  MeshID surface, 
-                                  RTCScene& volume_scene, 
+                                  MeshID surface,
+                                  RTCScene& volume_scene,
                                   int& storage_offset)
 {
   auto& triangle_storage = this->primitive_ref_storage_[volume_scene];
@@ -112,12 +126,12 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   rtcAttachGeometry(volume_scene, surface_geometry);
   surface_to_geometry_map_[surface] = surface_geometry;
 
-  // create new GeometryUserData for the surface
-  auto surface_data = std::make_shared<GeometryUserData>();
+  // create new SurfaceUserData for the surface
+  auto surface_data = std::make_shared<SurfaceUserData>();
   surface_data->surface_id = surface;
   surface_data->mesh_manager = mesh_manager.get();
   surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
-  user_data_map_[surface_geometry] = surface_data;
+  surface_user_data_map_[surface_geometry] = surface_data;
   rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
   // Set RTC callbacks
@@ -132,12 +146,122 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   return {surface_geometry, surface_data};
 }
 
-bool EmbreeRayTracer::point_in_volume(TreeID tree,
+ElementTreeID
+EmbreeRayTracer::create_element_tree(const std::shared_ptr<MeshManager>& mesh_manager,
+                                     MeshID volume)
+{
+  auto volume_elements = mesh_manager->get_volume_elements(volume);
+  if (volume_elements.size() == 0) return TREE_NONE;
+
+  // create a new geometry
+  RTCScene volume_element_scene = create_embree_scene();
+  // create primitive references for the volumetric elements
+  this->primitive_ref_storage_[volume_element_scene].resize(volume_elements.size());
+  auto& volume_element_storage = this->primitive_ref_storage_[volume_element_scene];
+  for (int i = 0; i < volume_elements.size(); ++i) {
+    auto& primitive_ref = volume_element_storage[i];
+    primitive_ref.primitive_id = volume_elements[i];
+  }
+
+  RTCGeometry element_geometry = rtcNewGeometry(device_, RTC_GEOMETRY_TYPE_USER);
+  rtcSetGeometryUserPrimitiveCount(element_geometry, volume_elements.size());
+  unsigned int embree_geometry = rtcAttachGeometry(volume_element_scene, element_geometry);
+  std::shared_ptr<VolumeElementsUserData> volume_elements_data = std::make_shared<VolumeElementsUserData>();
+  volume_elements_data->volume_id = volume;
+  volume_elements_data->mesh_manager = mesh_manager.get();
+  volume_elements_data->prim_ref_buffer = volume_element_storage.data();
+  this->volume_user_data_map_[element_geometry] = volume_elements_data;
+
+  rtcSetGeometryUserData(element_geometry, volume_elements_data.get());
+
+  rtcSetGeometryBoundsFunction(element_geometry, (RTCBoundsFunction)&VolumeElementBoundsFunc, nullptr);
+  rtcSetGeometryIntersectFunction(element_geometry, (RTCIntersectFunctionN)&TetrahedronIntersectionFunc);
+  rtcSetGeometryOccludedFunction(element_geometry, (RTCOccludedFunctionN)&TetrahedronOcclusionFunc);
+
+  rtcCommitGeometry(element_geometry);
+  rtcCommitScene(volume_element_scene);
+
+  ElementTreeID tree = next_element_tree_id();
+  element_trees_.push_back(tree);
+  element_volume_tree_to_scene_map_[tree] = volume_element_scene;
+  return tree;
+}
+
+void EmbreeRayTracer::create_global_surface_tree()
+{
+  if (global_surface_scene_ != nullptr) {
+    rtcReleaseScene(global_surface_scene_);
+  }
+  global_surface_scene_ = create_embree_scene();
+
+  for(auto& [geom, surface_data] : surface_user_data_map_) {
+      rtcAttachGeometry(global_surface_scene_, geom);
+  }
+
+  rtcCommitScene(global_surface_scene_);
+  SurfaceTreeID tree = next_surface_tree_id();
+  surface_trees_.push_back(tree);
+  surface_volume_tree_to_scene_map_[tree] = global_surface_scene_;
+  global_surface_tree_ = tree;
+}
+
+void EmbreeRayTracer::create_global_element_tree()
+{
+  if (global_element_scene_ != nullptr) {
+    rtcReleaseScene(global_element_scene_);
+  }
+  global_element_scene_ = create_embree_scene();
+
+  for (auto& [vol_geom, data] : volume_user_data_map_) {
+    rtcAttachGeometry(global_element_scene_, vol_geom);
+  }
+  rtcCommitScene(global_element_scene_);
+
+  ElementTreeID tree = next_element_tree_id();
+  element_trees_.push_back(tree);
+  element_volume_tree_to_scene_map_[tree] = global_element_scene_;
+  global_element_tree_ = tree;
+}
+
+MeshID EmbreeRayTracer::find_element(const Position& point) const
+{
+  return find_element(global_element_tree_, point);
+}
+
+
+MeshID EmbreeRayTracer::find_element(ElementTreeID tree,
+                                     const Position& point) const
+{
+
+  if (!element_volume_tree_to_scene_map_.count(tree)) {
+    warning(fmt::format("Tree {} does not have a point location tree", tree));
+    return ID_NONE;
+  }
+
+  RTCScene scene = element_volume_tree_to_scene_map_.at(tree);
+
+  RTCElementDualRay ray;
+  ray.set_org(point);
+  ray.set_dir({1.0, 0.0, 0.0});
+  ray.set_tfar(0.0);
+  ray.set_tnear(0.0);
+
+  // fire an occlusion ray
+  {
+    rtcOccluded1(scene, (RTCRay*)&ray);
+  }
+
+  if (ray.dtfar != -INFTY) return ID_NONE;
+
+  return ray.element;
+}
+
+bool EmbreeRayTracer::point_in_volume(SurfaceTreeID tree,
                                 const Position& point,
                                 const Direction* direction,
                                 const std::vector<MeshID>* exclude_primitives) const
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDualRayHit rayhit; // embree specfic rayhit struct (payload?)
   rayhit.ray.set_org(point);
   if (direction != nullptr) rayhit.ray.set_dir(*direction);
@@ -163,14 +287,14 @@ bool EmbreeRayTracer::point_in_volume(TreeID tree,
 }
 
 std::pair<double, MeshID>
-EmbreeRayTracer::ray_fire(TreeID tree,
+EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
                     const Position& origin,
                     const Direction& direction,
                     const double dist_limit,
                     HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDualRayHit rayhit;
   // set ray data
   rayhit.ray.set_org(origin);
@@ -201,12 +325,12 @@ EmbreeRayTracer::ray_fire(TreeID tree,
     return {rayhit.ray.dtfar, rayhit.hit.surface};
 }
 
-void EmbreeRayTracer::closest(TreeID tree,
+void EmbreeRayTracer::closest(SurfaceTreeID tree,
                         const Position& point,
                         double& distance,
                         MeshID& triangle)
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDPointQuery query;
   query.set_point(point);
 
@@ -224,7 +348,7 @@ void EmbreeRayTracer::closest(TreeID tree,
   triangle = query.primitive_ref->primitive_id;
 }
 
-void EmbreeRayTracer::closest(TreeID scene,
+void EmbreeRayTracer::closest(SurfaceTreeID scene,
                         const Position& point,
                         double& distance)
 {
@@ -232,12 +356,12 @@ void EmbreeRayTracer::closest(TreeID scene,
   closest(scene, point, distance, triangle);
 }
 
-bool EmbreeRayTracer::occluded(TreeID tree,
+bool EmbreeRayTracer::occluded(SurfaceTreeID tree,
                          const Position& origin,
                          const Direction& direction,
                          double& distance) const
 {
-  RTCScene scene = tree_to_scene_map_.at(tree);
+  RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCSurfaceDualRay ray;
   ray.set_org(origin);
   ray.set_dir(direction);

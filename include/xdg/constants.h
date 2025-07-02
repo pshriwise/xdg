@@ -67,14 +67,16 @@ static const std::map<RTLibrary, std::string> RT_LIB_TO_STR =
 // Mesh identifer type
 using MeshID = int32_t;
 
-// Invalid
+// Null mesh ID
 constexpr MeshID ID_NONE {-1};
 
 // Scene/Tree ID
 using TreeID = int32_t;
+using SurfaceTreeID = TreeID;
+using ElementTreeID = TreeID;
 
-// Invalid
-constexpr TreeID TREEID_NONE {-1};
+// Null tree ID
+constexpr TreeID TREE_NONE {-1};
 
 // for abs(x) >= min_rcp_input the newton raphson rcp calculation does not fail
 constexpr float min_rcp_input = std::numeric_limits<float>::min() /* FIX ME */ *1E5 /* SHOULDNT NEED TO MULTIPLY BY THIS VALUE */;
