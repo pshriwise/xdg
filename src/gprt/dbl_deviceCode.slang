@@ -1,10 +1,7 @@
 #include "sharedCode.h"
 
 [[vk::push_constant]]
-PushConstants pc;
-
-[[vk::push_constant]]
-RayFirePushConstants rayFirePC;
+dblRayFirePushConstants PC;
 
 struct Payload {
     float3 color;
@@ -22,7 +19,7 @@ struct RayFirePayload {
 
 struct DPAttribute
 {
-  double hitDistance; // barycentrics
+  double f64t; // double precision hit distance
 };
 
 
@@ -45,7 +42,7 @@ void ray_fire_hit(uniform DPTriangleGeomData record, inout RayFirePayload payloa
     }
     int instanceID = InstanceID();
 
-    payload.distance = attr.hitDistance;
+    payload.distance = attr.f64t;
     payload.surf_id = record.surf_id;
     payload.normal = record.normals[PrimitiveIndex()];
     payload.hit_kind = hit_kind;
@@ -70,19 +67,15 @@ void ray_fire(uniform dblRayGenData record, uniform DPTriangleGeomData mesh) {
     RayDesc rayDesc;
     rayDesc.Origin = float3(record.ray[rayID].origin);
     rayDesc.Direction = normalize(float3(record.ray[rayID].direction));
-    rayDesc.TMin = 1e-4f; // non-zero to avoid self-intersection
-    rayDesc.TMax = rayFirePC.dist_limit; // distance limit from push constants
-
-    record.ray[rayID].tMin = rayDesc.TMin;
-    record.ray[rayID].tMax = rayDesc.TMax;
-
+    rayDesc.TMin = float(record.ray[rayID].tMin); // non-zero to avoid self-intersection
+    rayDesc.TMax = float(record.ray[rayID].tMax); // distance limit from push constants
+    
     // Pass the ray's origin and direction to the payload
     payload.distance = -1.0f;
     payload.surf_id = ~0u;
     payload.tlas = record.world;
 
-
-    // uint rayFlagCull = (rayFirePC.orientation == 1)
+    // uint rayFlagCull = (PC.orientation == 1)
     //                ? RAY_FLAG_CULL_FRONT_FACING_TRIANGLES
     //                : RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
 
@@ -142,11 +135,12 @@ populate_aabbs(uint3 DispatchThreadID: SV_DispatchThreadID, uniform DPTriangleGe
 
 /* 1D ray generation intersection with a double precision triangle using the Plucker intersection algorithm*/
 [shader("intersection")]
-void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record, uniform dblRayGenData rayGenData)
+void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
 {
     uint rayID = DispatchRaysIndex().x;
     uint nRays = DispatchRaysDimensions().x;
 
+    
     if (rayID >= nRays) {
         printf("Rejected Intersection at line %u due to:  rayID %u >= nRays %u\n", __LINE__, rayID, nRays);
         return;
@@ -180,11 +174,11 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record, uniform db
     double3 v1 = record.vertex[indices.y];
     double3 v2 = record.vertex[indices.z];
 
-    double3 origin = record.ray[rayID].origin;
-    double3 direction = record.ray[rayID].direction;
+    double3 origin = record.rayIn[rayID].origin;
+    double3 direction = record.rayIn[rayID].direction;
 
-    float tMin = 0.0;
-    float tMax = 10000;
+    double tMin = record.rayIn[rayID].tMin;
+    double tMax = record.rayIn[rayID].tMax;
 
     const double3 raya = direction;
     const double3 rayb = dp_cross(v1 - v0, v2 - v0); 
@@ -254,7 +248,7 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record, uniform db
     }
 
     DPAttribute attr;
-    attr.hitDistance = t;
+    attr.f64t = t;
 
     float f32t = float(t);
     if (double(f32t) < t) f32t = next_after(f32t);
@@ -266,15 +260,17 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record, uniform db
         printf("Reverse the normal \n");
     }
 
+    int hitOrientation = record.rayIn[rayID].hitOrientation;
+
     if (orientation_cull(direction, norm, orientation)) 
     {
         printf("Rejected Intersection at line %u due to:  Orientation does not match sense \n", __LINE__);
         return;
     }
 
-    for (int i = 0; i < record.ray[rayID].exclude_count; ++i)
+    for (int i = 0; i < record.rayIn[rayID].exclude_count; ++i)
     {
-        if (record.ray[rayID].exclude_primitives[i] == primID) {
+        if (record.rayIn[rayID].exclude_primitives[i] == primID) {
             printf("Rejected Intersection at line %u due to:  primitive %d is in the exclude list\n", __LINE__, primID);
             return;
         }
