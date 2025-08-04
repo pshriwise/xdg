@@ -66,7 +66,6 @@ int main(int argc, char* argv[]) {
   mm->init();
   xdg->prepare_raytracer();
 
-
   // Create a rendering window
   gprtRequestWindow(fbSize.x, fbSize.y, hdf_file.c_str());
 
@@ -77,7 +76,6 @@ int main(int argc, char* argv[]) {
   // New: Create a "triangle" geometry type and set it's closest-hit program
   auto trianglesGeomType = gprtGeomTypeCreate<TrianglesGeomData>(context, GPRT_TRIANGLES);
   gprtGeomTypeSetClosestHitProg(trianglesGeomType, 0, module, "TriangleMesh");
-
 
   std::vector<GPRTBufferOf<float3>> vertex_buffers;
   std::vector<GPRTBufferOf<uint3>> connectivity_buffers;
