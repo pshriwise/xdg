@@ -15,11 +15,13 @@ struct RayFirePayload {
     int next_vol;      // ID of the next volume
     double3 normal;
     uint hit_kind; // Kind of hit (front or back face)
+    uint primitive_id; // ID of the primitive hit
 };
 
 struct DPAttribute
 {
   double f64t; // double precision hit distance
+  uint global_prim_id;
 };
 
 
@@ -44,8 +46,8 @@ void ray_fire_hit(uniform DPTriangleGeomData record, inout RayFirePayload payloa
 
     payload.distance = attr.f64t;
     payload.surf_id = record.surf_id;
+    payload.primitive_id = attr.global_prim_id;
     payload.normal = record.normals[PrimitiveIndex()];
-    payload.hit_kind = hit_kind;
 }
 
 [shader("miss")]
@@ -54,6 +56,7 @@ void ray_fire_miss(inout RayFirePayload payload) {
     payload.distance = -1.0f;
     payload.surf_id = ~0u;
     payload.normal = {0.0, 0.0, 0.0};
+    payload.primitive_id = ~0u;
 }
 
 // This ray generation program will kick off the ray tracing process,
@@ -86,6 +89,7 @@ void ray_fire(uniform dblRayGenData record, uniform DPTriangleGeomData mesh) {
     // Store the distance to the hit point and the surface ID in buffers for CPU
     record.out[rayID].distance = payload.distance;
     record.out[rayID].surf_id = payload.surf_id;
+    record.out[rayID].primitive_id = payload.primitive_id;
 }
 
 [shader("raygeneration")]
@@ -227,7 +231,6 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
     }
 
     int hitOrientation = record.rayIn[rayID].hitOrientation;
-    printf("Hit Orientation: %d \n", hitOrientation);
 
     if (orientation_cull(direction, norm, hitOrientation))
     {
@@ -235,17 +238,21 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
         return;
     }
 
+    printf("Checking exclude list for primID %d, exclude_count %d\n", primID, record.rayIn[rayID].exclude_count);
+    int global_prim_id = record.prim_ids[primID];
     for (int i = 0; i < record.rayIn[rayID].exclude_count; ++i)
     {
-        if (record.rayIn[rayID].exclude_primitives[i] == primID) {
-            printf("Rejected Intersection at line %u due to:  primitive %d is in the exclude list\n", __LINE__, primID);
+        if (record.rayIn[rayID].exclude_primitives[i] == global_prim_id) {
+            printf("Rejected Intersection at line %u due to:  primitive %d is in the exclude list\n", __LINE__, global_prim_id);
             return;
         }
     }
+    attr.global_prim_id = global_prim_id;  
 
     uint hit_kind = dot(norm, direction) < 0 ? HIT_KIND_TRIANGLE_FRONT_FACE
                                              : HIT_KIND_TRIANGLE_BACK_FACE;
 
+    printf("Accepted Intersection at line %u for primID %d, t = %f, u = %f, v = %f, hit_kind = %u\n", __LINE__, primID, t, u, v, hit_kind);                                         
     ReportHit(f32t, hit_kind, attr);
 }
 
