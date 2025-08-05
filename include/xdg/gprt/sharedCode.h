@@ -21,6 +21,7 @@ struct dblRayInput
   double tMax; // Maximum distance for ray intersection
   int32_t* exclude_primitives; // Optional for excluding primitives
   uint32_t exclude_count;           // Number of excluded primitives
+  uint8_t hitOrientation;
 };
 
 struct RayOutput 
@@ -122,3 +123,4 @@ struct dblRayFirePushConstants {
   double tMin;
   uint8_t hitOrientation;
 };
+

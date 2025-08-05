@@ -330,7 +330,6 @@ std::pair<double, MeshID> GPRTRayTracer::ray_fire(TreeID scene,
   GPRTAccel volume = tree_to_vol_accel_map.at(scene);
   dblRayGenData* rayGenData = gprtRayGenGetParameters(rayGenProgram_);
   rayGenData->world = gprtAccelGetDeviceAddress(volume);
-  rayGenData->orientation = static_cast<int>(orientation); // Set orientation for the ray
   
   gprtBufferMap(rayInputBuffer_); // Update the ray input buffer
 
@@ -339,6 +338,7 @@ std::pair<double, MeshID> GPRTRayTracer::ray_fire(TreeID scene,
   rayInput[0].direction = {direction.x, direction.y, direction.z};
   rayInput[0].tMax = dist_limit;
   rayInput[0].tMin = 0.0;
+  rayInput[0].hitOrientation = static_cast<int>(orientation); // Set orientation for the ray
 
   if (exclude_primitives) {
     if (!exclude_primitives->empty()) gprtBufferResize(context_, excludePrimitivesBuffer_, exclude_primitives->size(), false);

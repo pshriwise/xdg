@@ -69,7 +69,7 @@ void ray_fire(uniform dblRayGenData record, uniform DPTriangleGeomData mesh) {
     rayDesc.Direction = normalize(float3(record.ray[rayID].direction));
     rayDesc.TMin = float(record.ray[rayID].tMin); // non-zero to avoid self-intersection
     rayDesc.TMax = float(record.ray[rayID].tMax); // distance limit from push constants
-    
+
     // Pass the ray's origin and direction to the payload
     payload.distance = -1.0f;
     payload.surf_id = ~0u;
@@ -78,6 +78,8 @@ void ray_fire(uniform dblRayGenData record, uniform DPTriangleGeomData mesh) {
     // uint rayFlagCull = (PC.orientation == 1)
     //                ? RAY_FLAG_CULL_FRONT_FACING_TRIANGLES
     //                : RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
+
+
 
     TraceRay(record.world, RAY_FLAG_NONE, 0xff, 0, 1, 0, rayDesc, payload);
 
@@ -106,7 +108,7 @@ void point_in_volume(uniform dblRayGenData record, uniform DPTriangleGeomData me
 
     // Store the result of the point in volume check and the surface ID of the primitive hit
     // 0 = outside, 1 = inside
-    record.out[rayID].normal = payload.normal; 
+    record.out[rayID].normal = payload.normal;
     record.out.surf_id = payload.surf_id;
 }
 
@@ -140,33 +142,10 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
     uint rayID = DispatchRaysIndex().x;
     uint nRays = DispatchRaysDimensions().x;
 
-    
     if (rayID >= nRays) {
         printf("Rejected Intersection at line %u due to:  rayID %u >= nRays %u\n", __LINE__, rayID, nRays);
         return;
     }
-
-    uint flags = RayFlags();
-
-    if (((flags & RAY_FLAG_CULL_BACK_FACING_TRIANGLES) != 0) &&
-        ((flags & RAY_FLAG_CULL_FRONT_FACING_TRIANGLES) != 0)) {
-        printf("Rejected Intersection at line %u due to:  both front and back facing triangles are culled\n", __LINE__);
-        return;
-    }
-
-    bool useOrientation = false;
-    int orientation = 0;
-    if ((flags & RAY_FLAG_CULL_BACK_FACING_TRIANGLES) != 0) {
-        orientation = -1;
-        useOrientation = true;
-    }
-    else if ((flags & RAY_FLAG_CULL_FRONT_FACING_TRIANGLES) != 0) {
-        orientation = 1;
-        useOrientation = true;
-    }
-
-
-
 
     int primID = PrimitiveIndex();
     int3 indices = record.index[primID];
@@ -181,31 +160,19 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
     double tMax = record.rayIn[rayID].tMax;
 
     const double3 raya = direction;
-    const double3 rayb = dp_cross(v1 - v0, v2 - v0); 
+    const double3 rayb = dp_cross(v1 - v0, v2 - v0);
 
     double plucker_coord0 = plucker_edge_test(v0, v1, raya, rayb);
-    if (useOrientation && orientation * plucker_coord0 > 0) {
-        printf("Rejected Intersection at line %u due to:  orientation check failed at edge 0 (plucker_coord0 = %f)\n", __LINE__, plucker_coord0);
-        return;
-    }
 
     double plucker_coord1 = plucker_edge_test(v1, v2, raya, rayb);
-    if (useOrientation && orientation * plucker_coord1 > 0) {
-        printf("Rejected Intersection at line %u due to:  orientation check failed at edge 1 (plucker_coord1 = %f)\n", __LINE__, plucker_coord1);
-        return;
-    }
-    else if ((0.0 < plucker_coord0 && 0.0 > plucker_coord1) || (0.0 > plucker_coord0 && 0.0 < plucker_coord1)) {
+    if ((0.0 < plucker_coord0 && 0.0 > plucker_coord1) || (0.0 > plucker_coord0 && 0.0 < plucker_coord1)) {
         printf("Rejected Intersection at line %u due to:  winding check failed between edge 0 and edge 1\n", __LINE__);
         return;
     }
 
     double plucker_coord2 = plucker_edge_test(v2, v0, raya, rayb);
-    if (useOrientation && orientation * plucker_coord2 > 0) {
-        printf("Rejected Intersection at line %u due to:  orientation check failed at edge 2 (plucker_coord2 = %f)\n", __LINE__, plucker_coord2);
-        return;
-    }
-    else if ((0.0 < plucker_coord1 && 0.0 > plucker_coord2) || (0.0 > plucker_coord1 && 0.0 < plucker_coord2) ||
-             (0.0 < plucker_coord0 && 0.0 > plucker_coord2) || (0.0 > plucker_coord0 && 0.0 < plucker_coord2)) {
+    if ((0.0 < plucker_coord1 && 0.0 > plucker_coord2) || (0.0 > plucker_coord1 && 0.0 < plucker_coord2) ||
+         (0.0 < plucker_coord0 && 0.0 > plucker_coord2) || (0.0 > plucker_coord0 && 0.0 < plucker_coord2)) {
         printf("Rejected Intersection at line %u due to:  winding check failed across multiple edges\n", __LINE__);
         return;
     }
@@ -254,15 +221,15 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
     if (double(f32t) < t) f32t = next_after(f32t);
 
     double3 norm = dcross(double3(v1 - v0), double3(v2 - v0));
-    // sense check 
     if (record.sense == 1) {
         norm = -norm; // reverse the normal if the triangle is reverse sense
         printf("Reverse the normal \n");
     }
 
     int hitOrientation = record.rayIn[rayID].hitOrientation;
+    printf("Hit Orientation: %d \n", hitOrientation);
 
-    if (orientation_cull(direction, norm, orientation)) 
+    if (orientation_cull(direction, norm, hitOrientation))
     {
         printf("Rejected Intersection at line %u due to:  Orientation does not match sense \n", __LINE__);
         return;
