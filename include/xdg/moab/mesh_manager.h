@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "xdg/mesh_manager_interface.h"
+#include "xdg/element_face_accessor.h"
 #include "xdg/moab/direct_access.h"
 #include "xdg/moab/metadata.h"
 
@@ -70,6 +71,7 @@ public:
 
   SurfaceElementType get_surface_element_type(MeshID surface) const override;
 
+  MeshID adjacent_element(MeshID element, int face) const override;
 
   // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
@@ -97,7 +99,7 @@ private:
 public:
   // Accessors
   moab::Interface* moab_interface() const { return moab_raw_ptr_; };
-  const auto& mb_direct() const { return mdam_; }
+  const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
   moab::EntityHandle root_set() const { return 0; }
 
 private:
@@ -122,6 +124,33 @@ private:
   // TODO: Make this comprehensive or a parameter in the constructor
   inline static const std::string metadata_delimiters = ":";
 
+};
+
+struct MOABElementFaceAccessor : public ElementFaceAccessor {
+
+  MOABElementFaceAccessor(const MOABMeshManager* mesh_manager, MeshID element) :
+  ElementFaceAccessor(element), mesh_manager_(mesh_manager), element_ordering_(mesh_manager->mb_direct()->get_face_ordering(moab::MBTET)) {
+
+    auto moab_mesh_manager = dynamic_cast<const MOABMeshManager*>(mesh_manager);
+    if (!moab_mesh_manager) {
+      throw std::runtime_error("MOABElementFaceAccessor requires a MOABMeshManager");
+    }
+    mesh_manager_ = moab_mesh_manager;
+    element_coordinates_ = mesh_manager_->element_vertices(element);
+  }
+
+  std::array<Vertex, 3> face_vertices(int i) const override {
+    std::array<Vertex, 3> verts;
+    for (int j = 0; j < 3; j++) {
+      verts[j] = element_coordinates_[element_ordering_[i][j]];
+    }
+    return std::move(verts);
+  }
+
+  // data members
+  const MOABMeshManager* mesh_manager_;
+  std::vector<Vertex> element_coordinates_;
+  const std::vector<std::vector<int>>& element_ordering_;
 };
 
 } // namespace xdg

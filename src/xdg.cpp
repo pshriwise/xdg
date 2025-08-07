@@ -1,4 +1,5 @@
 #include <vector>
+#include <numeric>
 
 #include "xdg/xdg.h"
 #include "xdg/error.h"
@@ -95,14 +96,18 @@ bool XDG::point_in_volume(MeshID volume,
 MeshID XDG::find_volume(const Position& point,
                                                    const Direction& direction) const
 {
+  MeshID ipc = mesh_manager()->implicit_complement();
   for (auto volume_scene_pair : volume_to_surface_tree_map_) {
     MeshID volume = volume_scene_pair.first;
+    if (volume == ipc) continue;
     TreeID scene = volume_scene_pair.second;
     if (ray_tracing_interface()->point_in_volume(scene, point, &direction)) {
       return volume;
     }
   }
-  return ID_NONE;
+
+  // if the point could not be found in any volume, it is by definition in the implicit complement
+  return ipc;
 }
 
 MeshID XDG::find_element(const Position& point) const
@@ -115,6 +120,94 @@ MeshID XDG::find_element(MeshID volume,
 {
   TreeID scene = volume_to_point_location_tree_map_.at(volume);
   return ray_tracing_interface()->find_element(scene, point);
+}
+
+std::vector<std::pair<MeshID, double>>
+XDG::segments(const Position& start,
+              const Position& end) const
+{
+  MeshID ipc = mesh_manager()->implicit_complement();
+
+  Position r = start;
+  Direction u = end - start;
+  double distance = u.length();
+  u /= distance;
+
+  std::vector<std::pair<MeshID, double>> segments;
+  while (distance > 0) {
+    // attempt to find an element at the start location
+    MeshID current_element = ray_tracing_interface()->find_element(r);
+    // at this point we may be on the face of an element, if we're declared inside that element, ignore it
+    if (segments.size() > 0 && current_element == segments.back().first) current_element = ID_NONE;
+    MeshID volume = ID_NONE;
+    if (current_element == ID_NONE) {
+      // fire a ray against the implicit complement
+      auto hit = ray_fire(ipc, r, u, INFTY, HitOrientation::EXITING);
+      // if there is no entry point or the distance to the surface
+      // is past the end point, return
+      if (hit.second == ID_NONE || hit.first > distance) return segments;
+
+      // move up to the surface
+      r += u * hit.first;
+      distance -= hit.first;
+      // determine the volume we're moving into
+      mesh_manager()->next_volume(ipc, hit.second);
+
+      // determine what element is on the other side of this surface
+      current_element = find_element(r + u * TINY_BIT);
+      if (current_element == ID_NONE) {
+        warning("Ray fire hit surface {}, but could not find element on the other side of the surface.", hit.second);
+        return {};
+      }
+    }
+    auto vol_segments = mesh_manager()->walk_elements(current_element, r, u, distance);
+    // add to current set of segments
+    segments.insert(segments.end(), vol_segments.begin(), vol_segments.end());
+    double segment_sum = std::accumulate(vol_segments.begin(), vol_segments.end(), 0.0,
+                                         [](double total, const auto& segment) { return total + segment.second; });
+    // upate location of the track start
+    r += u * segment_sum;
+    // decrement distance by total distance traveled in the volume
+    distance -= segment_sum;
+  }
+  return segments;
+}
+
+std::vector<std::pair<MeshID, double>>
+XDG::segments(MeshID volume,
+              const Position& start,
+              const Position& end) const
+{
+  Position start_copy = start;
+  Direction u = (end - start).normalize();
+  TreeID volume_tree = volume_to_point_location_tree_map_.at(volume);
+  MeshID starting_element = ray_tracing_interface()->find_element(volume_tree, start);
+
+  // if we're outside of the region of interest, determine the distance to an entering intersection
+  // with the model
+  if (starting_element == ID_NONE) {
+    auto hit = ray_fire(volume, start, u, INFTY, HitOrientation::ENTERING);
+    if (hit.second == ID_NONE) return {};
+    // TODO: use mesh adjaccies to find the element on the other side of the hit face
+    starting_element = ray_tracing_interface()->find_element(volume_tree, start + u * (hit.first + TINY_BIT));
+    if (starting_element == ID_NONE) {
+      warning("Ray fire hit surface {}, but could not find element on the other side of the surface.", hit.second);
+      return {};
+    }
+    start_copy += u * hit.first;
+  }
+
+  if (starting_element == ID_NONE) return {};
+  auto segments = mesh_manager()->walk_elements(starting_element, start_copy, end);
+  return segments;
+}
+
+std::pair<MeshID, double>
+XDG::next_element(MeshID current_element,
+                  const Position& r,
+                  const Direction& u) const
+{
+  return mesh_manager()->next_element(current_element, r, u);
 }
 
 std::pair<double, MeshID>

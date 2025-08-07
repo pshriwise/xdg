@@ -15,12 +15,14 @@ struct SimulationData {
   uint32_t n_particles_ {100};
   uint32_t max_events_ {1000};
   bool verbose_particles_ {false};
+  bool implicit_complement_is_graveyard_ {false};
   std::unordered_map<MeshID, double> cell_tracks;
 };
 
 struct Particle {
 
-Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events, bool verbose=true) : verbose_(verbose), xdg_(xdg), id_(id), max_events_(max_events) {}
+Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events, bool verbose=true, bool ipc_graveyard=false)
+: verbose_(verbose), xdg_(xdg), id_(id), max_events_(max_events), ipc_graveyard_(ipc_graveyard) {}
 
 template<typename... Params>
 void log (const std::string& msg, const Params&... fmt_args) {
@@ -108,6 +110,7 @@ void cross_surface()
   } else {
     volume_ = xdg_->mesh_manager()->next_volume(volume_, surface_intersection_.second);
     log("Particle {} enters volume {}", id_, volume_);
+    if (ipc_graveyard_ && volume_ == xdg_->mesh_manager()->implicit_complement()) volume_ = ID_NONE;
     if (volume_ == ID_NONE) {
       alive_ = false;
       return;
@@ -120,6 +123,7 @@ bool verbose_ {true};
 std::shared_ptr<XDG> xdg_;
 uint32_t id_ {0};
 int32_t max_events_ {1000};
+bool ipc_graveyard_ {false};
 
 Position r_;
 Direction u_;
@@ -135,7 +139,7 @@ void transport_particles(SimulationData& sim_data) {
   // Problem Setup
   srand48(42);
   for (uint32_t i = 0; i < sim_data.n_particles_; i++) {
-    Particle p {sim_data.xdg_, i, sim_data.max_events_, sim_data.verbose_particles_};
+    Particle p {sim_data.xdg_, i, sim_data.max_events_, sim_data.verbose_particles_, sim_data.implicit_complement_is_graveyard_};
     p.initialize();
     while (p.alive_) {
       p.surf_dist();

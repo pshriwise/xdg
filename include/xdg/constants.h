@@ -23,7 +23,9 @@ constexpr double INFTY {std::numeric_limits<double>::max()};
 constexpr double DILATION_FACTOR {std::pow(10, -std::numeric_limits<float>::digits10)};
 
 // TODO : Consider this as an option for managing missed hits?
-constexpr double PLUCKER_TOL {10 * std::numeric_limits<double>::epsilon()};
+constexpr double PLUCKER_ZERO_TOL {20 * std::numeric_limits<double>::epsilon()};
+
+constexpr double TINY_BIT {1e-10};
 
 // Whether information pertains to a surface or volume
 enum class GeometryType {
@@ -40,7 +42,7 @@ enum class Sense {
 
 // Mesh library identifier
 enum class MeshLibrary {
-  INTERNAL = 0,
+  MOCK = 0, // mock testing interface
   MOAB,
   LIBMESH
 };
@@ -53,7 +55,7 @@ enum class RTLibrary {
 
 static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
 {
-  {MeshLibrary::INTERNAL, "INTERNAL"},
+  {MeshLibrary::MOCK, "MOCK"},
   {MeshLibrary::MOAB, "MOAB"},
   {MeshLibrary::LIBMESH, "LIBMESH"}
 };

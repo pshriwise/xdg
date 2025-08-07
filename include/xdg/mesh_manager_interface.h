@@ -29,6 +29,41 @@ public:
 
   virtual int num_ents_of_dimension(int dim) const = 0;
 
+  //! \brief Walk through elements along a ray from start to end position.
+  //! \note It is assumed that the provided position is within the starting element.
+  //! \param starting_element The initial element to start the walk from
+  //! \param start The starting position of the ray
+  //! \param end The ending position of the ray
+  //! \return Vector of pairs containing element IDs and distances traveled through each element
+  std::vector<std::pair<MeshID, double>>
+  walk_elements(MeshID starting_element,
+                const Position& start,
+                const Position& end) const;
+
+  //! \brief Walk through elements along a ray with specified direction and distance
+  //! \note It is assumed that the provided position is within the starting element.
+  //! \param starting_element The initial element to start the walk from
+  //! \param start The starting position of the ray
+  //! \param u The normalized direction vector of the ray
+  //! \param distance The total distance to travel along the ray
+  //! \return Vector of pairs containing element IDs and distances traveled through each element
+  std::vector<std::pair<MeshID, double>>
+  walk_elements(MeshID starting_element,
+                const Position& start,
+                const Direction& u,
+                double distance) const;
+
+  //! \brief Find the next element along a ray from the current position.
+  //! \note It is assumed that the provided position is within the element.
+  //! \param current_element The current element being traversed
+  //! \param r The current position within the element
+  //! \param u The normalized direction vector of the ray
+  //! \return Pair containing the next element ID and distance to the exit point
+  std::pair<MeshID, double>
+  next_element(MeshID current_element,
+               const Position& r,
+               const Position& u) const;
+
   // Mesh
   virtual int num_volume_elements(MeshID volume) const = 0;
 
@@ -53,6 +88,12 @@ public:
   virtual std::pair<std::vector<Vertex>, std::vector<int>> get_surface_mesh(MeshID surface) const = 0;
 
   virtual SurfaceElementType get_surface_element_type(MeshID element) const = 0;
+
+  //! \brief Get the adjacent element across a given face
+  //! \param element The current element ID
+  //! \param face The local face index (0-3 for tetrahedra)
+  //! \return The ID of the adjacent element, or ID_NONE if the face is on a boundary
+  virtual MeshID adjacent_element(MeshID element, int face) const = 0;
 
   BoundingBox element_bounding_box(MeshID element) const;
 

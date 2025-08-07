@@ -1,11 +1,12 @@
 #include "xdg/libmesh/mesh_manager.h"
 
 #include "xdg/error.h"
+#include "xdg/geometry/plucker.h"
+#include "xdg/geometry/face_common.h"
 #include "xdg/util/str_utils.h"
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/elem.h"
-#include "libmesh/cell_tet4.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/mesh_tools.h"
 
@@ -84,8 +85,17 @@ void LibMeshManager::init() {
   // create a sideset for all faces on the boundary of the mesh
   create_boundary_sideset();
 
+  // create an implicit complement
+  create_implicit_complement();
+
   // libMesh initialization
   mesh()->prepare_for_use();
+}
+
+MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
+  const auto elem_ptr = mesh()->elem_ptr(element);
+  if (!elem_ptr) return ID_NONE;
+  return elem_ptr->neighbor_ptr(face)->id();
 }
 
 MeshID LibMeshManager::create_volume() {
@@ -109,7 +119,6 @@ void LibMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense 
       surface_senses_[surface] = {senses.first, volume};
     }
 }
-
 
 void LibMeshManager::parse_metadata() {
   // surface metadata

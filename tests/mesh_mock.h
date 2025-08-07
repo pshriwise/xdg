@@ -7,7 +7,8 @@
 #include "xdg/error.h"
 #include "xdg/vec3da.h"
 #include "xdg/mesh_manager_interface.h"
-#include "unordered_map"
+#include "xdg/element_face_accessor.h"
+
 
 #include "xdg/geometry/plucker.h"
 
@@ -85,7 +86,6 @@ public:
     const auto& conn = tetrahedron_connectivity()[element];
     return {vertices()[conn[0]], vertices()[conn[1]], vertices()[conn[2]], vertices()[conn[3]]};
   }
-
 
   virtual std::array<Vertex, 3> face_vertices(MeshID element) const override {
     const auto& conn = triangle_connectivity()[element];
@@ -200,12 +200,20 @@ public:
     return tetrahedron_connectivity_;
   }
 
+  const std::unordered_map<MeshID, std::array<MeshID, 4>>& element_adjacencies() const {
+    return element_adjacencies_;
+  }
+
   virtual SurfaceElementType get_surface_element_type(MeshID surface) const override {
     return SurfaceElementType::TRI; // hardcoded to Tri for this mock
   }
 
+  virtual MeshID adjacent_element(MeshID element, int face) const override {
+    return element_adjacencies_.at(element)[face];
+  }
+
   // Other
-  virtual MeshLibrary mesh_library() const override { return MeshLibrary::INTERNAL; }
+  virtual MeshLibrary mesh_library() const override { return MeshLibrary::MOCK; }
 
 // Data members
 private:
@@ -270,4 +278,39 @@ private:
     {0, 3, 7}
   };
 
+  // face-adjacency list for the tetrahedron elements
+  std::unordered_map<MeshID, std::array<MeshID, 4>> element_adjacencies_ {
+    {0, {-1, 1, 4, 11}},
+    {1, {-1, 9, 0, 7}},
+    {2, {-1, 5, 3, 10}},
+    {3, {-1, 2, 8, 6}},
+    {4, {-1, 0, 5, 10}},
+    {5, {-1, 4, 8, 2}},
+    {6, {-1, 7, 11, 3}},
+    {7, {-1, 1, 6, 9}},
+    {8, {-1, 5, 9, 3}},
+    {9, {-1, 8, 1, 7}},
+    {10, {-1, 11, 4, 2}},
+    {11, {-1, 0, 10, 6}}
+  };
+
+};
+
+struct MockElementFaceAccessor : public ElementFaceAccessor {
+  MockElementFaceAccessor(const MeshMock* mesh_manager, MeshID element) :
+  ElementFaceAccessor(element) {
+    mesh_manager_ = mesh_manager;
+    const auto& conn = mesh_manager->tetrahedron_connectivity()[element];
+    tet_connectivity_ = mesh_manager->tet_faces(conn);
+  }
+
+  std::array<Vertex, 3> face_vertices(int i) const override {
+    return {mesh_manager_->vertices()[tet_connectivity_[i][0]],
+            mesh_manager_->vertices()[tet_connectivity_[i][1]],
+            mesh_manager_->vertices()[tet_connectivity_[i][2]]};
+  }
+
+  // data members
+  const MeshMock* mesh_manager_;
+  std::array<std::array<int, 3>, 4> tet_connectivity_;
 };
