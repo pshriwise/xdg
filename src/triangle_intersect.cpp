@@ -57,10 +57,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
-  // printf("vertices: v0 = (%f, %f, %f), v1 = (%f, %f, %f), v2 = (%f, %f, %f)\n",
-  //        vertices[0].x, vertices[0].y, vertices[0].z,
-  //        vertices[1].x, vertices[1].y, vertices[1].z,
-  //        vertices[2].x, vertices[2].y, vertices[2].z);
+
 
   RTCDRayHit* rayhit = (RTCDRayHit*)args->rayhit;
   RTCDRay& ray = rayhit->ray;
@@ -80,7 +77,11 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
   // if this is a normal ray fire, flip the normal as needed
   if (primitive_ref.sense == Sense::REVERSE && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
+  {
+    // printf("Reversing normal because of sense \n");
     normal = -normal;
+  } 
+
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
    if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;

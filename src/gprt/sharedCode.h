@@ -9,7 +9,7 @@ struct GPRTPrimitiveRef
 {
   int id; // ID of the primitive
   int sense;
-};
+}
 
 /* Inputs for each ray */
 struct RayInput {
