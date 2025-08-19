@@ -53,6 +53,7 @@ void GPRTRayTracer::init() {}
 TreeID GPRTRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id)
 {
   TreeID tree = next_tree_id();
+  printf("Registering volume %d with tree ID %d\n", volume_id, tree);
   trees_.push_back(tree);
   auto volume_surfaces = mesh_manager->get_volume_surfaces(volume_id);
   std::vector<gprt::Instance> surfaceBlasInstances; // BLAS for each (surface) geometry in this volume
@@ -99,6 +100,7 @@ TreeID GPRTRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_ma
         GPRTPrimitiveRef prim_ref;
         prim_ref.id = face;
         prim_ref.sense = static_cast<int>(triangle_sense);
+        primitive_refs.push_back(prim_ref);
       }
 
       auto vertex_buffer = gprtDeviceBufferCreate<double3>(context_, dbl3Vertices.size(), dbl3Vertices.data());
@@ -115,6 +117,7 @@ TreeID GPRTRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_ma
       geom_data->surf_id = surf;
       geom_data->normals = gprtBufferGetDevicePointer(normal_buffer);
       geom_data->primitive_refs = gprtBufferGetDevicePointer(primitive_refs_buffer);
+      geom_data->num_faces = num_faces;
 
       /*
         TODO: Figure out how to store the TreeID in geom_data per surface rather than per primitive
@@ -158,8 +161,6 @@ TreeID GPRTRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_ma
       fatal_error("Volume {} is not a parent of surface {}", volume_id, surf);
     }
   }
-
-
 
   // Create a TLAS (Top-Level Acceleration Structure) for all BLAS instances in this volume
   auto instanceBuffer = gprtDeviceBufferCreate<gprt::Instance>(context_, surfaceBlasInstances.size(), surfaceBlasInstances.data());

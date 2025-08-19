@@ -9,7 +9,7 @@ struct GPRTPrimitiveRef
 {
   int id; // ID of the primitive
   int sense;
-}
+};
 
 /* Inputs for each ray */
 struct RayInput {
@@ -72,6 +72,7 @@ struct DPTriangleGeomData {
   int forward_tree; // TreeID of the forward volume
   int reverse_tree; // TreeID of the reverse volume
   GPRTPrimitiveRef* primitive_refs;
+  uint num_faces; // Number of faces in the geometry
 };
 
 struct RayGenData {

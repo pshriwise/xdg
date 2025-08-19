@@ -102,6 +102,10 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   rayhit->hit.primitive_ref = &primitive_ref;
   rayhit->hit.surface = user_data->surface_id;
   rayhit->hit.dNg = normal;
+
+  printf("Hit triangle %d at distance %f with normal (%f, %f, %f) and sense %d\n",
+         primitive_ref.primitive_id, plucker_dist, normal.x, normal.y, normal.z, primitive_ref.sense);
+
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {

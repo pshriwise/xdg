@@ -38,6 +38,7 @@ EmbreeRayTracer::register_volume(const std::shared_ptr<MeshManager> mesh_manager
                            MeshID volume_id)
 {
   TreeID tree = next_tree_id();
+  printf("Registering volume %d with tree ID %d\n", volume_id, tree);
   trees_.push_back(tree);
   auto volume_scene = this->create_embree_scene();
 

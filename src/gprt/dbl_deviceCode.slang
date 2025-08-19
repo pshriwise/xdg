@@ -273,6 +273,8 @@ void DPTrianglePluckerIntersection(uniform DPTriangleGeomData record)
     }
     attr.global_prim_id = global_prim_id;  
 
+    printf("Hit primitive %d at distance %f with normal (%f, %f, %f) and sense %d\n",
+           record.primitive_refs[primID].id, t, norm.x, norm.y, norm.z, record.primitive_refs[primID].sense);
     ReportHit(f32t, hit_kind, attr);
 }
 
