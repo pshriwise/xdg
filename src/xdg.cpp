@@ -4,7 +4,7 @@
 #include "xdg/xdg.h"
 #include "xdg/error.h"
 #include "xdg/embree/ray_tracer.h"
-// #include "xdg/gprt/ray_tracer.h" Not implemented yet
+#include "xdg/gprt/ray_tracer.h"
 
 // mesh manager concrete implementations
 #ifdef XDG_ENABLE_MOAB
@@ -65,11 +65,11 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib
     if (ray_tracing_lib == RTLibrary::EMBREE) return std::make_shared<EmbreeRayTracer>();
     #endif
     #ifdef XDG_ENABLE_GPRT
-    // if (ray_tracing_lib == RTLibrary::GPRT) return std::make_shared<GPRTRayTracer>();
+    if (ray_tracing_lib == RTLibrary::GPRT) return std::make_shared<GPRTRayTracer>();
     #endif
 
     // If no supported ray tracing library throw an error
-    std::string msg = fmt::format("Invalid ray tracing library '{}'. Supported:", RT_LIB_TO_STR.at(ray_tracing_lib));
+    std::string msg = fmt::format("Invalid ray tracing library '{}'. Supported:", RT_LIB_TO_STR(ray_tracing_lib));
     #ifdef XDG_ENABLE_EMBREE
     msg += " EMBREE";
     #endif

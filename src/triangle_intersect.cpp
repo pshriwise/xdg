@@ -57,6 +57,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
 
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
+
   RTCDualRayHit* rayhit = (RTCDualRayHit*)args->rayhit;
   RTCSurfaceDualRay& ray = rayhit->ray;
   RTCDualHit& hit = rayhit->hit;
@@ -101,6 +102,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   rayhit->hit.primitive_ref = &primitive_ref;
   rayhit->hit.surface = user_data->surface_id;
   rayhit->hit.dNg = normal;
+
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {

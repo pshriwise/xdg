@@ -38,6 +38,7 @@ public:
 
   MeshID find_element(TreeID tree, const Position& point) const override;
 
+
   // Query Methods
   bool point_in_volume(TreeID scene,
                       const Position& point,
@@ -65,6 +66,9 @@ public:
                 const Position& origin,
                 const Direction& direction,
                 double& dist) const override;
+
+  RTLibrary ray_tracing_library() const override { return RTLibrary::EMBREE; }
+
 
   // Embree members
   RTCDevice device_;

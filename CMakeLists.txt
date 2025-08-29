@@ -5,6 +5,7 @@ option(XDG_ENABLE_MOAB    "Enable support for the MOAB mesh library"          ON
 option(XDG_ENABLE_MFEM    "Enable support for the MFEM mesh library"         OFF)
 option(XDG_ENABLE_LIBMESH "Enable support for the libMesh mesh library"      OFF)
 option(XDG_ENABLE_EMBREE  "Enable support for the Embree ray tracing library" ON)
+option(XDG_ENABLE_GPRT    "Enable support for the GPRT ray tracing library"  OFF)
 option(XDG_BUILD_TESTS    "Enable C++ unit testing"                           ON)
 option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                         ON)
 
@@ -93,6 +94,11 @@ add_subdirectory(vendor/argparse)
 set(INDICATORS_INSTALL ON CACHE STRING "Ensure indicators targets are provided")
 add_subdirectory(vendor/indicators)
 
+# GPRT
+if (XDG_ENABLE_GPRT)
+  add_subdirectory(vendor/GPRT)
+endif() 
+
 list(APPEND xdg_sources
 src/geometry/measure.cpp
 src/geometry/plucker.cpp
@@ -112,6 +118,16 @@ if (XDG_ENABLE_EMBREE)
 list(APPEND xdg_sources
 src/embree/ray_tracer.cpp
 )
+endif()
+
+if (XDG_ENABLE_GPRT)
+list(APPEND xdg_sources
+src/gprt/ray_tracer.cpp
+)
+list(APPEND xdg_device_codes
+dbl_deviceCode
+)
+
 endif()
 
 if (XDG_ENABLE_LIBMESH)
@@ -202,6 +218,10 @@ if (XDG_ENABLE_EMBREE)
   target_compile_definitions(xdg PUBLIC XDG_ENABLE_EMBREE)
 endif()
 
+if (XDG_ENABLE_GPRT)
+  target_compile_definitions(xdg PUBLIC XDG_ENABLE_GPRT)
+endif()
+
 # ==========================
 # Link ray tracing libraries
 # ==========================
@@ -209,6 +229,23 @@ endif()
 if (XDG_ENABLE_EMBREE)
   target_link_libraries(xdg embree fmt::fmt)
 endif()
+
+# compile both single and double precision shaders for GPRT
+foreach(device_code ${xdg_device_codes})
+  if (XDG_ENABLE_GPRT)
+    target_link_libraries(xdg $<BUILD_INTERFACE:gprt>)
+    # Compile device code for single precision shaders
+    embed_devicecode(
+    OUTPUT_TARGET
+    ${device_code}
+    HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/gprt/sharedCode.h
+    SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gprt/${device_code}.slang
+  )
+  target_link_libraries(xdg ${device_code})
+  endif()
+endforeach()
 
 # ===================
 # Link mesh libraries
@@ -234,6 +271,17 @@ install(TARGETS xdg
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   INCLUDES DESTINATION include
 )
+
+# Install both single and double precision device code for GPRT
+foreach(device_code ${xdg_device_codes})
+  install(TARGETS ${device_code}
+    EXPORT xdg-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endforeach()
+
+
 
 install(EXPORT xdg-targets
   FILE XDGTargets.cmake

@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <set>
 
 #include "xdg/moab/mesh_manager.h"
 

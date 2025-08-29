@@ -60,11 +60,13 @@ static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
   {MeshLibrary::LIBMESH, "LIBMESH"}
 };
 
-static const std::map<RTLibrary, std::string> RT_LIB_TO_STR =
-{
-  {RTLibrary::EMBREE, "EMBREE"},
-  {RTLibrary::GPRT, "GPRT"},
-};
+inline const char* RT_LIB_TO_STR(RTLibrary lib) {
+  switch (lib) {
+    case RTLibrary::EMBREE: return "EMBREE";
+    case RTLibrary::GPRT:   return "GPRT";
+    default:                return "UNKNOWN";
+  }
+}
 
 // Mesh identifer type
 using MeshID = int32_t;
@@ -76,6 +78,9 @@ constexpr MeshID ID_NONE {-1};
 using TreeID = int32_t;
 using SurfaceTreeID = TreeID;
 using ElementTreeID = TreeID;
+
+// GPRT miss ID 
+constexpr uint32_t XDG_GPRT_INVALID_GEOMETRY_ID {~0u};
 
 // Null tree ID
 constexpr TreeID TREE_NONE {-1};
@@ -112,7 +117,11 @@ static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
 enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME };
 
 //
-enum class HitOrientation { ANY, EXITING, ENTERING };
+enum class HitOrientation { 
+  ANY = -1, 
+  EXITING = 0, 
+  ENTERING = 1, 
+};
 
 // Enumerator for different element types (maybe we want more here?)
 enum class SurfaceElementType {
@@ -123,6 +132,11 @@ enum class SurfaceElementType {
 enum class VolumeElementType {
   TET = 0,
   HEX = 1,
+};
+
+enum class FloatingPointPrecision {
+  SINGLE = 0, // Single precision (float)
+  DOUBLE = 1  // Double precision (double)
 };
 
 } // namespace xdg
