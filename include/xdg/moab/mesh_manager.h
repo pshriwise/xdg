@@ -48,6 +48,8 @@ public:
 
   MeshID create_volume() override;
 
+  MeshID create_boundary_surface();
+
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   // Mesh
@@ -82,6 +84,8 @@ public:
 
   Sense surface_sense(MeshID surface, MeshID volume) const override;
 
+  bool embedded_geometry() const { return embedded_geometry_; }
+
   // Metadata
   void parse_metadata() override;
 
@@ -97,6 +101,8 @@ private:
   std::vector<Vertex> _get_coords(moab::Range& verts) const;
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
+
+  bool embedded_geometry_ {false};
 
 public:
   // Accessors

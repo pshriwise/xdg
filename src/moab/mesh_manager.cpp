@@ -13,6 +13,8 @@
 #include "xdg/util/str_utils.h"
 #include "xdg/vec3da.h"
 
+#include "moab/Skinner.hpp"
+
 using namespace xdg;
 
 // Constructors
@@ -34,17 +36,36 @@ void MOABMeshManager::init() {
   // initialize the direct access manager
   this->mb_direct()->setup();
 
-  // get all of the necessary tag handles
-  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME, geometry_dimension_tag_) != moab::MB_SUCCESS)
-    fatal_error("Failed to find the MOAB geometry dimension tag");
+  auto tag_flags = moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT;
+
+  // ensure all of the necessary tag handles exist
   if (this->moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
-      fatal_error("Failed to find the MOAB global ID tag");
-  if(this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, category_tag_) != moab::MB_SUCCESS)
-    fatal_error("Failed to find the MOAB category tag");
-  if(this->moab_interface()->tag_get_handle(NAME_TAG_NAME, name_tag_) != moab::MB_SUCCESS)
-    fatal_error("Failed to find the MOAB name tag");
-  if(this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, surf_to_volume_sense_tag_) != moab::MB_SUCCESS)
-    fatal_error("Failed to find the MOAB surface sense tag");
+      fatal_error("Failed to obtain the MOAB global ID tag");
+
+  // check for pre-existence of the category and geometry dimension tags
+  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME, geometry_dimension_tag_) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain the MOAB geometry dimension tag");
+
+  if (!geometry_dimension_tag_) {
+    embedded_geometry_ = true;
+  }
+
+  // now ensure all tags needed to manage geometry are created
+  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
+                                             1,
+                                             moab::MB_TYPE_INTEGER,
+                                             geometry_dimension_tag_,
+                                             tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain the MOAB geometry dimension tag");
+  if(this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
+                                            moab::MB_TYPE_OPAQUE, category_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain the MOAB category tag");
+  if(this->moab_interface()->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
+                                            moab::MB_TYPE_OPAQUE, name_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain the MOAB name tag");
+  if(this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
+                                            moab::MB_TYPE_HANDLE, surf_to_volume_sense_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain the MOAB surface sense tag");
 
   // populate volumes vector and ID map
   auto moab_volume_handles = this->_ents_of_dim(3);
@@ -62,6 +83,23 @@ void MOABMeshManager::init() {
   for (int i = 0; i < moab_surface_ids.size(); i++) {
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
     surfaces_.push_back(moab_surface_ids[i]);
+  }
+
+  // if no volumes were discovered, build a single volume from all
+  // volume elements so we can ray trace the boundary of the mesh
+  if (num_volumes() == 0){
+    if (num_volume_elements() == 0) {
+      fatal_error("No volumes or volume elements found in MOAB mesh");
+   }
+
+   // create a single volume from all volume elements
+   auto volume = create_volume();
+
+    // create a boundary surface from all volume elements
+    auto surface = create_boundary_surface();
+
+    // add the boundary surface to the volume
+    add_surface_to_volume(volume, surface, Sense::FORWARD);
   }
 
   MeshID ipc = create_implicit_complement();
@@ -105,6 +143,34 @@ MeshID MOABMeshManager::create_volume() {
   volume_id_map_[volume_id] = volume_set;
 
   return volume_id;
+}
+
+MeshID MOABMeshManager::create_boundary_surface() {
+  moab::Skinner skinner(this->moab_interface());
+  moab::Range elements;
+  moab::Range boundary_faces;
+  this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, elements);
+  skinner.find_skin(0, elements, 3, boundary_faces);
+
+  MeshID next_surf_id = next_surface_id();
+
+  // create a new surface set
+  moab::EntityHandle surface_set;
+  this->moab_interface()->create_meshset(moab::MESHSET_SET, surface_set);
+
+  this->moab_interface()->tag_set_data(global_id_tag_, &surface_set, 1, &next_surf_id);
+
+  int dim = 2;
+  this->moab_interface()->tag_set_data(geometry_dimension_tag_, &surface_set, 1, &dim);
+
+  this->moab_interface()->tag_set_data(category_tag_, &surface_set, 1, SURFACE_CATEGORY_VALUE);
+
+  surface_id_map_[next_surf_id] = surface_set;
+
+  // set the boundary faces to the surface set
+  this->moab_interface()->add_entities(surface_set, boundary_faces);
+
+  return next_surf_id;
 }
 
 void MOABMeshManager::add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite)
@@ -279,6 +345,7 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 
   std::vector<moab::EntityHandle> surfaces;
   this->moab_interface()->get_child_meshsets(vol_handle, surfaces);
+  if (surfaces.size() == 0) return {};
 
   return this->tag_data<MeshID>(global_id_tag_, surfaces);
 }
