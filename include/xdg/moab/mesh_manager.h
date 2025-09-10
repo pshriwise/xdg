@@ -35,9 +35,13 @@ public:
   MOABMeshManager();
 
   // Methods
+
   void load_file(const std::string& filepath);
 
   void init() override;
+
+  // ensures all tags needed to manage geometry are created
+  void setup_tags();
 
   // Geometry
   int num_volumes() const override;
@@ -84,8 +88,6 @@ public:
 
   Sense surface_sense(MeshID surface, MeshID volume) const override;
 
-  bool embedded_geometry() const { return embedded_geometry_; }
-
   // Metadata
   void parse_metadata() override;
 
@@ -101,8 +103,6 @@ private:
   std::vector<Vertex> _get_coords(moab::Range& verts) const;
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
-
-  bool embedded_geometry_ {false};
 
 public:
   // Accessors

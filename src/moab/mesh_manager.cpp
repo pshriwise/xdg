@@ -36,36 +36,8 @@ void MOABMeshManager::init() {
   // initialize the direct access manager
   this->mb_direct()->setup();
 
-  auto tag_flags = moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT;
-
   // ensure all of the necessary tag handles exist
-  if (this->moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
-      fatal_error("Failed to obtain the MOAB global ID tag");
-
-  // check for pre-existence of the category and geometry dimension tags
-  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME, geometry_dimension_tag_) != moab::MB_SUCCESS)
-    fatal_error("Failed to obtain the MOAB geometry dimension tag");
-
-  if (!geometry_dimension_tag_) {
-    embedded_geometry_ = true;
-  }
-
-  // now ensure all tags needed to manage geometry are created
-  if (this->moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
-                                             1,
-                                             moab::MB_TYPE_INTEGER,
-                                             geometry_dimension_tag_,
-                                             tag_flags) != moab::MB_SUCCESS)
-    fatal_error("Failed to obtain the MOAB geometry dimension tag");
-  if(this->moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
-                                            moab::MB_TYPE_OPAQUE, category_tag_, tag_flags) != moab::MB_SUCCESS)
-    fatal_error("Failed to obtain the MOAB category tag");
-  if(this->moab_interface()->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
-                                            moab::MB_TYPE_OPAQUE, name_tag_, tag_flags) != moab::MB_SUCCESS)
-    fatal_error("Failed to obtain the MOAB name tag");
-  if(this->moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
-                                            moab::MB_TYPE_HANDLE, surf_to_volume_sense_tag_, tag_flags) != moab::MB_SUCCESS)
-    fatal_error("Failed to obtain the MOAB surface sense tag");
+  this->setup_tags();
 
   // populate volumes vector and ID map
   auto moab_volume_handles = this->_ents_of_dim(3);
@@ -103,6 +75,40 @@ void MOABMeshManager::init() {
   }
 
   MeshID ipc = create_implicit_complement();
+}
+
+void MOABMeshManager::setup_tags() {
+  // all of the tags are sparse and should be created if they don't exist
+  auto tag_flags = moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT;
+
+  // ensure all of the necessary tag handles exist
+  if (moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
+      fatal_error("Failed to obtain or create the MOAB global ID tag");
+
+  // check for pre-existence of the category and geometry dimension tags
+  // needed to identify the dimension of the geometry construct represented by an entity set
+  if (moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
+                                             1,
+                                             moab::MB_TYPE_INTEGER,
+                                             geometry_dimension_tag_,
+                                             tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain or create the MOAB geometry dimension tag");
+
+  // needed to identify the category of the geometry construct represented by an entity set
+  // e.g. volume, surface, group
+  if(moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
+                                            moab::MB_TYPE_OPAQUE, category_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain or create the MOAB category tag");
+
+  // needed to identify the metadata held on an entity set (applies to group sets only)
+  if(moab_interface()->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
+                                            moab::MB_TYPE_OPAQUE, name_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain or create the MOAB name tag");
+
+  // needed to identify the sense of a surface with respect to its parent volumes
+  if(moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, GEOM_SENSE_2_TAG_SIZE,
+                                            moab::MB_TYPE_HANDLE, surf_to_volume_sense_tag_, tag_flags) != moab::MB_SUCCESS)
+    fatal_error("Failed to obtain or create the MOAB surface sense tag");
 }
 
 // Methods
