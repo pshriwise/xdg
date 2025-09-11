@@ -40,9 +40,6 @@ public:
 
   void init() override;
 
-  // ensures all tags needed to manage geometry are created
-  void setup_tags();
-
   // Geometry
   int num_volumes() const override;
 
@@ -89,6 +86,40 @@ public:
   // Metadata
   void parse_metadata() override;
 
+  // Other
+  MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
+
+public:
+  // Accessors
+  moab::Interface* moab_interface() const { return moab_raw_ptr_; };
+  const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
+  moab::EntityHandle root_set() const { return 0; }
+
+private:
+  // Internal MOAB methods
+  std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
+  moab::Range _surface_faces(MeshID surface) const;
+  std::vector<Vertex> _get_coords(moab::Range& verts) const;
+  std::string get_volume_property(const std::string& property, MeshID vol) const;
+  /**
+   * @brief Sets up required MOAB tags for geometry management
+   *
+   * Ensures all necessary MOAB tag handles exist and are properly initialized.
+   * If any tag does not exist, it will be created with appropriate settings.
+   * Fatal errors are thrown if tag creation/retrieval fails.
+   */
+  void setup_tags();
+
+  /**
+   * @brief Checks for volumes with graveyard material and sets vacuum boundary conditions.
+   *
+   * This method iterates through all volumes in the mesh and checks if any have a material
+   * property set to "graveyard" (case insensitive). For any volume using a graveyard material,
+   * all of its surfaces will have their boundary condition property set to "vacuum".
+   *
+   * This ensures proper handling of graveyard regions which are typically used to define
+   * problem boundaries where particles should be terminated.
+   */
   void graveyard_check();
 
   /**
@@ -96,7 +127,8 @@ public:
    *
    * This method identifies all exterior (boundary) faces of the mesh, creates a new surface entity
    * to represent them, and registers this surface within the mesh manager. The returned MeshID
-   * corresponds to the newly created boundary surface.
+   * corresponds to the newly created boundary surface. Note: this method assumes that the boundary
+   * faces all have outward-facing normals with respect to the mesh.
    *
    * @return MeshID The identifier of the created boundary surface.
    */
@@ -105,7 +137,6 @@ public:
   // Other
   MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
 
-private:
   // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
   moab::Range _surface_faces(MeshID surface) const;
@@ -113,11 +144,12 @@ private:
 
   std::string get_volume_property(const std::string& property, MeshID vol) const;
 
-public:
   // Accessors
   moab::Interface* moab_interface() const { return moab_raw_ptr_; };
   const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
   moab::EntityHandle root_set() const { return 0; }
+
+protected:
 
   template<typename T>
   std::vector<T> tag_data(moab::Tag tag, const moab::Range& entities) const {
