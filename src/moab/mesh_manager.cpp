@@ -48,11 +48,8 @@ void MOABMeshManager::init() {
 
   // populate volumes vector and ID map
   auto moab_volume_handles = this->_ents_of_dim(3);
-  std::vector<int> moab_volume_ids(moab_volume_handles.size());
-  this->moab_interface()->tag_get_data(global_id_tag_,
-                                       moab_volume_handles.data(),
-                                       moab_volume_handles.size(),
-                                       moab_volume_ids.data());
+  std::vector<int> moab_volume_ids = this->tag_data<int>(global_id_tag_,
+                                                         moab_volume_handles);
 
   for (int i = 0; i < moab_volume_ids.size(); i++) {
     volume_id_map_[moab_volume_ids[i]] = moab_volume_handles[i];
@@ -60,11 +57,8 @@ void MOABMeshManager::init() {
   }
   // populate volumes vector and ID map
   auto moab_surface_handles = this->_ents_of_dim(2);
-  std::vector<int> moab_surface_ids(moab_surface_handles.size());
-  this->moab_interface()->tag_get_data(global_id_tag_,
-                                       moab_surface_handles.data(),
-                                       moab_surface_handles.size(),
-                                       moab_surface_ids.data());
+  std::vector<int> moab_surface_ids = this->tag_data<int>(global_id_tag_,
+                                                          moab_surface_handles);
   for (int i = 0; i < moab_surface_ids.size(); i++) {
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
     surfaces_.push_back(moab_surface_ids[i]);
@@ -232,16 +226,17 @@ MOABMeshManager::surface_senses(MeshID surface) const
 {
   std::array<moab::EntityHandle, 2> sense_data {0, 0};
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
+
   this->moab_interface()->tag_get_data(surf_to_volume_sense_tag_, &surf_handle, 1, sense_data.data());
 
-  std::array<MeshID, 2> mesh_ids {ID_NONE, ID_NONE};
+  std::pair<MeshID, MeshID> mesh_ids {ID_NONE, ID_NONE};
   // independent calls in case one of the handles is invalid
   if (sense_data[0] != 0)
-  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data(), 1, mesh_ids.data());
+    mesh_ids.first = this->tag_data<int>(global_id_tag_, sense_data[0]);
   if (sense_data[1] != 0)
-  this->moab_interface()->tag_get_data(global_id_tag_, sense_data.data()+1, 1, mesh_ids.data()+1);
+    mesh_ids.second = this->tag_data<int>(global_id_tag_, sense_data[1]);
 
-  return {mesh_ids[0], mesh_ids[1]};
+  return mesh_ids;
 }
 
 Sense
@@ -279,10 +274,7 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
   std::vector<moab::EntityHandle> surfaces;
   this->moab_interface()->get_child_meshsets(vol_handle, surfaces);
 
-  std::vector<MeshID> surface_ids(surfaces.size());
-  this->moab_interface()->tag_get_data(global_id_tag_, surfaces.data(), surfaces.size(), surface_ids.data());
-
-  return surface_ids;
+  return this->tag_data<MeshID>(global_id_tag_, surfaces);
 }
 
 std::vector<Vertex>
@@ -370,7 +362,7 @@ MOABMeshManager::parse_metadata()
   for (auto group : groups) {
     // get the value of the name tag for this group
     std::string group_name(' ', CATEGORY_TAG_SIZE);
-    this->moab_interface()->tag_get_data(name_tag_, &group, 1, group_name.data());
+    group_name = this->tag_data(name_tag_, group, CATEGORY_TAG_SIZE);
     std::vector<std::string> tokens = tokenize(strtrim(group_name), metadata_delimiters);
 
     // this group is often present and is meaningless
@@ -435,9 +427,8 @@ MOABMeshManager::parse_metadata()
     // TODO: verify that the property data is valid for an entity with that dimenison
     for (auto entity : entities) {
       // get the entity dimension and id
-      int dim, global_id;
-      this->moab_interface()->tag_get_data(global_id_tag_, &entity, 1, &global_id);
-      this->moab_interface()->tag_get_data(geometry_dimension_tag_, &entity, 1, &dim);
+      int dim = this->tag_data<int>(geometry_dimension_tag_, entity);
+      int global_id = this->tag_data<int>(global_id_tag_, entity);
 
       if (dim == 3) {
         for (const auto& p : group_properties) {
