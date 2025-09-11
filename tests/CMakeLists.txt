@@ -12,6 +12,7 @@ test_ray_fire
 test_point_in_volume
 test_normal
 test_measure
+test_no_geom
 test_ray_duals
 test_xdg_interface
 test_tet_containment
@@ -47,6 +48,8 @@ set(
 TEST_FILES
 pwr_pincell.h5m
 cube.h5m
+cube-mesh-no-geom.h5m
+cube-mesh-no-geom.exo
 no_overlap.h5m
 overlap.h5m
 overlap-edge.h5m
