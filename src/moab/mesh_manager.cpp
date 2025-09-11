@@ -82,32 +82,32 @@ void MOABMeshManager::setup_tags() {
   auto tag_flags = moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT;
 
   // ensure all of the necessary tag handles exist
-  if (moab_interface()->tag_get_handle(GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
+  if (moab_interface()->tag_get_handle(XDG_MOAB_GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
       fatal_error("Failed to obtain or create the MOAB global ID tag");
 
   // check for pre-existence of the category and geometry dimension tags
   // needed to identify the dimension of the geometry construct represented by an entity set
-  if (moab_interface()->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
-                                             1,
-                                             moab::MB_TYPE_INTEGER,
-                                             geometry_dimension_tag_,
-                                             tag_flags) != moab::MB_SUCCESS)
+  if (moab_interface()->tag_get_handle(XDG_MOAB_GEOM_DIMENSION_TAG_NAME,
+                                       1,
+                                       moab::MB_TYPE_INTEGER,
+                                       geometry_dimension_tag_,
+                                       tag_flags) != moab::MB_SUCCESS)
     fatal_error("Failed to obtain or create the MOAB geometry dimension tag");
 
   // needed to identify the category of the geometry construct represented by an entity set
   // e.g. volume, surface, group
-  if(moab_interface()->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
-                                            moab::MB_TYPE_OPAQUE, category_tag_, tag_flags) != moab::MB_SUCCESS)
+  if(moab_interface()->tag_get_handle(XDG_MOAB_CATEGORY_TAG_NAME, XDG_MOAB_CATEGORY_TAG_SIZE,
+                                      moab::MB_TYPE_OPAQUE, category_tag_, tag_flags) != moab::MB_SUCCESS)
     fatal_error("Failed to obtain or create the MOAB category tag");
 
   // needed to identify the metadata held on an entity set (applies to group sets only)
-  if(moab_interface()->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
-                                            moab::MB_TYPE_OPAQUE, name_tag_, tag_flags) != moab::MB_SUCCESS)
+  if(moab_interface()->tag_get_handle(XDG_MOAB_NAME_TAG_NAME, XDG_MOAB_NAME_TAG_SIZE,
+                                      moab::MB_TYPE_OPAQUE, name_tag_, tag_flags) != moab::MB_SUCCESS)
     fatal_error("Failed to obtain or create the MOAB name tag");
 
   // needed to identify the sense of a surface with respect to its parent volumes
-  if(moab_interface()->tag_get_handle(GEOM_SENSE_2_TAG_NAME, GEOM_SENSE_2_TAG_SIZE,
-                                            moab::MB_TYPE_HANDLE, surf_to_volume_sense_tag_, tag_flags) != moab::MB_SUCCESS)
+  if(moab_interface()->tag_get_handle(XDG_MOAB_GEOM_SENSE_2_TAG_NAME, XDG_MOAB_GEOM_SENSE_2_TAG_SIZE,
+                                      moab::MB_TYPE_HANDLE, surf_to_volume_sense_tag_, tag_flags) != moab::MB_SUCCESS)
     fatal_error("Failed to obtain or create the MOAB surface sense tag");
 }
 
@@ -440,8 +440,7 @@ MOABMeshManager::parse_metadata()
 
   for (auto group : groups) {
     // get the value of the name tag for this group
-    std::string group_name(' ', CATEGORY_TAG_SIZE);
-    group_name = this->tag_data(name_tag_, group, CATEGORY_TAG_SIZE);
+    std::string group_name = this->tag_data(name_tag_, group, XDG_MOAB_CATEGORY_TAG_SIZE);
     std::vector<std::string> tokens = tokenize(strtrim(group_name), metadata_delimiters);
 
     // this group is often present and is meaningless
