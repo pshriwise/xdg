@@ -52,8 +52,6 @@ public:
 
   MeshID create_volume() override;
 
-  MeshID create_boundary_surface();
-
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   // Mesh
@@ -92,6 +90,17 @@ public:
   void parse_metadata() override;
 
   void graveyard_check();
+
+  /**
+   * @brief Creates and registers a new surface that consists of the exterior faces of the mesh.
+   *
+   * This method identifies all exterior (boundary) faces of the mesh, creates a new surface entity
+   * to represent them, and registers this surface within the mesh manager. The returned MeshID
+   * corresponds to the newly created boundary surface.
+   *
+   * @return MeshID The identifier of the created boundary surface.
+   */
+  MeshID create_boundary_surface();
 
   // Other
   MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
