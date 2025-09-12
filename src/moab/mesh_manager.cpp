@@ -224,10 +224,8 @@ std::array<Vertex, 3> MOABMeshManager::face_vertices(MeshID element) const
 std::pair<MeshID, MeshID>
 MOABMeshManager::surface_senses(MeshID surface) const
 {
-  std::array<moab::EntityHandle, 2> sense_data {0, 0};
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
-
-  this->moab_interface()->tag_get_data(surf_to_volume_sense_tag_, &surf_handle, 1, sense_data.data());
+  std::vector<moab::EntityHandle> sense_data = this->tag_data<moab::EntityHandle>(surf_to_volume_sense_tag_, surf_handle, 2);
 
   std::pair<MeshID, MeshID> mesh_ids {ID_NONE, ID_NONE};
   // independent calls in case one of the handles is invalid

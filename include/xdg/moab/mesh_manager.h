@@ -114,12 +114,19 @@ public:
   }
 
   template<typename T>
-  std::vector<T> tag_data(moab::Tag tag, const std::vector<moab::EntityHandle>& entities) const {
+  std::vector<T> tag_data(moab::Tag tag, const std::vector<moab::EntityHandle>& entities, int length=1) const {
     if (entities.empty()) {
       return std::vector<T>();
     }
-    std::vector<T> data(entities.size());
+    std::vector<T> data(entities.size() * length);
     this->moab_interface()->tag_get_data(tag, entities.data(), entities.size(), data.data());
+    return data;
+  }
+
+  template<typename T>
+  std::vector<T> tag_data(moab::Tag tag, const moab::EntityHandle entity, int length) const {
+    std::vector<T> data(length);
+    this->moab_interface()->tag_get_data(tag, &entity, 1, data.data());
     return data;
   }
 
