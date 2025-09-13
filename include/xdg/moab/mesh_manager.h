@@ -104,6 +104,47 @@ public:
   const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
   moab::EntityHandle root_set() const { return 0; }
 
+  template<typename T>
+  std::vector<T> tag_data(moab::Tag tag, const moab::Range& entities) const {
+    if (entities.empty()) {
+      return std::vector<T>();
+    }
+    // ensure data container is sized appropriately
+    std::vector<T> data(entities.size());
+    this->moab_interface()->tag_get_data(tag, entities, data.data());
+    return data;
+  }
+
+  template<typename T>
+  std::vector<T> tag_data(moab::Tag tag, const std::vector<moab::EntityHandle>& entities, int length=1) const {
+    if (entities.empty()) {
+      return std::vector<T>();
+    }
+    std::vector<T> data(entities.size() * length);
+    this->moab_interface()->tag_get_data(tag, entities.data(), entities.size(), data.data());
+    return data;
+  }
+
+  template<typename T>
+  std::vector<T> tag_data(moab::Tag tag, const moab::EntityHandle entity, int length) const {
+    std::vector<T> data(length);
+    this->moab_interface()->tag_get_data(tag, &entity, 1, data.data());
+    return data;
+  }
+
+  template<typename T>
+  T tag_data(moab::Tag tag, const moab::EntityHandle entity) const {
+    T data;
+    this->moab_interface()->tag_get_data(tag, &entity, 1, &data);
+    return data;
+  }
+
+  std::string tag_data(moab::Tag tag, const moab::EntityHandle entity, int length) const {
+    std::string data(' ', length);
+    this->moab_interface()->tag_get_data(tag, &entity, 1, data.data());
+    return data;
+  }
+
 private:
   std::shared_ptr<moab::Interface> shared_moab_instance_;
   moab::Interface* moab_raw_ptr_;
