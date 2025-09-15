@@ -2,7 +2,7 @@
 #ifndef _XDG_MOABTAG_CONVENTIONS_H
 #define XDG_MOAB_TAG_CONVENTIONS_H
 
-// TODO: Rely on installed version of MBTagConventions.hpp
+namespace xdg {
 
 /* GEOM_DIMENSION tag:
  * Represents entities "owned" by a given topological entity in a geometric model
@@ -11,7 +11,7 @@
  * value = dimension of geom entity
  * default value = -1
  */
-#define GEOM_DIMENSION_TAG_NAME "GEOM_DIMENSION"
+constexpr char XDG_MOAB_GEOM_DIMENSION_TAG_NAME[] = "GEOM_DIMENSION";
 
 /* GLOBAL_ID tag:
  * Represents global id of entities (sets or mesh entities); this id is different than the id
@@ -21,7 +21,7 @@
  * value = global id
  * default value = 0 // not -1 to allow gids stored in unsigned data types
  */
-#define GLOBAL_ID_TAG_NAME "GLOBAL_ID"
+constexpr char XDG_MOAB_GLOBAL_ID_TAG_NAME[] = "GLOBAL_ID";
 
 /* CATEGORY tag:
  * String name indicating generic "category" if the entity to which it is assigned (usually
@@ -31,8 +31,8 @@
  * type = char[CATEGORY_TAG_NAME_LENGTH]
  * value = NULL-terminated string denoting category name
  */
-#define CATEGORY_TAG_NAME "CATEGORY"
-#define CATEGORY_TAG_SIZE 32
+constexpr char XDG_MOAB_CATEGORY_TAG_NAME[] = "CATEGORY";
+constexpr int XDG_MOAB_CATEGORY_TAG_SIZE = 32;
 
 /* NAME tag:
  * A fixed length NULL-padded string containing a name.
@@ -40,16 +40,8 @@
  * The string need not be null terminated.  All values used for
  * storing or searching for a value must be padded with '\0' chars.
  */
-#define NAME_TAG_NAME "NAME"
-#define NAME_TAG_SIZE 32
-
-/** \brief Global identifier for interface mesh
- *
- * An integer identifier common to the corresponding mesh entity
- * instances on each processor for a mesh entity on the interface.
- */
-#define PARALLEL_GID_TAG_NAME "GLOBAL_ID"
-
+constexpr char XDG_MOAB_NAME_TAG_NAME[] = "NAME";
+constexpr int XDG_MOAB_NAME_TAG_SIZE = 32;
 
 /** \brief Tag used for relationship between surfaces and their parent volumes
  // Tag name used for saving sense of faces in volumes.
@@ -61,7 +53,9 @@
 // be listed for both the forward and reverse slots.
 */
 
-#define GEOM_SENSE_2_TAG_NAME "GEOM_SENSE_2"
+constexpr char XDG_MOAB_GEOM_SENSE_2_TAG_NAME[] = "GEOM_SENSE_2";
+constexpr int XDG_MOAB_GEOM_SENSE_2_TAG_SIZE = 2;
 
+} // namespace xdg
 
 #endif

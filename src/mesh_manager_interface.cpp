@@ -40,12 +40,14 @@ MeshManager::create_implicit_complement()
 
 MeshID MeshManager::next_volume_id() const
 {
-    return *std::max_element(volumes().begin(), volumes().end()) + 1;
+  if (volumes().empty()) return 1;
+  return *std::max_element(volumes().begin(), volumes().end()) + 1;
 }
 
 MeshID MeshManager::next_surface_id() const
 {
-    return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
+  if (surfaces().empty()) return 1;
+  return *std::max_element(surfaces().begin(), surfaces().end()) + 1;
 }
 
 bool
