@@ -30,11 +30,13 @@ static const std::map<std::string, PropertyType> MOAB_PROPERTY_MAP
 class MOABMeshManager : public MeshManager {
 
 public:
+  // Constructors
   MOABMeshManager(moab::Interface* mbi);
 
   MOABMeshManager();
 
-  // Methods
+  // Interface Methods
+  MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
 
   void load_file(const std::string& filepath);
 
@@ -86,20 +88,9 @@ public:
   // Metadata
   void parse_metadata() override;
 
-  // Other
-  MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
-
-  // Accessors
-  moab::Interface* moab_interface() const { return moab_raw_ptr_; };
-  const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
-  moab::EntityHandle root_set() const { return 0; }
-
 private:
   // Internal MOAB methods
-  std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
-  moab::Range _surface_faces(MeshID surface) const;
-  std::vector<Vertex> _get_coords(moab::Range& verts) const;
-  std::string get_volume_property(const std::string& property, MeshID vol) const;
+
   /**
    * @brief Sets up required MOAB tags for geometry management
    *
@@ -133,16 +124,12 @@ private:
    */
   MeshID create_boundary_surface();
 
-  // Other
-  MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
-
-  // Internal MOAB methods
   std::vector<moab::EntityHandle> _ents_of_dim(int dim) const;
   moab::Range _surface_faces(MeshID surface) const;
   std::vector<Vertex> _get_coords(moab::Range& verts) const;
-
   std::string get_volume_property(const std::string& property, MeshID vol) const;
 
+public:
   // Accessors
   moab::Interface* moab_interface() const { return moab_raw_ptr_; };
   const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }
@@ -212,7 +199,6 @@ private:
 
   // TODO: Make this comprehensive or a parameter in the constructor
   inline static const std::string metadata_delimiters = ":";
-
 };
 
 struct MOABElementFaceAccessor : public ElementFaceAccessor {
