@@ -89,7 +89,6 @@ public:
   // Other
   MeshLibrary mesh_library() const override { return MeshLibrary::MOAB; }
 
-public:
   // Accessors
   moab::Interface* moab_interface() const { return moab_raw_ptr_; };
   const std::shared_ptr<MBDirectAccess>& mb_direct() const { return mdam_; }

@@ -82,16 +82,15 @@ void MOABMeshManager::setup_tags() {
   auto tag_flags = moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT;
 
   // ensure all of the necessary tag handles exist
+  // this tag it created by MOAB when a new mesh instance is created and should always exist
   if (moab_interface()->tag_get_handle(XDG_MOAB_GLOBAL_ID_TAG_NAME, global_id_tag_) != moab::MB_SUCCESS)
       fatal_error("Failed to obtain or create the MOAB global ID tag");
 
   // check for pre-existence of the category and geometry dimension tags
   // needed to identify the dimension of the geometry construct represented by an entity set
+  // this tag it created by MOAB when a new mesh instance is created and should always exist
   if (moab_interface()->tag_get_handle(XDG_MOAB_GEOM_DIMENSION_TAG_NAME,
-                                       1,
-                                       moab::MB_TYPE_INTEGER,
-                                       geometry_dimension_tag_,
-                                       tag_flags) != moab::MB_SUCCESS)
+                                       geometry_dimension_tag_) != moab::MB_SUCCESS)
     fatal_error("Failed to obtain or create the MOAB geometry dimension tag");
 
   // needed to identify the category of the geometry construct represented by an entity set
