@@ -45,6 +45,8 @@ void LibMeshManager::init() {
     fatal_error("Mesh must be 3-dimensional");
   }
 
+  num_elements_ = mesh()->n_active_elem();
+
   auto libmesh_bounding_box = libMesh::MeshTools::create_bounding_box(*mesh());
 
   // identify all subdomain IDs in the mesh, these represent volumes
@@ -95,7 +97,9 @@ void LibMeshManager::init() {
 MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
   const auto elem_ptr = mesh()->elem_ptr(element);
   if (!elem_ptr) return ID_NONE;
-  return elem_ptr->neighbor_ptr(face)->id();
+  auto neighbor = elem_ptr->neighbor_ptr(face);
+  if (!neighbor) return ID_NONE;
+  return neighbor->id();
 }
 
 MeshID LibMeshManager::create_volume() {
@@ -340,7 +344,7 @@ LibMeshManager::get_volume_elements(MeshID volume) const {
 int
 LibMeshManager::num_volume_elements() const
 {
-  return mesh()->n_active_elem();
+  return num_elements_;
 }
 
 std::vector<MeshID>
