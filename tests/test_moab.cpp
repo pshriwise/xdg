@@ -80,13 +80,12 @@ TEST_CASE("Test BVH Build")
 
 TEST_CASE("Test Ray Fire MOAB")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::GPRT);
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
   const auto& mesh_manager = xdg->mesh_manager();
   mesh_manager->load_file("cube.h5m");
   mesh_manager->init();
   xdg->prepare_raytracer();
-
 
   MeshID volume = mesh_manager->volumes()[0];
 
@@ -223,7 +222,8 @@ TEST_CASE("MOAB Get Surface Mesh")
 
 TEST_CASE("TEST MOAB Find Element Method")
 {
-  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  REQUIRE(xdg->ray_tracing_interface()->library() == RTLibrary::EMBREE);
   REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
   const auto& mesh_manager = xdg->mesh_manager();
   mesh_manager->load_file("jezebel.h5m");

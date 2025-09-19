@@ -21,6 +21,8 @@ class EmbreeRayTracer : public RayTracer {
 public:
   EmbreeRayTracer();
   ~EmbreeRayTracer();
+  RTLibrary library() const override { return RTLibrary::EMBREE; }
+
   void init() override;
   RTCScene create_embree_scene();
 
@@ -37,6 +39,7 @@ public:
   MeshID find_element(const Position& point) const override;
 
   MeshID find_element(TreeID tree, const Position& point) const override;
+
 
   // Query Methods
   bool point_in_volume(TreeID scene,
@@ -88,6 +91,7 @@ private:
                                                                              MeshID surface,
                                                                              RTCScene& volume_scene,
                                                                              int& storage_offset);
+  // Global Tree IDs
   RTCScene global_surface_scene_ {nullptr};
   RTCScene global_element_scene_ {nullptr};
 
