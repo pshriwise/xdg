@@ -329,6 +329,9 @@ public:
   //! based on their sense with respect to the surface triangles
   std::unordered_map<MeshID, std::pair<MeshID, MeshID>> surface_senses_;
 
+  int32_t num_elements_ {-1};
+
+  //! Mapping of surfaces to the volumes on either side. Volumes are ordered
   int32_t next_sidepair_id_ {1}; //!< Next available sidepair ID, starts at one
 };
 

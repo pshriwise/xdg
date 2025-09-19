@@ -347,3 +347,25 @@ TEST_CASE("Test Find Element Brick")
   element = xdg->find_element(volume, {0.0, 0.0, 100.0});
   REQUIRE(element == ID_NONE);
 }
+
+TEST_CASE("Test Track Exiting Mesh Brick")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("brick.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  MeshID volume = 1;
+  Position start {0.0, 0.0, -1000.0};
+  Position end {0.0, 0.0, 1000.0};
+  auto tracks = xdg->segments(volume, start, end);
+
+  double length = std::accumulate(tracks.begin(), tracks.end(), 0.0, [](double sum, const auto& track) {
+    return sum + track.second;
+  });
+
+  REQUIRE_THAT(length, Catch::Matchers::WithinAbs(10.0, 1e-6));
+}
