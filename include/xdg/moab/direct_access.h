@@ -277,10 +277,8 @@ private:
       // determine the correct contiguous memory block index to use
       int idx = 0;
       auto fe = first_vertices[idx];
-      while(true) {
-        if (i - fe.first < fe.second) { break; }
-        idx++;
-        fe = first_vertices[idx];
+      while(i - fe.first >= fe.second) {
+        fe = first_vertices[++idx];
       }
       // determine index into the contiguous block of coordinate memory
       i -= fe.first;
