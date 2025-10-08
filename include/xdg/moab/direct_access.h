@@ -219,7 +219,7 @@ private:
 
       size_t conn_idx = element_stride * (e - fe.first);
       for (int i = 0; i < N; i++) {
-        indices[i+1] = vconn[block_idx][conn_idx + i] - 1;
+        indices[i+1] = vconn[block_idx][conn_idx + i];
       }
       return indices;
     }
@@ -256,6 +256,8 @@ private:
         ty.push_back(&(*ytmp));
         tz.push_back(&(*ztmp));
 
+        first_vertices.push_back({*verts_it, n_vertices});
+
         // move iterator forward by the number of vertices in this contiguous memory block
         verts_it += n_vertices;
       }
@@ -266,13 +268,25 @@ private:
       tx.clear();
       ty.clear();
       tz.clear();
+      first_vertices.clear();
     }
 
     //! \brief Set the coordinates of a vertex based on an index into a contiguous block of memory
     //! \param idx The index of the block of memory
     //! \param i The index of the vertex in the block of memory
     //! \param v The vertex to set the coordinates of
-    void set_coords(int idx, int i, xdg::Vertex& v) {
+    void set_coords(int i, xdg::Vertex& v) {
+      // determine the correct contiguous memory block index to use
+      int idx = 0;
+      auto fe = first_vertices[idx];
+      while(true) {
+        if (i - fe.first < fe.second) { break; }
+        idx++;
+        fe = first_vertices[idx];
+      }
+      // determine index into the contiguous block of coordinate memory
+      i -= fe.first;
+      // populate the vertex reference with coordinates
       v = xdg::Vertex(tx[idx][i], ty[idx][i], tz[idx][i]);
     }
 
@@ -280,6 +294,7 @@ private:
     std::vector<const double*> tx; //!< Storage array(s) for vertex x coordinates
     std::vector<const double*> ty; //!< Storage array(s) for vertex y coordinates
     std::vector<const double*> tz; //!< Storage array(s) for vertex z coordinates
+    std::vector<std::pair<EntityHandle, size_t>> first_vertices; //!< Pairs of first vertex and length pairs for contiguous blocks of memory
   };
 
   ConnectivityData face_data_;
