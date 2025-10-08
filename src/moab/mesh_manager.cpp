@@ -67,8 +67,8 @@ void MOABMeshManager::init() {
    // create a single volume from all volume elements
    auto volume = create_volume();
 
-    // create a boundary surface from all volume elements
-    auto surface = create_boundary_surface();
+   // create a boundary surface from all volume elements
+   auto surface = create_boundary_surface();
 
     // add the boundary surface to the volume
     add_surface_to_volume(volume, surface, Sense::FORWARD);
@@ -138,6 +138,11 @@ MeshID MOABMeshManager::create_volume() {
 
   this->moab_interface()->tag_set_data(global_id_tag_, &volume_set, 1, &volume_id);
 
+  // place all volume elements in the volume set
+  moab::Range all_elems;
+  this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
+  this->moab_interface()->add_entities(volume_set, all_elems);
+
   // set geometry dimension
   int dim = 3;
   this->moab_interface()->tag_set_data(geometry_dimension_tag_, &volume_set, 1, &dim);
@@ -155,7 +160,11 @@ MeshID MOABMeshManager::create_boundary_surface() {
   moab::Range elements;
   moab::Range boundary_faces;
   this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, elements);
-  skinner.find_skin(0, elements, 3, boundary_faces);
+  skinner.find_skin(0, elements, 2, boundary_faces, false, true);
+  // it's possible that the skinning operation changed the mesh
+  // update the direct access manager to account for any new
+  // faces
+  this->mb_direct()->update();
 
   MeshID next_surf_id = next_surface_id();
 
@@ -170,10 +179,12 @@ MeshID MOABMeshManager::create_boundary_surface() {
 
   this->moab_interface()->tag_set_data(category_tag_, &surface_set, 1, SURFACE_CATEGORY_VALUE);
 
-  surface_id_map_[next_surf_id] = surface_set;
-
-  // set the boundary faces to the surface set
+  // add the boundary faces to the new surface set
   this->moab_interface()->add_entities(surface_set, boundary_faces);
+
+  // update internal maps and vectors
+  surface_id_map_[next_surf_id] = surface_set;
+  this->surfaces().push_back(next_surf_id);
 
   return next_surf_id;
 }
