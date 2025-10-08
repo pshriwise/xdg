@@ -270,7 +270,6 @@ private:
     }
 
     //! \brief Set the coordinates of a vertex based on an index into a contiguous block of memory
-    //! \param idx The index of the block of memory
     //! \param i The index of the vertex in the block of memory
     //! \param v The vertex to set the coordinates of
     void set_coords(int i, xdg::Vertex& v) {
