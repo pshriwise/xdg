@@ -47,24 +47,24 @@ public:
 
   //! \brief Get the coordinates of a triangle as MOAB CartVect's
   inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
-    auto [block_idx, i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
+    auto [i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
 
     std::array<xdg::Vertex, 3> vertices;
-    vertex_data_.set_coords(block_idx, i0, vertices[0]);
-    vertex_data_.set_coords(block_idx, i1, vertices[1]);
-    vertex_data_.set_coords(block_idx, i2, vertices[2]);
+    vertex_data_.set_coords(i0, vertices[0]);
+    vertex_data_.set_coords(i1, vertices[1]);
+    vertex_data_.set_coords(i2, vertices[2]);
     return vertices;
   }
 
   //! \brief Get the coordinates of a triangle as MOAB CartVect's
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
-    auto [block_idx, i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
+    auto [i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
 
     std::array<xdg::Vertex, 4> vertices;
-    vertex_data_.set_coords(block_idx, i0, vertices[0]);
-    vertex_data_.set_coords(block_idx, i1, vertices[1]);
-    vertex_data_.set_coords(block_idx, i2, vertices[2]);
-    vertex_data_.set_coords(block_idx, i3, vertices[3]);
+    vertex_data_.set_coords(i0, vertices[0]);
+    vertex_data_.set_coords(i1, vertices[1]);
+    vertex_data_.set_coords(i2, vertices[2]);
+    vertex_data_.set_coords(i3, vertices[3]);
     return vertices;
   }
 
@@ -203,7 +203,7 @@ private:
     }
 
     template <int N>
-    std::array<size_t, N+1>
+    std::array<size_t, N>
     get_connectivity_indices(const EntityHandle& e) {
       // determine the correct contiguous block index to use
       int block_idx = 0;
@@ -214,12 +214,10 @@ private:
         fe = first_elements[block_idx];
       }
 
-      std::array<size_t, N+1> indices;
-      indices[0] = block_idx;
-
+      std::array<size_t, N> indices;
       size_t conn_idx = element_stride * (e - fe.first);
       for (int i = 0; i < N; i++) {
-        indices[i+1] = vconn[block_idx][conn_idx + i];
+        indices[i] = vconn[block_idx][conn_idx + i];
       }
       return indices;
     }
