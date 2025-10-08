@@ -45,7 +45,7 @@ public:
     return true;
   }
 
-  //! \brief Get the coordinates of a triangle as MOAB CartVect's
+  //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
     auto [i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
 
@@ -56,7 +56,7 @@ public:
     return vertices;
   }
 
-  //! \brief Get the coordinates of a triangle as MOAB CartVect's
+  //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
     auto [i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
 
