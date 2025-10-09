@@ -9,6 +9,10 @@
 using namespace xdg;
 
 
+// Expected values for the cube mesh without geometry
+constexpr int32_t N_FACE_ELEMENTS = 1408;
+constexpr int32_t N_VOLUME_ELEMENTS = 8814;
+
 TEST_CASE("Test Mesh Without Geometry")
 {
   auto mesh_backend = GENERATE(MeshLibrary::MOAB, MeshLibrary::LIBMESH);
@@ -31,5 +35,10 @@ TEST_CASE("Test Mesh Without Geometry")
 
     REQUIRE(mesh_manager->num_volume_elements(1) == 8814);
     REQUIRE(mesh_manager->num_volume_elements(mesh_manager->implicit_complement()) == 0);
+    REQUIRE(mesh_manager->num_volume_elements(1) == N_VOLUME_ELEMENTS);
+
+    auto volume_surfaces = mesh_manager->get_volume_surfaces(1);
+    REQUIRE(volume_surfaces.size() == 1);
+    REQUIRE(mesh_manager->num_surface_faces(volume_surfaces[0]) == N_FACE_ELEMENTS);
   }
 }
