@@ -64,11 +64,17 @@ void MOABMeshManager::init() {
       fatal_error("No volumes or volume elements found in MOAB mesh");
    }
 
-   // create a single volume from all volume elements
-   auto volume = create_volume();
+    // create a single volume from all volume elements
+    auto volume = create_volume();
 
-   // create a boundary surface from all volume elements
-   auto surface = create_boundary_surface();
+    // place all volume elements in the volume set
+    moab::Range all_elems;
+    this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
+    moab::EntityHandle volume_set = volume_id_map_.at(volume);
+    this->moab_interface()->add_entities(volume_set, all_elems);
+
+    // create a boundary surface from all volume elements
+    auto surface = create_boundary_surface();
 
     // add the boundary surface to the volume
     add_surface_to_volume(volume, surface, Sense::FORWARD);
@@ -138,11 +144,6 @@ MeshID MOABMeshManager::create_volume() {
 
   this->moab_interface()->tag_set_data(global_id_tag_, &volume_set, 1, &volume_id);
 
-  // place all volume elements in the volume set
-  moab::Range all_elems;
-  this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
-  this->moab_interface()->add_entities(volume_set, all_elems);
-
   // set geometry dimension
   int dim = 3;
   this->moab_interface()->tag_set_data(geometry_dimension_tag_, &volume_set, 1, &dim);
@@ -150,6 +151,7 @@ MeshID MOABMeshManager::create_volume() {
   // set category tag
   this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE);
 
+  volumes_.push_back(volume_id);
   volume_id_map_[volume_id] = volume_set;
 
   return volume_id;
