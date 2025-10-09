@@ -45,26 +45,26 @@ public:
     return true;
   }
 
-  //! \brief Get the coordinates of a triangle as MOAB CartVect's
+  //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
-    auto [block_idx, i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
+    auto [i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
 
     std::array<xdg::Vertex, 3> vertices;
-    vertex_data_.set_coords(block_idx, i0, vertices[0]);
-    vertex_data_.set_coords(block_idx, i1, vertices[1]);
-    vertex_data_.set_coords(block_idx, i2, vertices[2]);
+    vertex_data_.set_coords(i0, vertices[0]);
+    vertex_data_.set_coords(i1, vertices[1]);
+    vertex_data_.set_coords(i2, vertices[2]);
     return vertices;
   }
 
-  //! \brief Get the coordinates of a triangle as MOAB CartVect's
+  //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
-    auto [block_idx, i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
+    auto [i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
 
     std::array<xdg::Vertex, 4> vertices;
-    vertex_data_.set_coords(block_idx, i0, vertices[0]);
-    vertex_data_.set_coords(block_idx, i1, vertices[1]);
-    vertex_data_.set_coords(block_idx, i2, vertices[2]);
-    vertex_data_.set_coords(block_idx, i3, vertices[3]);
+    vertex_data_.set_coords(i0, vertices[0]);
+    vertex_data_.set_coords(i1, vertices[1]);
+    vertex_data_.set_coords(i2, vertices[2]);
+    vertex_data_.set_coords(i3, vertices[3]);
     return vertices;
   }
 
@@ -203,7 +203,7 @@ private:
     }
 
     template <int N>
-    std::array<size_t, N+1>
+    std::array<size_t, N>
     get_connectivity_indices(const EntityHandle& e) {
       // determine the correct contiguous block index to use
       int block_idx = 0;
@@ -214,12 +214,10 @@ private:
         fe = first_elements[block_idx];
       }
 
-      std::array<size_t, N+1> indices;
-      indices[0] = block_idx;
-
+      std::array<size_t, N> indices;
       size_t conn_idx = element_stride * (e - fe.first);
       for (int i = 0; i < N; i++) {
-        indices[i+1] = vconn[block_idx][conn_idx + i] - 1;
+        indices[i] = vconn[block_idx][conn_idx + i];
       }
       return indices;
     }
@@ -256,6 +254,8 @@ private:
         ty.push_back(&(*ytmp));
         tz.push_back(&(*ztmp));
 
+        first_vertices.push_back({*verts_it, n_vertices});
+
         // move iterator forward by the number of vertices in this contiguous memory block
         verts_it += n_vertices;
       }
@@ -266,13 +266,22 @@ private:
       tx.clear();
       ty.clear();
       tz.clear();
+      first_vertices.clear();
     }
 
     //! \brief Set the coordinates of a vertex based on an index into a contiguous block of memory
-    //! \param idx The index of the block of memory
     //! \param i The index of the vertex in the block of memory
     //! \param v The vertex to set the coordinates of
-    void set_coords(int idx, int i, xdg::Vertex& v) {
+    void set_coords(int i, xdg::Vertex& v) {
+      // determine the correct contiguous memory block index to use
+      int idx = 0;
+      auto fe = first_vertices[idx];
+      while(i - fe.first >= fe.second) {
+        fe = first_vertices[++idx];
+      }
+      // determine index into the contiguous block of coordinate memory
+      i -= fe.first;
+      // populate the vertex reference with coordinates
       v = xdg::Vertex(tx[idx][i], ty[idx][i], tz[idx][i]);
     }
 
@@ -280,6 +289,7 @@ private:
     std::vector<const double*> tx; //!< Storage array(s) for vertex x coordinates
     std::vector<const double*> ty; //!< Storage array(s) for vertex y coordinates
     std::vector<const double*> tz; //!< Storage array(s) for vertex z coordinates
+    std::vector<std::pair<EntityHandle, size_t>> first_vertices; //!< Pairs of first vertex and length pairs for contiguous blocks of memory
   };
 
   ConnectivityData face_data_;
