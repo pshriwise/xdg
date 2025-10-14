@@ -13,9 +13,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
 
       - name: Apt dependencies
         shell: bash
@@ -27,7 +27,31 @@ jobs:
                               libnetcdf-dev \
                               libhdf5-dev \
                               libeigen3-dev \
-                              cmake
+                              cmake 
+      - name: Update CMake
+        uses: ssrobins/install-cmake@v1
+        with:
+          version: 3.24.3
+          cache: true
+
+      - name: GPRT Apt Dependencies
+        shell: bash
+        run: |
+          sudo apt install -y \
+          libpthread-stubs0-dev \
+          libx11-xcb-dev \
+          xorg-dev \
+          libxinerama-dev \
+          libglu1-mesa-dev \
+          freeglut3-dev \
+          mesa-common-dev \
+          libglfw3
+
+      - name: Prepare Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@v1.2
+        with:
+          version: 1.4.309.0
+          cache: true
 
       - name: MOAB Clone
         shell: bash
@@ -97,9 +121,10 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH="$HOME/LIBMESH;$HOME/MOAB" -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
+          cmake .. -DCMAKE_PREFIX_PATH="$HOME/LIBMESH;$HOME/MOAB" -DCMAKE_INSTALL_PREFIX=$HOME/opt -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON -DXDG_ENABLE_GPRT=ON
           make -j4 install
 
       - name: Test

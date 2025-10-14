@@ -3,21 +3,36 @@
 
 #include "xdg/xdg.h"
 #include "xdg/error.h"
-#include "xdg/embree/ray_tracer.h"
-// #include "xdg/gprt/ray_tracer.h" Not implemented yet
-
-// mesh manager concrete implementations
-#ifdef XDG_ENABLE_MOAB
-#include "xdg/moab/mesh_manager.h"
-#endif
-
-#ifdef XDG_ENABLE_LIBMESH
-#include "xdg/libmesh/mesh_manager.h"
-#endif
-
 #include "xdg/constants.h"
 #include "xdg/geometry/measure.h"
+
+#include "xdg/mesh_managers.h"
+
+#include "xdg/ray_tracers.h"
+
 namespace xdg {
+
+XDG::XDG(std::shared_ptr<MeshManager> mesh_manager, RTLibrary ray_tracing_lib)
+        : mesh_manager_(mesh_manager)
+{
+  switch (ray_tracing_lib) {
+    case RTLibrary::EMBREE:
+    #ifdef XDG_ENABLE_EMBREE
+      set_ray_tracing_interface(std::make_shared<EmbreeRayTracer>());
+      break;
+    #else
+      fatal_error("This build was not compiled with Embree support (XDG_ENABLE_EMBREE=OFF).");
+    #endif
+
+    case RTLibrary::GPRT:
+    #ifdef XDG_ENABLE_GPRT
+      set_ray_tracing_interface(std::make_shared<GPRTRayTracer>());
+      break;
+    #else
+      fatal_error("This build was not compiled with GPRT support (XDG_ENABLE_GPRT=OFF).");
+    #endif
+  }
+}
 
 void XDG::prepare_raytracer()
 {
@@ -27,6 +42,8 @@ void XDG::prepare_raytracer()
 
   ray_tracing_interface()->create_global_element_tree();
   ray_tracing_interface()->create_global_surface_tree();
+
+  ray_tracing_interface()->init(); // Initialize the ray tracer (e.g. build SBT for GPRT)
 }
 
 void XDG::prepare_volume_for_raytracing(MeshID volume) {
@@ -65,7 +82,7 @@ std::shared_ptr<XDG> XDG::create(MeshLibrary mesh_lib, RTLibrary ray_tracing_lib
     if (ray_tracing_lib == RTLibrary::EMBREE) return std::make_shared<EmbreeRayTracer>();
     #endif
     #ifdef XDG_ENABLE_GPRT
-    // if (ray_tracing_lib == RTLibrary::GPRT) return std::make_shared<GPRTRayTracer>();
+    if (ray_tracing_lib == RTLibrary::GPRT) return std::make_shared<GPRTRayTracer>();
     #endif
 
     // If no supported ray tracing library throw an error

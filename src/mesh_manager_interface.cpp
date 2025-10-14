@@ -263,5 +263,4 @@ MeshManager::get_parent_volumes(MeshID surface) const
   return this->surface_senses(surface);
 }
 
-
 } // namespace xdg

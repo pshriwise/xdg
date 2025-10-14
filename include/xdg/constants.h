@@ -6,6 +6,10 @@
 #include <limits>
 #include <string>
 
+#include "fmt/format.h"
+
+#include "xdg/shared_enums.h"
+
 namespace xdg {
 
 constexpr double INFTY {std::numeric_limits<double>::max()};
@@ -63,7 +67,7 @@ static const std::map<MeshLibrary, std::string> MESH_LIB_TO_STR =
 static const std::map<RTLibrary, std::string> RT_LIB_TO_STR =
 {
   {RTLibrary::EMBREE, "EMBREE"},
-  {RTLibrary::GPRT, "GPRT"},
+  {RTLibrary::GPRT, "GPRT"}
 };
 
 // Mesh identifer type
@@ -111,9 +115,6 @@ static Property VOID_MATERIAL {PropertyType::MATERIAL, "void"};
 // Enumerator for different ray fire types
 enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME };
 
-//
-enum class HitOrientation { ANY, EXITING, ENTERING };
-
 // Enumerator for different element types (maybe we want more here?)
 enum class SurfaceElementType {
   TRI = 0,
@@ -126,5 +127,23 @@ enum class VolumeElementType {
 };
 
 } // namespace xdg
+
+namespace fmt {
+  template <>
+struct formatter<xdg::RTLibrary> : fmt::formatter<std::string> {
+  auto format(xdg::RTLibrary lib, fmt::format_context& ctx) {
+    return fmt::formatter<std::string>::format(xdg::RT_LIB_TO_STR.at(lib), ctx);
+  }
+};
+
+template <>
+struct formatter<xdg::MeshLibrary> : fmt::formatter<std::string> {
+  auto format(xdg::MeshLibrary lib, fmt::format_context& ctx) {
+    return fmt::formatter<std::string>::format(xdg::MESH_LIB_TO_STR.at(lib), ctx);
+  }
+};
+
+
+}
 
 #endif // include guard

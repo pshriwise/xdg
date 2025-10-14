@@ -1,5 +1,11 @@
 #include <random>
 
+#include <catch2/catch_test_macros.hpp>
+
+#include "xdg/constants.h"
+#include "xdg/ray_tracers.h"
+#include "vulkan_probe.h"
+
 static std::random_device rd;
 static std::mt19937 gen(rd());
 
@@ -9,3 +15,33 @@ inline double rand_double(double min, double max)
   return dis(gen);
 }
 
+inline void check_ray_tracer_supported(xdg::RTLibrary rt) {
+  #ifndef XDG_ENABLE_EMBREE
+  if (rt == xdg::RTLibrary::EMBREE) {
+    SKIP("XDG not built with Embree backend; skipping Embree tests.");
+  }
+  #endif
+
+  #ifndef XDG_ENABLE_GPRT
+  if (rt == xdg::RTLibrary::GPRT) {
+    SKIP("XDG not built with GPRT backend; skipping GPRT tests.");
+  }
+  #else // XDG_ENABLE_GPRT
+  if (rt == xdg::RTLibrary::GPRT && !system_has_vk_device()) {
+    SKIP("No Vulkan device found; skipping GPRT tests.");
+  }
+  #endif
+}
+
+// Factory function to create ray tracer based on which library selected
+inline std::shared_ptr<xdg::RayTracer> create_raytracer(xdg::RTLibrary rt) {
+  #ifdef XDG_ENABLE_EMBREE
+  if (rt == xdg::RTLibrary::EMBREE) 
+    return std::make_shared<xdg::EmbreeRayTracer>();
+  #endif
+
+  #ifdef XDG_ENABLE_GPRT
+  if (rt == xdg::RTLibrary::GPRT) 
+    return std::make_shared<xdg::GPRTRayTracer>();
+  #endif
+}

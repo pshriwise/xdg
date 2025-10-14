@@ -1,6 +1,3 @@
-
-
-
 set(TOOL_NAMES
 particle_sim
 ray_fire
