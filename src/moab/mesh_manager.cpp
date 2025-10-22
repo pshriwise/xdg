@@ -162,7 +162,7 @@ MeshID MOABMeshManager::create_boundary_surface() {
   moab::Range elements;
   moab::Range boundary_faces;
   this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, elements);
-  skinner.find_skin(0, elements, 2, boundary_faces, false, true);
+  skinner.find_skin(this->moab_interface()->get_root_set(), elements, 2, boundary_faces, false, true);
   // it's possible that the skinning operation changed the mesh
   // update the direct access manager to account for any new
   // faces
