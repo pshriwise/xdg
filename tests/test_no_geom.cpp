@@ -33,7 +33,6 @@ TEST_CASE("Test Mesh Without Geometry")
     // one surface (the boundary of the mesh) separates the two volumes
     REQUIRE(mesh_manager->num_surfaces() == 1);
 
-    REQUIRE(mesh_manager->num_volume_elements(1) == 8814);
     REQUIRE(mesh_manager->num_volume_elements(mesh_manager->implicit_complement()) == 0);
     REQUIRE(mesh_manager->num_volume_elements(1) == N_VOLUME_ELEMENTS);
 
