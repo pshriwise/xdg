@@ -62,7 +62,7 @@ void MOABMeshManager::init() {
   if (num_volumes() == 0){
     if (num_volume_elements() == 0) {
       fatal_error("No volumes or volume elements found in MOAB mesh");
-   }
+    }
 
     // create a single volume from all volume elements
     auto volume = create_volume();
