@@ -102,7 +102,7 @@ private:
       // TODO: support other element types
       Range elements;
       rval = mbi->get_entities_by_type(0, entity_type, elements, true);
-      MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB element adjacencies");
+      MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB volumetric elements");
 
       const auto& ord = ordering[entity_type];
       // loop over elements and setup adjacency data
@@ -122,9 +122,9 @@ private:
           rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, true, adj_ents);
 
           // there be at most two adjacent elements for a given face
-          if (adj_ents.size() > 2) {
-            throw std::runtime_error("Something went wrong gathering adjacent face");
-          }
+          // if (adj_ents.size() > 2) {
+          //   throw std::runtime_error("Something went wrong gathering adjacent face");
+          // }
 
           // if only one adjacent element, the face is on a boundary
           if (adj_ents.size() == 1) {

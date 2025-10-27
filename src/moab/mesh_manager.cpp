@@ -67,6 +67,11 @@ void MOABMeshManager::init() {
    // create a single volume from all volume elements
    auto volume = create_volume();
 
+  // place all volume elements in the volume set
+  moab::Range all_elems;
+  this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
+  this->moab_interface()->add_entities(volume_id_map_.at(volume), all_elems);
+
    // create a boundary surface from all volume elements
    auto surface = create_boundary_surface();
 
@@ -137,11 +142,6 @@ MeshID MOABMeshManager::create_volume() {
   MeshID volume_id = next_volume_id();
 
   this->moab_interface()->tag_set_data(global_id_tag_, &volume_set, 1, &volume_id);
-
-  // place all volume elements in the volume set
-  moab::Range all_elems;
-  this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
-  this->moab_interface()->add_entities(volume_set, all_elems);
 
   // set geometry dimension
   int dim = 3;
