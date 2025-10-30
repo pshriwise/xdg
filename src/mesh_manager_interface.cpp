@@ -86,6 +86,8 @@ MeshManager::surface_has_property(MeshID surface, PropertyType type) const
 Property
 MeshManager::get_volume_property(MeshID volume, PropertyType type) const
 {
+  if (volume_metadata_.count({volume, type}) == 0)
+    return {PropertyType::MATERIAL, "void"};
   return volume_metadata_.at({volume, type});
 }
 

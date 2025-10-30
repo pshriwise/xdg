@@ -150,6 +150,7 @@ MeshID MOABMeshManager::create_volume() {
   // set category tag
   this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE);
 
+  volumes_.push_back(volume_id);
   volume_id_map_[volume_id] = volume_set;
 
   return volume_id;
