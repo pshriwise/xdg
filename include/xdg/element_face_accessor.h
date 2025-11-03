@@ -1,6 +1,8 @@
 #ifndef XDG_ELEMENT_FACE_ACCESSOR_H
 #define XDG_ELEMENT_FACE_ACCESSOR_H
 
+#include <memory.h>
+
 #include "xdg/mesh_manager_interface.h"
 
 namespace xdg {
