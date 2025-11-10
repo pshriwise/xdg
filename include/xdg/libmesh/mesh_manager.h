@@ -120,6 +120,12 @@ public:
 
   MeshID adjacent_element(MeshID element, int face) const override;
 
+  double element_volume(MeshID element) const override;
+
+  xdg::Vertex vertex_coordinates(MeshID vertex_id) const override;
+
+  std::vector<MeshID> connectivity(MeshID element) const override;
+
   MeshID create_volume() override;
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;

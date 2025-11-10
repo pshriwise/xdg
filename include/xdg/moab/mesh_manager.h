@@ -78,6 +78,12 @@ public:
 
   MeshID adjacent_element(MeshID element, int face) const override;
 
+  double element_volume(MeshID element) const override;
+
+  xdg::Vertex vertex_coordinates(MeshID vertex_id) const override;
+
+  std::vector<MeshID> connectivity(MeshID element) const override;
+
   // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 
