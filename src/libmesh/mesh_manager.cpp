@@ -97,6 +97,28 @@ LibMeshManager::element_volume(MeshID element) const {
   return elem_ptr->volume();
 }
 
+xdg::Vertex
+LibMeshManager::vertex_coordinates(MeshID vertex_id) const {
+  const auto node_ptr = mesh()->node_ptr(vertex_id);
+  if (!node_ptr) {
+    fatal_error("Invalid vertex ID in vertex_coordinates");
+  }
+  return {(*node_ptr)(0), (*node_ptr)(1), (*node_ptr)(2)};
+}
+
+std::vector<MeshID>
+LibMeshManager::connectivity(MeshID element) const {
+  const auto elem_ptr = mesh()->elem_ptr(element);
+  if (!elem_ptr) {
+    fatal_error("Invalid element ID in connectivity");
+  }
+  std::vector<MeshID> conn;
+  for (unsigned int i = 0; i < elem_ptr->n_nodes(); i++) {
+    conn.push_back(elem_ptr->node_ptr(i)->id());
+  }
+  return conn;
+}
+
 MeshID LibMeshManager::create_volume() {
   MeshID next_volume_id = *std::max_element(volumes_.begin(), volumes_.end()) + 1;
   return next_volume_id;
