@@ -13,6 +13,6 @@ double triangle_area(const Vertex& v0, const Vertex& v1, const Vertex& v2);
 
 double tetrahedron_volume(const std::array<Vertex, 4>& vertices);
 
-}
+} // namespace xdg
 
 #endif // include guard

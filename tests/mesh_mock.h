@@ -11,6 +11,7 @@
 
 #include "xdg/geometry/measure.h"
 #include "xdg/geometry/plucker.h"
+#include "xdg/geometry/measure.h"
 
 using namespace xdg;
 
@@ -216,7 +217,7 @@ public:
     return element_adjacencies_.at(element)[face];
   }
 
-    virtual double element_volume(MeshID element) const override {
+  virtual double element_volume(MeshID element) const override {
     const auto& conn = tetrahedron_connectivity()[element];
     std::array<Vertex, 4> verts = {
       vertices()[conn[0]],
@@ -241,6 +242,14 @@ public:
 
   inline int vertex_index(MeshID vertex) const override {
     return static_cast<int>(vertex);
+  }
+
+  virtual Vertex vertex_coordinates(MeshID vertex_id) const override {
+    return vertices().at(vertex_id);
+  }
+
+  virtual std::vector<MeshID> connectivity(MeshID element) const override {
+    return {tetrahedron_connectivity().at(element).begin(), tetrahedron_connectivity().at(element).end()};
   }
 
   // Other

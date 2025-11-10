@@ -147,6 +147,10 @@ public:
     return vertex_id_map_.id_to_index(vertex);
   }
 
+  xdg::Vertex vertex_coordinates(MeshID vertex_id) const override;
+
+  std::vector<MeshID> connectivity(MeshID element) const override;
+
   MeshID create_volume() override;
 
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;

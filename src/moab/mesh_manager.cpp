@@ -12,6 +12,7 @@
 #include "xdg/geometry/measure.h"
 #include "xdg/moab/tag_conventions.h"
 #include "xdg/util/str_utils.h"
+#include "xdg/geometry/measure.h"
 #include "xdg/vec3da.h"
 
 #include "moab/Skinner.hpp"
@@ -431,6 +432,24 @@ MOABMeshManager::adjacent_element(MeshID element, int face) const
   moab::EntityHandle next_element = this->mb_direct()->get_adjacent_element(element_handle, face);
   if (next_element == ID_NONE) return ID_NONE;
   return this->moab_interface()->id_from_handle(next_element);
+}
+
+xdg::Vertex
+MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
+{
+  moab::EntityHandle vertex_handle;
+  this->moab_interface()->handle_from_id(moab::MBVERTEX, vertex_id, vertex_handle);
+  xdg::Vertex vertex;
+  this->moab_interface()->get_coords(&vertex_handle, 1, &(vertex[0]));
+  return vertex;
+}
+
+std::vector<MeshID>
+MOABMeshManager::connectivity(MeshID element) const
+{
+  moab::EntityHandle element_handle;
+  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  return this->mb_direct()->get_element_connectivity(element_handle);
 }
 
 double

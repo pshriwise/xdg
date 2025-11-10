@@ -109,6 +109,10 @@ public:
     return mb_direct()->vertex_index(vertex_handle);
   }
 
+  xdg::Vertex vertex_coordinates(MeshID vertex_id) const override;
+
+  std::vector<MeshID> connectivity(MeshID element) const override;
+
   // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;
 

@@ -122,6 +122,19 @@ public:
   //! \return The volume of the element
   virtual double element_volume(MeshID element) const = 0;
 
+  //! \brief Get the coordinates of a vertex by its ID
+  //! \param vertex_id The vertex ID
+  //! \return The coordinates of the vertex as an xdg::Vertex
+  virtual
+  Vertex vertex_coordinates(MeshID vertex_id) const = 0;
+
+  //! \brief Get the connectivity of an element by its ID
+  //! \param element The element ID
+  //! \return A vector of vertex IDs that make up the element
+  virtual
+  std::vector<MeshID>
+  connectivity(MeshID element) const = 0;
+
   BoundingBox element_bounding_box(MeshID element) const;
 
   BoundingBox face_bounding_box(MeshID element) const;
