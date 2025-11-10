@@ -70,6 +70,10 @@ public:
     return 2;
   }
 
+  virtual int num_vertices() const override {
+    return vertices_.size();
+  }
+
   // Lists
   virtual std::vector<MeshID> get_volume_elements(MeshID volume) const override {
     if (!volumetric_elements_) return {};
