@@ -102,6 +102,8 @@ public:
     return surface_map_.at(surface).size();
   }
 
+  int num_vertices() const override;
+
   std::vector<MeshID> get_volume_elements(MeshID volume) const;
 
   std::vector<MeshID> get_surface_faces(MeshID surface) const override;
