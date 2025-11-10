@@ -389,6 +389,10 @@ LibMeshManager::num_volume_elements() const
   return num_elements_;
 }
 
+int LibMeshManager::num_vertices() const {
+  return mesh()->n_nodes();
+}
+
 std::vector<MeshID>
 LibMeshManager::get_surface_faces(MeshID surface) const {
   return surface_map_.at(surface);

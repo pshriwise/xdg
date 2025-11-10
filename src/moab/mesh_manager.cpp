@@ -292,6 +292,14 @@ MOABMeshManager::num_surface_faces(MeshID surface) const
   return this->_surface_faces(surface).size();
 }
 
+int
+MOABMeshManager::num_vertices() const
+{
+  moab::Range vertices;
+  this->moab_interface()->get_entities_by_dimension(this->root_set(), 0, vertices);
+  return vertices.size();
+}
+
 std::vector<MeshID>
 MOABMeshManager::get_volume_elements(MeshID volume) const
 {
