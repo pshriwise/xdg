@@ -227,6 +227,24 @@ public:
     return tetrahedron_volume(verts);
   }
 
+  xdg::Vertex vertex_coordinates(MeshID vertex_id) const override {
+    if (vertex_id < 0 || static_cast<size_t>(vertex_id) >= vertices_.size()) {
+      fatal_error("Vertex ID {} is out of bounds", vertex_id);
+    }
+    return vertices().at(vertex_id);
+  }
+
+  std::vector<MeshID> element_connectivity(MeshID element) const override {
+    if (!volumetric_elements_) {
+      fatal_error("Mesh does not contain volumetric elements");
+    }
+    if (element < 0 || static_cast<size_t>(element) >= tetrahedron_connectivity_.size()) {
+      fatal_error("Element ID {} is out of bounds", element);
+    }
+    const auto& conn = tetrahedron_connectivity().at(element);
+    return {conn[0], conn[1], conn[2], conn[3]};
+  }
+
   // Other
   virtual MeshLibrary mesh_library() const override { return MeshLibrary::MOCK; }
 

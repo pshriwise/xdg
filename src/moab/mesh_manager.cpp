@@ -449,6 +449,23 @@ MOABMeshManager::element_volume(MeshID element) const
   std::array<xdg::Vertex, 4> verts = this->mb_direct()->get_element_coords(element_handle);
   return tetrahedron_volume(verts);
 }
+xdg::Vertex
+MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
+{
+  moab::EntityHandle vertex_handle;
+  this->moab_interface()->handle_from_id(moab::MBVERTEX, vertex_id, vertex_handle);
+  xdg::Vertex vertex;
+  this->moab_interface()->get_coords(&vertex_handle, 1, &(vertex[0]));
+  return vertex;
+}
+
+std::vector<MeshID>
+MOABMeshManager::element_connectivity(MeshID element) const
+{
+  moab::EntityHandle element_handle;
+  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  return this->mb_direct()->get_element_connectivity(element_handle);
+}
 
 void
 MOABMeshManager::parse_metadata()
