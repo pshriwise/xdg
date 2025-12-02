@@ -58,6 +58,8 @@ TEST_CASE("Test MOAB Initialization")
   for (auto volume : mesh_manager->volumes()) {
     REQUIRE(mesh_manager->num_volume_elements(volume) == 0);
   }
+
+  REQUIRE(mesh_manager->num_vertices() == 0);
 }
 
 TEST_CASE("Test BVH Build")
@@ -77,7 +79,7 @@ TEST_CASE("Test BVH Build")
   DYNAMIC_SECTION(fmt::format("Backend = {}", rt_backend)) {
     check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time
     auto rti = create_raytracer(rt_backend);
-    
+
     for (const auto& volume : mesh_manager->volumes()) {
       rti->register_volume(mesh_manager, volume);
     }
@@ -86,7 +88,7 @@ TEST_CASE("Test BVH Build")
 }
 
 
-TEST_CASE("Test Ray Fire MOAB (all built backends)", "[ray_tracer][moab]") 
+TEST_CASE("Test Ray Fire MOAB (all built backends)", "[ray_tracer][moab]")
 {
   // Generate one test run per enabled backend
   auto rt_backend = GENERATE(RTLibrary::EMBREE, RTLibrary::GPRT);
@@ -140,7 +142,7 @@ TEST_CASE("MOAB Get Surface Mesh")
 {
   // Generate one test run per enabled backend
   auto rt_backend = GENERATE(RTLibrary::EMBREE, RTLibrary::GPRT);
-  
+
   DYNAMIC_SECTION(fmt::format("Backend = {}", rt_backend)) {
     check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time
     std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, rt_backend);
@@ -243,7 +245,7 @@ TEST_CASE("TEST MOAB Find Element Method")
   auto rt_backend = GENERATE(RTLibrary::EMBREE); // TODO add GPRT once find element is implemented with GPRT
 
   DYNAMIC_SECTION(fmt::format("Backend = {}", rt_backend)) {
-    check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time  
+    check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time
     std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
     REQUIRE(xdg->ray_tracing_interface()->library() == RTLibrary::EMBREE);
     REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
@@ -252,8 +254,10 @@ TEST_CASE("TEST MOAB Find Element Method")
     mesh_manager->init();
     xdg->prepare_raytracer();
 
-  MeshID volume = 1;
-  REQUIRE(mesh_manager->num_volume_elements(1) == 10333);
+    MeshID volume = 1;
+    REQUIRE(mesh_manager->num_volume_elements(1) == 10333);
+
+    REQUIRE(mesh_manager->num_vertices() == 2707);
 
     MeshID element = xdg->find_element(volume, {0.0, 0.0, 100.0});
     REQUIRE(element == ID_NONE); // should not find an element since the point is outside the volume

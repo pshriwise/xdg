@@ -129,6 +129,10 @@ public:
     return {vertices, connectivity};
   }
 
+  int num_vertices() const override {
+    return vertices_.size();
+  }
+
   // Topology
   virtual std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override {
     return surface_sense_map_.at(surface);

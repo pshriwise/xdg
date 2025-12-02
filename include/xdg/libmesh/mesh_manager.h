@@ -119,6 +119,8 @@ public:
     fatal_error("LibMeshManager::get_surface_element_type() not implemented yet");
   }
 
+  int num_vertices() const override;
+
   MeshID adjacent_element(MeshID element, int face) const override;
 
   double element_volume(MeshID element) const override;

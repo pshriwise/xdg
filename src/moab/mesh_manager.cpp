@@ -405,6 +405,14 @@ MOABMeshManager::get_surface_mesh(MeshID surface) const
   return {_get_coords(verts), connectivity};
 }
 
+int
+MOABMeshManager::num_vertices() const
+{
+  moab::Range vertices;
+  this->moab_interface()->get_entities_by_dimension(this->root_set(), 0, vertices);
+  return vertices.size();
+}
+
 SurfaceElementType
 MOABMeshManager::get_surface_element_type(MeshID surface) const
 {

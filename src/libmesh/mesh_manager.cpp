@@ -377,6 +377,11 @@ LibMeshManager::get_volume_surfaces(MeshID volume) const {
   return surfaces;
 }
 
+int
+LibMeshManager::num_vertices() const {
+  return mesh()->n_nodes();
+}
+
 std::pair<MeshID, MeshID>
 LibMeshManager::surface_senses(MeshID surface) const {
   return surface_senses_.at(surface);
