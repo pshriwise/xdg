@@ -213,6 +213,9 @@ TEST_CASE("Test Ray Fire Jezebel")
 
   MeshID volume = 1;
 
+  REQUIRE(mesh_manager->num_volume_elements(volume) == 10333);
+  REQUIRE(mesh_manager->num_vertices() == 2067);
+
   // fire ray from the center of the cube
   Position origin {0.0, 0.0, 0.0};
   Direction direction {0.0, 0.0, 1.0};
