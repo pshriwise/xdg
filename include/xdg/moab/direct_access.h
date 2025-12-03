@@ -56,6 +56,12 @@ public:
     return vertices;
   }
 
+  //! \brief Get the connectivity of an element
+  inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element) {
+    auto conn = element_data_.get_connectivity_indices<4>(element);
+    return {conn.begin(), conn.end()};
+  }
+
   //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
     auto [i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
@@ -102,7 +108,7 @@ private:
       // TODO: support other element types
       Range elements;
       rval = mbi->get_entities_by_type(0, entity_type, elements, true);
-      MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB element adjacencies");
+      MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB volumetric elements");
 
       const auto& ord = ordering[entity_type];
       // loop over elements and setup adjacency data
