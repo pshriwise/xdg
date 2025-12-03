@@ -57,6 +57,8 @@ public:
   }
 
   //! \brief Get the connectivity of an element
+  //! \param element The element's MOAB handle
+  //! \return A vector of vertex indices that make up the element
   inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element) {
     auto conn = element_data_.get_connectivity_indices<4>(element);
     return {conn.begin(), conn.end()};

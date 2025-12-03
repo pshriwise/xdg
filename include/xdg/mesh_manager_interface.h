@@ -91,7 +91,7 @@ public:
   // Return a pair of {vertices, connectivity} for a given surface in the mesh
   virtual std::pair<std::vector<Vertex>, std::vector<int>> get_surface_mesh(MeshID surface) const = 0;
 
-  // Return the number of vertices used in volumetric elements
+  // Return the number of vertices in the mesh
   virtual int num_vertices() const = 0;
 
   virtual SurfaceElementType get_surface_element_type(MeshID element) const = 0;
@@ -107,15 +107,16 @@ public:
   //! \return The volume of the element
   virtual double element_volume(MeshID element) const = 0;
 
-  //! \brief Get the coordinates of a vertex by its ID
+  //! \brief Get the coordinates of a vertex
   //! \param vertex_id The vertex ID
   //! \return The coordinates of the vertex as an xdg::Vertex
   virtual
   Vertex vertex_coordinates(MeshID vertex_id) const = 0;
 
-  //! \brief Get the connectivity of an element by its ID
+  //! \brief Get the connectivity of an element
   //! \param element The element ID
   //! \return A vector of vertex IDs that make up the element
+  //!         as indexed in the mesh's global vertex list
   virtual
   std::vector<MeshID>
   element_connectivity(MeshID element) const = 0;
