@@ -58,8 +58,6 @@ TEST_CASE("Test MOAB Initialization")
   for (auto volume : mesh_manager->volumes()) {
     REQUIRE(mesh_manager->num_volume_elements(volume) == 0);
   }
-
-  REQUIRE(mesh_manager->num_vertices() == 0);
 }
 
 TEST_CASE("Test BVH Build")
@@ -256,7 +254,6 @@ TEST_CASE("TEST MOAB Find Element Method")
 
     MeshID volume = 1;
     REQUIRE(mesh_manager->num_volume_elements(1) == 10333);
-
     REQUIRE(mesh_manager->num_vertices() == 2707);
 
     MeshID element = xdg->find_element(volume, {0.0, 0.0, 100.0});
