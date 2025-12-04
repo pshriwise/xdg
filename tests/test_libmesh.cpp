@@ -20,6 +20,51 @@ void print_intersection(std::pair<double, MeshID> intersection) {
   std::cout << "Intersection: " << intersection.first << " " << intersection.second << std::endl;
 }
 
+TEST_CASE("LibMesh Single Tet")
+{
+  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
+
+  mesh_manager->load_file("single-tet.exo");
+
+  mesh_manager->init();
+
+  REQUIRE(mesh_manager->num_volumes() == 2);
+  REQUIRE(mesh_manager->num_surfaces() == 1);
+
+  MeshID volume = mesh_manager->volumes()[0];
+  REQUIRE(mesh_manager->num_volume_elements(volume) == 1);
+
+  auto vertices = mesh_manager->element_vertices(0);
+  REQUIRE(vertices.size() == 4);
+
+  std::vector<xdg::Vertex> expected_vertices = {
+    {0.0, 0.0, 0.0},
+    {1.0, 0.0, 0.0},
+    {0.0, 1.0, 0.0},
+    {0.0, 0.0, 1.0}
+  };
+
+  auto conn = mesh_manager->element_connectivity(0);
+  std::vector<MeshID> expected_conn = {0, 1, 2, 3};
+  REQUIRE(conn == expected_conn);
+
+  for (size_t i = 0; i < vertices.size(); i++) {
+    auto vertex_coords = mesh_manager->vertex_coordinates(i);
+    REQUIRE_THAT(vertices[i].x, Catch::Matchers::WithinAbs(vertex_coords.x, 1e-6));
+    REQUIRE_THAT(vertices[i].y, Catch::Matchers::WithinAbs(vertex_coords.y, 1e-6));
+    REQUIRE_THAT(vertices[i].z, Catch::Matchers::WithinAbs(vertex_coords.z, 1e-6));
+  }
+
+  for (size_t i = 0; i < vertices.size(); i++) {
+    REQUIRE_THAT(vertices[i].x, Catch::Matchers::WithinAbs(expected_vertices[i].x, 1e-6));
+    REQUIRE_THAT(vertices[i].y, Catch::Matchers::WithinAbs(expected_vertices[i].y, 1e-6));
+    REQUIRE_THAT(vertices[i].z, Catch::Matchers::WithinAbs(expected_vertices[i].z, 1e-6));
+  }
+
+  double volume_value = mesh_manager->element_volume(0);
+  REQUIRE_THAT(volume_value, Catch::Matchers::WithinAbs(1.0/6.0, 1e-6));
+}
+
 TEST_CASE("Test Brick")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
