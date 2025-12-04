@@ -68,6 +68,8 @@ jezebel.exo
 jezebel.h5m
 pincell.h5m
 pincell-implicit.exo
+single-tet.h5m
+single-tet.exo
 )
 
 foreach(file ${TEST_FILES})
