@@ -57,10 +57,6 @@ public:
     return -1;
   }
 
-  virtual int num_vertices() const override {
-    return vertices_.size();
-  }
-
   virtual int num_volume_elements(MeshID volume) const override {
     if (!volumetric_elements_) return 0;
     return 12;
