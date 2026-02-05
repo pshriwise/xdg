@@ -11,7 +11,6 @@
 
 #include "xdg/geometry/measure.h"
 #include "xdg/geometry/plucker.h"
-#include "xdg/geometry/measure.h"
 
 using namespace xdg;
 
