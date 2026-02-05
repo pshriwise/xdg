@@ -136,8 +136,7 @@ public:
   //! \param element The element ID
   //! \return A vector of vertex IDs that make up the element
   virtual
-  std::vector<MeshID>
-  connectivity(MeshID element) const = 0;
+  std::vector<MeshID> element_connectivity(MeshID element) const = 0;
 
   BoundingBox element_bounding_box(MeshID element) const;
 

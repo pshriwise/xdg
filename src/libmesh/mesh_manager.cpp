@@ -107,7 +107,7 @@ LibMeshManager::vertex_coordinates(MeshID vertex_id) const {
 }
 
 std::vector<MeshID>
-LibMeshManager::connectivity(MeshID element) const {
+LibMeshManager::element_connectivity(MeshID element) const {
   const auto elem_ptr = mesh()->elem_ptr(element);
   if (!elem_ptr) {
     fatal_error("Invalid element ID in connectivity");

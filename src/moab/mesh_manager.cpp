@@ -474,7 +474,7 @@ MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
 }
 
 std::vector<MeshID>
-MOABMeshManager::connectivity(MeshID element) const
+MOABMeshManager::element_connectivity(MeshID element) const
 {
   moab::EntityHandle element_handle;
   this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);

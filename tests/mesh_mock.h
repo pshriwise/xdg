@@ -247,7 +247,7 @@ public:
     return vertices().at(vertex_id);
   }
 
-  virtual std::vector<MeshID> connectivity(MeshID element) const override {
+  virtual std::vector<MeshID> element_connectivity(MeshID element) const override {
     return {tetrahedron_connectivity().at(element).begin(), tetrahedron_connectivity().at(element).end()};
   }
 

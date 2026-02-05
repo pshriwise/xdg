@@ -105,7 +105,7 @@ public:
 
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
-  std::vector<MeshID> connectivity(MeshID element) const override;
+  std::vector<MeshID> element_connectivity(MeshID element) const override;
 
   Vertex vertex_coordinates(MeshID vertex) const override;
 
