@@ -7,12 +7,15 @@
 
 #include "xdg/bbox.h"
 #include "xdg/constants.h"
+#include "xdg/id_block_map.h"
 #include "xdg/vec3da.h"
 
 namespace xdg {
 
 class MeshManager {
 public:
+
+  MeshManager();
 
   // Abstract Methods
   virtual ~MeshManager() = default;
@@ -65,6 +68,8 @@ public:
                const Position& u) const;
 
   // Mesh
+  virtual int num_vertices() const = 0;
+
   virtual int num_volume_elements(MeshID volume) const = 0;
 
   virtual int num_volume_elements() const;
@@ -78,7 +83,6 @@ public:
   std::vector<MeshID> get_volume_faces(MeshID volume) const;
 
   virtual std::vector<MeshID> get_surface_faces(MeshID surface) const = 0;
-
   // TODO: can we accomplish this without allocating memory?
   virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
@@ -86,16 +90,41 @@ public:
 
   virtual std::vector<Vertex> get_surface_vertices(MeshID surface) const = 0;
 
+  //! \brief Return a vertex ID given its index in the mesh
+  virtual MeshID vertex_id(size_t vertex_idx) const
+  { return vertex_id_map_.index_to_id(vertex_idx); }
+
+  //! \brief Return the index of a vertex given its ID in the mesh
+  virtual MeshIndex vertex_index(MeshID vertex) const
+  { return vertex_id_map_.id_to_index(vertex); }
+
   // Return a pair of {vertices, connectivity} for a given surface in the mesh
   virtual std::pair<std::vector<Vertex>, std::vector<int>> get_surface_mesh(MeshID surface) const = 0;
 
   virtual SurfaceElementType get_surface_element_type(MeshID element) const = 0;
+
+  //! \brief Convert an element's ID to its index in the mesh
+  //! \param element_idx The index of the element in the mesh
+  //! \return The element ID
+  virtual MeshID element_id(size_t element_idx) const
+  { return volume_element_id_map_.index_to_id(element_idx); }
+
+  //! \brief Convert an element's index in the mesh to its ID
+  //! \param element The element ID
+  //! \return The index of the element in the mesh
+  virtual MeshIndex element_index(MeshID element) const
+  { return volume_element_id_map_.id_to_index(element); }
 
   //! \brief Get the adjacent element across a given face
   //! \param element The current element ID
   //! \param face The local face index (0-3 for tetrahedra)
   //! \return The ID of the adjacent element, or ID_NONE if the face is on a boundary
   virtual MeshID adjacent_element(MeshID element, int face) const = 0;
+
+  //! \brief Get the volume of a given element
+  //! \param element The element ID
+  //! \return The volume of the element
+  virtual double element_volume(MeshID element) const = 0;
 
   BoundingBox element_bounding_box(MeshID element) const;
 
@@ -158,9 +187,14 @@ protected:
   std::vector<MeshID> volumes_;
   std::vector<MeshID> surfaces_;
 
+  //! Block ID mapping from element IDs to contiguous index space
+  IDBlockMapping<MeshID> volume_element_id_map_;
+
+  //! Block ID mapping from vertex IDs to contiguous index space
+  IDBlockMapping<MeshID> vertex_id_map_;
+
   // TODO: attempt to remove this attribute
   MeshID implicit_complement_ {ID_NONE};
-
 };
 
 } // namespace xdg

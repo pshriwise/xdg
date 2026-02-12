@@ -7,9 +7,10 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 // xdg includes
+#include "xdg/config.h"
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/libmesh/mesh_manager.h"
+#include "xdg/mesh_managers.h"
 #include "xdg/xdg.h"
 #include "xdg/embree/ray_tracer.h"
 
@@ -369,3 +370,108 @@ TEST_CASE("Test Track Exiting Mesh Brick")
 
   REQUIRE_THAT(length, Catch::Matchers::WithinAbs(10.0, 1e-6));
 }
+
+TEST_CASE("LibMesh Element ID and Index Mapping")
+{
+  // test mapping for contiguous IDs
+  {
+    std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
+    REQUIRE(mesh_manager->mesh_library() == MeshLibrary::LIBMESH);
+    mesh_manager->load_file("jezebel.exo");
+    mesh_manager->init();
+    REQUIRE(mesh_manager->num_volume_elements() == 10333);
+
+    size_t num_elements = mesh_manager->num_volume_elements();
+    for (size_t i = 0; i < num_elements; i++) {
+      MeshID element_id = mesh_manager->element_id(i);
+      int element_index = mesh_manager->element_index(element_id);
+      REQUIRE(element_index == static_cast<int>(i));
+    }
+
+    size_t num_vertices = mesh_manager->num_vertices();
+    REQUIRE(num_vertices == 2067);
+    for (size_t i = 0; i < num_vertices; i++) {
+      MeshID vertex_id = mesh_manager->vertex_id(i);
+      int vertex_index = mesh_manager->vertex_index(vertex_id);
+      REQUIRE(vertex_index == static_cast<int>(i));
+    }
+  }
+
+  // test mapping for non-contiguous IDs via manual modification
+  {
+    // now create a new mesh manager (create explicitly so we can modify the mesh before init)
+    std::unique_ptr<LibMeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
+    mesh_manager->load_file("jezebel.exo");
+
+    // tweak some of the element IDs to create gaps
+    auto* mesh = mesh_manager->mesh();
+    int next_id = 0;
+    std::vector<MeshID> modified_element_ids;
+    for (auto* elem : mesh->active_element_ptr_range()) {
+      // create a gap every 10 elements
+      if (elem->id() % 10 == 0) {
+        next_id += 5;
+      } else {
+        next_id++;
+      }
+      elem->set_id() = next_id; // create a gap every 10 elements
+      modified_element_ids.push_back(next_id);
+      REQUIRE(elem->id() == next_id);
+    }
+
+    next_id = 0;
+    std::vector<MeshID> modified_vertex_ids;
+    for (auto* node : mesh->node_ptr_range()) {
+      // create a gap every 15 vertices
+      if (node->id() % 15 == 0) {
+        next_id += 3;
+      } else {
+        next_id++;
+      }
+      node->set_id() = next_id;
+      modified_vertex_ids.push_back(next_id);
+      REQUIRE(node->id() == next_id);
+    }
+
+    // keep libMesh from renumbering the elements when initializing the mesh
+    // manager for the purposes of this test
+    mesh->allow_renumbering(false);
+
+    // now initialize the mesh manager
+    mesh_manager->init();
+    REQUIRE(mesh_manager->num_volume_elements() == 10333);
+
+      // check element ID to index mapping
+    int expected_index = 0;
+    for (const auto* elem : mesh_manager->mesh()->active_element_ptr_range()) {
+      MeshID element_id = elem->id();
+      int element_index = mesh_manager->element_index(element_id);
+      REQUIRE(element_index == expected_index);
+      expected_index++;
+    }
+
+    // check node ID to index mapping
+    expected_index = 0;
+    for (const auto* node : mesh_manager->mesh()->node_ptr_range()) {
+      MeshID vertex_id = node->id();
+      int vertex_index = mesh_manager->vertex_index(vertex_id);
+      REQUIRE(vertex_index == expected_index);
+      expected_index++;
+    }
+
+    // check index to element ID mapping
+    size_t num_elements = mesh_manager->num_volume_elements();
+    for (size_t i = 0; i < num_elements; i++) {
+      MeshID element_id = mesh_manager->element_id(i);
+      REQUIRE(element_id == modified_element_ids[i]);
+    }
+
+    // check index to vertex ID mapping
+    size_t num_vertices = mesh_manager->mesh()->n_nodes();
+    for (size_t i = 0; i < num_vertices; i++) {
+      MeshID vertex_id = mesh_manager->vertex_id(i);
+      REQUIRE(vertex_id == modified_vertex_ids[i]);
+    }
+  }
+}
+

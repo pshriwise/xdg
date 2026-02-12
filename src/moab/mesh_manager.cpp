@@ -9,6 +9,7 @@
 #include "xdg/element_face_accessor.h"
 #include "xdg/geometry/plucker.h"
 #include "xdg/geometry/face_common.h"
+#include "xdg/geometry/measure.h"
 #include "xdg/moab/tag_conventions.h"
 #include "xdg/util/str_utils.h"
 #include "xdg/vec3da.h"
@@ -36,6 +37,27 @@ void MOABMeshManager::init() {
   // initialize the direct access manager
   this->mb_direct()->setup();
 
+  // populate ID to index mappings
+
+  // define a function to convert from a handle to an ID
+  // this is used to convert from EntityHandle to MeshID in the BlockMapping
+  // this allows us to construct the ID mapping directly from a MOAB Range object
+  // instead of having to first create a vector of IDs
+  std::function<MeshID(const moab::EntityHandle&)> moab_handle_to_id =
+      [this](const moab::EntityHandle& handle) {
+        return this->moab_interface()->id_from_handle(handle);
+      };
+
+  volume_element_id_map_ = IDBlockMapping<MeshID>(
+      this->mb_direct()->element_data().entity_range,
+      moab_handle_to_id
+  );
+
+  vertex_id_map_ = IDBlockMapping<MeshID>(
+    this->mb_direct()->vertex_data().vertex_range,
+    moab_handle_to_id
+  );
+
   // ensure all of the necessary tag handles exist
   this->setup_tags();
 
@@ -62,10 +84,16 @@ void MOABMeshManager::init() {
   if (num_volumes() == 0){
     if (num_volume_elements() == 0) {
       fatal_error("No volumes or volume elements found in MOAB mesh");
-   }
+    }
 
-   // create a single volume from all volume elements
-   auto volume = create_volume();
+    // create a single volume from all volume elements
+    auto volume = create_volume();
+
+    // place all volume elements in the volume set
+    moab::Range all_elems;
+    this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, all_elems);
+    moab::EntityHandle volume_set = volume_id_map_.at(volume);
+    this->moab_interface()->add_entities(volume_set, all_elems);
 
     // create a boundary surface from all volume elements
     auto surface = create_boundary_surface();
@@ -145,6 +173,7 @@ MeshID MOABMeshManager::create_volume() {
   // set category tag
   this->moab_interface()->tag_set_data(category_tag_, &volume_set, 1, VOLUME_CATEGORY_VALUE);
 
+  volumes_.push_back(volume_id);
   volume_id_map_[volume_id] = volume_set;
 
   return volume_id;
@@ -155,7 +184,11 @@ MeshID MOABMeshManager::create_boundary_surface() {
   moab::Range elements;
   moab::Range boundary_faces;
   this->moab_interface()->get_entities_by_dimension(this->root_set(), 3, elements);
-  skinner.find_skin(0, elements, 3, boundary_faces);
+  skinner.find_skin(this->moab_interface()->get_root_set(), elements, 2, boundary_faces, false, true);
+  // it's possible that the skinning operation changed the mesh
+  // update the direct access manager to account for any new
+  // faces
+  this->mb_direct()->update();
 
   MeshID next_surf_id = next_surface_id();
 
@@ -170,10 +203,12 @@ MeshID MOABMeshManager::create_boundary_surface() {
 
   this->moab_interface()->tag_set_data(category_tag_, &surface_set, 1, SURFACE_CATEGORY_VALUE);
 
-  surface_id_map_[next_surf_id] = surface_set;
-
-  // set the boundary faces to the surface set
+  // add the boundary faces to the new surface set
   this->moab_interface()->add_entities(surface_set, boundary_faces);
+
+  // update internal maps and vectors
+  surface_id_map_[next_surf_id] = surface_set;
+  this->surfaces().push_back(next_surf_id);
 
   return next_surf_id;
 }
@@ -419,6 +454,15 @@ MOABMeshManager::adjacent_element(MeshID element, int face) const
   return this->moab_interface()->id_from_handle(next_element);
 }
 
+double
+MOABMeshManager::element_volume(MeshID element) const
+{
+  moab::EntityHandle element_handle;
+  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  std::array<xdg::Vertex, 4> verts = this->mb_direct()->get_element_coords(element_handle);
+  return tetrahedron_volume(verts);
+}
+
 void
 MOABMeshManager::parse_metadata()
 {
@@ -528,6 +572,8 @@ void
 MOABMeshManager::graveyard_check()
 {
   for (auto volume : this->volumes()) {
+    if (!volume_has_property(volume, PropertyType::MATERIAL))
+      continue;
     auto prop = MeshManager::get_volume_property(volume, PropertyType::MATERIAL);
     // set the boundary condition to vacuum for all surfaces on volumes using a graveyard material
     if (to_lower(prop.value) == "graveyard") {

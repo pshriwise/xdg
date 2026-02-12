@@ -1,5 +1,6 @@
 #include "xdg/libmesh/mesh_manager.h"
 
+#include "xdg/config.h"
 #include "xdg/error.h"
 #include "xdg/geometry/plucker.h"
 #include "xdg/geometry/face_common.h"
@@ -13,30 +14,13 @@
 namespace xdg {
 
 // Constructors
-LibMeshManager::LibMeshManager(void *ptr) {
-  if (libmesh_init == nullptr) {
-    initialize_libmesh();
-  }
-}
+LibMeshManager::LibMeshManager(void *ptr) {}
 
-LibMeshManager::LibMeshManager() : MeshManager() {
-  if (libmesh_init == nullptr) {
-    initialize_libmesh();
-  }
-}
+LibMeshManager::LibMeshManager() : MeshManager() {}
 
 void LibMeshManager::load_file(const std::string &filepath) {
-  mesh_ = std::make_unique<libMesh::Mesh>(libmesh_init->comm(), 3);
+  mesh_ = std::make_unique<libMesh::Mesh>(*XDGConfig::config().libmesh_comm(), 3);
   mesh_->read(filepath);
-}
-
-void LibMeshManager::initialize_libmesh() {
-  // libmesh requires the program name, so at least one argument is needed
-  int argc = 1;
-  const std::string argv{"XDG"};
-  const char *argv_cstr = argv.c_str();
-  libmesh_init =
-      std::move(std::make_unique<libMesh::LibMeshInit>(argc, &argv_cstr, 0, 1));
 }
 
 void LibMeshManager::init() {
@@ -92,6 +76,8 @@ void LibMeshManager::init() {
 
   // libMesh initialization
   mesh()->prepare_for_use();
+
+  map_id_spaces();
 }
 
 MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
@@ -102,9 +88,16 @@ MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
   return neighbor->id();
 }
 
+double
+LibMeshManager::element_volume(MeshID element) const {
+  const auto elem_ptr = mesh()->elem_ptr(element);
+  if (!elem_ptr) {
+    fatal_error("Invalid element ID in element_volume");
+  }
+  return elem_ptr->volume();
+}
+
 MeshID LibMeshManager::create_volume() {
-  std::unique_ptr<libMesh::Mesh> submesh_ =
-      std::make_unique<libMesh::Mesh>(mesh_->comm(), 3);
   MeshID next_volume_id = *std::max_element(volumes_.begin(), volumes_.end()) + 1;
   return next_volume_id;
 }
@@ -169,11 +162,35 @@ bool contains_set(const std::set<T>& set1, const std::set<T>& set2) {
   return true;
 }
 
+void LibMeshManager::map_id_spaces() {
+  // build the BlockMapping for volume elements
+  std::vector<MeshID> volume_element_ids;
+  volume_element_ids.reserve(mesh()->n_active_elem());
+  for (const auto *elem : mesh()->active_element_ptr_range()) {
+    volume_element_ids.push_back(elem->id());
+  }
+  volume_element_id_map_ = IDBlockMapping<MeshID>(volume_element_ids);
+
+  // build the BlockMapping for vertex IDs
+  std::vector<MeshID> vertex_ids;
+  vertex_ids.reserve(mesh()->n_nodes());
+  for (const auto *node : mesh()->node_ptr_range()) {
+    vertex_ids.push_back(node->id());
+  }
+  vertex_id_map_ = IDBlockMapping<MeshID>(vertex_ids);
+}
+
 void LibMeshManager::discover_surface_elements() {
+  // as part of this process, we will also build a vector of all
+  // volumetric element IDs
+  std::vector<MeshID> volume_element_ids;
+  volume_element_ids.reserve(mesh()->n_active_elem());
+
   subdomain_interface_map_.clear();
   // for any active local elements, identify element faces
   // where the subdomain IDs are different on either side
-  for (const auto *elem : mesh()->active_local_element_ptr_range()) {
+  for (const auto *elem : mesh()->active_element_ptr_range()) {
+    volume_element_ids.push_back(elem->id());
     MeshID subdomain_id = elem->subdomain_id();
     for (int i = 0; i < elem->n_sides(); i++) {
       auto neighbor = elem->neighbor_ptr(i);
@@ -190,6 +207,9 @@ void LibMeshManager::discover_surface_elements() {
       }
     }
   }
+
+  // build the BlockMapping for volume elements
+  volume_element_id_map_ = IDBlockMapping<MeshID>(volume_element_ids);
 }
 
 void LibMeshManager::merge_sidesets_into_interfaces() {

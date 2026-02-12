@@ -72,9 +72,11 @@ static const std::map<RTLibrary, std::string> RT_LIB_TO_STR =
 
 // Mesh identifer type
 using MeshID = int32_t;
+using MeshIndex  = int32_t;
 
 // Null mesh ID
 constexpr MeshID ID_NONE {-1};
+constexpr MeshIndex INDEX_NONE {-1};
 
 // Scene/Tree ID
 using TreeID = int32_t;
@@ -131,14 +133,14 @@ enum class VolumeElementType {
 namespace fmt {
   template <>
 struct formatter<xdg::RTLibrary> : fmt::formatter<std::string> {
-  auto format(xdg::RTLibrary lib, fmt::format_context& ctx) {
+  auto format(xdg::RTLibrary lib, fmt::format_context& ctx) const {
     return fmt::formatter<std::string>::format(xdg::RT_LIB_TO_STR.at(lib), ctx);
   }
 };
 
 template <>
 struct formatter<xdg::MeshLibrary> : fmt::formatter<std::string> {
-  auto format(xdg::MeshLibrary lib, fmt::format_context& ctx) {
+  auto format(xdg::MeshLibrary lib, fmt::format_context& ctx) const {
     return fmt::formatter<std::string>::format(xdg::MESH_LIB_TO_STR.at(lib), ctx);
   }
 };

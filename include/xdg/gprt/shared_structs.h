@@ -8,7 +8,7 @@ struct GPRTPrimitiveRef
   int sense;
 };
 
-struct dblRayInput 
+struct dblRay 
 {
   double3 origin;
   double3 direction;
@@ -21,7 +21,7 @@ struct dblRayInput
   SurfaceAccelerationStructure volume_accel; // The volume accel 
 };
 
-struct dblRayOutput 
+struct dblHit 
 {
   double distance;
   int surf_id;
@@ -39,7 +39,7 @@ struct DPTriangleGeomData {
   int2 vols;
   int forward_vol;
   int reverse_vol;
-  dblRayInput *rayIn; // double precision rays
+  dblRay *ray; // double precision rays
   xdg::HitOrientation hitOrientation;
   int forward_tree; // TreeID of the forward volume
   int reverse_tree; // TreeID of the reverse volume
@@ -48,8 +48,8 @@ struct DPTriangleGeomData {
 };
 
 struct dblRayGenData {
-  dblRayInput *ray;
-  dblRayOutput *out;
+  dblRay *ray;
+  dblHit *hit;
 };
 
 /* A small structure of constants that can change every frame without rebuilding the

@@ -7,7 +7,9 @@
 // MOAB
 #include "moab/Core.hpp"
 #include "moab/CartVect.hpp"
+
 #include "xdg/constants.h"
+#include "xdg/id_block_map.h"
 #include "xdg/vec3da.h"
 
 
@@ -88,12 +90,10 @@ public:
 private:
   Interface* mbi {nullptr}; //!< MOAB instance for the managed data
 
-
   struct AdjacencyData {
     EntityType entity_type {MBTET}; //!< Type of entity stored in this manager
     int num_entities {-1}; //!< Number of elements in the manager
     std::unordered_map<EntityHandle, std::vector<EntityHandle>> adj_info_;
-
 
     void setup(Interface* mbi) {
       ErrorCode rval;
@@ -101,7 +101,7 @@ private:
       // setup element adjacenty data
       // TODO: support other element types
       Range elements;
-      rval = mbi->get_entities_by_type(0, entity_type, elements, true);
+      rval = mbi->get_entities_by_type(mbi->get_root_set(), entity_type, elements, true);
       MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB element adjacencies");
 
       const auto& ord = ordering[entity_type];
@@ -172,33 +172,34 @@ private:
     int element_stride {-1}; //!< Number of vertices used by each element
     std::vector<std::pair<EntityHandle, size_t>> first_elements; //!< Pairs of first element and length pairs for contiguous blocks of memory
     std::vector<const EntityHandle*> vconn; //!< Storage array(s) for the connectivity array
+    moab::Range entity_range; //!< Range of entities managed here
 
     void setup(Interface * mbi) {
       ErrorCode rval;
 
       // setup face connectivity data
-      Range faces;
-      rval = mbi->get_entities_by_type(0, entity_type, faces, true);
-      MB_CHK_SET_ERR_CONT(rval, "Failed to get all elements of dimension 2 (faces)");
-      num_entities = faces.size();
+
+      rval = mbi->get_entities_by_type(mbi->get_root_set(), entity_type, entity_range, true);
+      MB_CHK_SET_ERR_CONT(rval, "Failed to get all elements for the given entity type");
+      num_entities = entity_range.size();
 
       // only supporting triangle elements for now
-      if (!faces.all_of_type(entity_type)) { throw std::runtime_error("Not all 2D elements are triangles"); }
+      if (!entity_range.all_of_type(entity_type)) { throw std::runtime_error("Not all 2D elements are triangles"); }
 
-      moab::Range::iterator faces_it = faces.begin();
-      while(faces_it != faces.end()) {
+      moab::Range::iterator entity_it = entity_range.begin();
+      while(entity_it != entity_range.end()) {
         // set connectivity pointer, element stride and the number of elements
         EntityHandle* conntmp;
         int n_elements;
-        rval = mbi->connect_iterate(faces_it, faces.end(), conntmp, element_stride, n_elements);
+        rval = mbi->connect_iterate(entity_it, entity_range.end(), conntmp, element_stride, n_elements);
         MB_CHK_SET_ERR_CONT(rval, "Failed to get direct access to triangle elements");
 
         // set const pointers for the connectivity array and add first element/length pair to the set of first elements
         vconn.push_back(conntmp);
-        first_elements.push_back({*faces_it, n_elements});
+        first_elements.push_back({*entity_it, n_elements});
 
         // move iterator forward by the number of triangles in this contiguous memory block
-        faces_it += n_elements;
+        entity_it += n_elements;
       }
     }
 
@@ -227,6 +228,7 @@ private:
       element_stride = -1;
       first_elements.clear();
       vconn.clear();
+      entity_range.clear();
     }
   };
 
@@ -234,19 +236,18 @@ private:
     void setup(Interface* mbi) {
       ErrorCode rval;
       // setup vertices
-      Range verts;
-      rval = mbi->get_entities_by_dimension(0, 0, verts, true);
+      rval = mbi->get_entities_by_dimension(mbi->get_root_set(), 0, vertex_range, true);
       MB_CHK_SET_ERR_CONT(rval, "Failed to get all elements of dimension 0 (vertices)");
-      num_vertices = verts.size();
+      num_vertices = vertex_range.size();
 
-      moab::Range::iterator verts_it = verts.begin();
-      while (verts_it != verts.end()) {
+      moab::Range::iterator verts_it = vertex_range.begin();
+      while (verts_it != vertex_range.end()) {
         // set vertex coordinate pointers
         double* xtmp;
         double* ytmp;
         double* ztmp;
         int n_vertices;
-        rval = mbi->coords_iterate(verts_it, verts.end(), xtmp, ytmp, ztmp, n_vertices);
+        rval = mbi->coords_iterate(verts_it, vertex_range.end(), xtmp, ytmp, ztmp, n_vertices);
         MB_CHK_SET_ERR_CONT(rval, "Failed to get direct access to vertex elements");
 
         // add the vertex coordinate arrays to their corresponding vector of array pointers
@@ -267,6 +268,7 @@ private:
       ty.clear();
       tz.clear();
       first_vertices.clear();
+      vertex_range.clear();
     }
 
     //! \brief Set the coordinates of a vertex based on an index into a contiguous block of memory
@@ -290,12 +292,18 @@ private:
     std::vector<const double*> ty; //!< Storage array(s) for vertex y coordinates
     std::vector<const double*> tz; //!< Storage array(s) for vertex z coordinates
     std::vector<std::pair<EntityHandle, size_t>> first_vertices; //!< Pairs of first vertex and length pairs for contiguous blocks of memory
+    moab::Range vertex_range; //!< Range of vertices managed here
   };
 
   ConnectivityData face_data_;
   ConnectivityData element_data_;
   AdjacencyData element_adjacency_data_;
   VertexData vertex_data_;
+
+  public:
+    const ConnectivityData& element_data() const { return element_data_; }
+
+    const VertexData& vertex_data() const {return vertex_data_; }
 };
 
 } // namespace xdg

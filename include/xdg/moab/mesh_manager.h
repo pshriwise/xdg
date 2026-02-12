@@ -54,6 +54,10 @@ public:
   void add_surface_to_volume(MeshID volume, MeshID surface, Sense sense, bool overwrite=false) override;
 
   // Mesh
+  int num_vertices() const override {
+    return this->mb_direct()->n_vertices();
+  }
+
   int num_volume_elements(MeshID volume) const override;
 
   int num_volume_elements() const override;
@@ -77,6 +81,8 @@ public:
   SurfaceElementType get_surface_element_type(MeshID surface) const override;
 
   MeshID adjacent_element(MeshID element, int face) const override;
+
+  double element_volume(MeshID element) const override;
 
   // Topology
   std::pair<MeshID, MeshID> surface_senses(MeshID surface) const override;

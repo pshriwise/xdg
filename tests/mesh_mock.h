@@ -9,7 +9,7 @@
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/element_face_accessor.h"
 
-
+#include "xdg/geometry/measure.h"
 #include "xdg/geometry/plucker.h"
 
 using namespace xdg;
@@ -54,6 +54,10 @@ public:
     break;
    }
     return -1;
+  }
+
+  virtual int num_vertices() const override {
+    return vertices_.size();
   }
 
   virtual int num_volume_elements(MeshID volume) const override {
@@ -210,6 +214,33 @@ public:
 
   virtual MeshID adjacent_element(MeshID element, int face) const override {
     return element_adjacencies_.at(element)[face];
+  }
+
+    virtual double element_volume(MeshID element) const override {
+    const auto& conn = tetrahedron_connectivity()[element];
+    std::array<Vertex, 4> verts = {
+      vertices()[conn[0]],
+      vertices()[conn[1]],
+      vertices()[conn[2]],
+      vertices()[conn[3]]
+    };
+    return tetrahedron_volume(verts);
+  }
+
+  inline int element_index(MeshID element) const override {
+    return element;
+  }
+
+  inline MeshID element_id(size_t element_idx) const override {
+    return static_cast<MeshID>(element_idx);
+  }
+
+  inline MeshID vertex_id(size_t vertex_idx) const override {
+    return static_cast<MeshID>(vertex_idx);
+  }
+
+  inline int vertex_index(MeshID vertex) const override {
+    return static_cast<int>(vertex);
   }
 
   // Other

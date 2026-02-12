@@ -5,8 +5,7 @@
 #include <iomanip>
 
 #include "xdg/error.h"
-#include "xdg/mesh_manager_interface.h"
-#include "xdg/moab/mesh_manager.h"
+#include "xdg/mesh_managers.h"
 #include "xdg/vec3da.h"
 #include "xdg/xdg.h"
 
@@ -53,7 +52,7 @@ int main(int argc, char** argv) {
     std::cout << args;
     exit(0);
   }
-  
+
 std::string mesh_str = args.get<std::string>("--mesh-library");
 std::string rt_str = args.get<std::string>("--rt-library");
 
@@ -95,6 +94,7 @@ else
 
   MeshID volume = args.get<int>("volume");
   xdg->prepare_volume_for_raytracing(volume);
+  rti->init(); // Typically called during XDG::prepare_raytracer(). Required to build SBT after volume registration.
 
   Position origin = args.get<std::vector<double>>("--origin");
   Direction direction = args.get<std::vector<double>>("--direction");
