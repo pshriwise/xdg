@@ -106,7 +106,7 @@ public:
 
   Vertex vertex_coordinates(MeshID vertex) const override;
 
-  std::array<Vertex, 3> face_vertices(MeshID triangle) const override;
+  std::vector<MeshID> face_vertices(MeshID triangle) const override;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 

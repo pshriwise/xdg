@@ -91,9 +91,9 @@ public:
     return {vertices()[conn[0]], vertices()[conn[1]], vertices()[conn[2]], vertices()[conn[3]]};
   }
 
-  virtual std::array<Vertex, 3> face_vertices(MeshID element) const override {
+  virtual std::vector<MeshID> face_vertices(MeshID element) const override {
     const auto& conn = triangle_connectivity()[element];
-    return {vertices()[conn[0]], vertices()[conn[1]], vertices()[conn[2]]};
+    return {conn[0], conn[1], conn[2]};
   }
 
   // Topology

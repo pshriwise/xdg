@@ -1,6 +1,7 @@
 #include "xdg/embree/ray_tracer.h"
 #include "xdg/error.h"
 #include "xdg/geometry_data.h"
+#include "xdg/quadrilateral_intersection.h"
 #include "xdg/ray.h"
 #include "xdg/tetrahedron_contain.h"
 
@@ -131,13 +132,22 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   surface_data->surface_id = surface;
   surface_data->mesh_manager = mesh_manager.get();
   surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
+  surface_data->element_type = mesh_manager->get_surface_element_type(surface);
   surface_user_data_map_[surface_geometry] = surface_data;
   rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
   // Set RTC callbacks
-  rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
-  rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
-  rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
+  if (surface_data->element_type == SurfaceElementType::TRI) {
+    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
+    rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
+    rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
+  } else if (surface_data->element_type == SurfaceElementType::QUAD) {
+    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&QuadBoundsFunction, nullptr);
+    rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&QuadIntersectionFunction);
+    rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&QuadOcclusionFunction);
+  } else {
+    fatal_error("Unsupported surface element type for surface {}", surface);
+  }
   rtcCommitGeometry(surface_geometry);
 
   // increment storage offset by number of faces in this surface
@@ -335,7 +345,7 @@ std::pair<double, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
   RTCPointQueryContext context;
   rtcInitPointQueryContext(&context);
 
-  rtcPointQuery(scene, &query, &context, (RTCPointQueryFunction)&TriangleClosestFunc, &scene);
+  rtcPointQuery(scene, &query, &context, (RTCPointQueryFunction)&SurfaceClosestFunc, &scene);
 
   if (query.geomID == RTC_INVALID_GEOMETRY_ID) {
     return {INFTY, ID_NONE};

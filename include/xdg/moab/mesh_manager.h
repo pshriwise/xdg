@@ -78,7 +78,12 @@ public:
 
   std::vector<Vertex> element_vertices(MeshID element) const override;
 
-  std::array<Vertex, 3> face_vertices(MeshID face) const override;
+  std::vector<MeshID> face_vertices(MeshID element) const override;
+
+  // Map from global surface connectivity indices to local surface connectivity indices and return the local connectivity for a surface
+  std::vector<int> get_surface_connectivity(MeshID surface) const override;
+
+  std::vector<Vertex> get_surface_vertices(MeshID surface) const override;
 
   SurfaceElementType get_surface_element_type(MeshID surface) const override;
 

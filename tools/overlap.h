@@ -1,10 +1,11 @@
 #ifndef OVERLAP_H
 #define OVERLAP_H
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
-#include <algorithm>
+#include <vector>
 
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/vec3da.h"
@@ -13,7 +14,7 @@
 using namespace xdg;
 
 using OverlapMap = std::map<std::set<int>, Position>;
-using ElementVertices = std::array<xdg::Vertex, 3>; // This could be swapped out for something more general later on down the line
+using ElementVertices = std::vector<xdg::Vertex>; // Supports triangles and quads
 
 struct EdgeRayQuery {
     Position origin; // ray_fire() launch origin

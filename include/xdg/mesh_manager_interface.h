@@ -95,7 +95,15 @@ public:
   // TODO: can we accomplish this without allocating memory?
   virtual std::vector<Vertex> element_vertices(MeshID element) const = 0;
 
-  virtual std::array<Vertex, 3> face_vertices(MeshID element) const = 0;
+  //! \brief Get the vertex IDs for a face by its ID
+  //! \param face The face ID
+  //! \return A vector of vertex IDs for the face (size 3 for tri, 4 for quad)
+  virtual std::vector<MeshID> face_vertices(MeshID face) const = 0;
+
+  //! \brief Get the coordinates of the vertices for a face by its ID
+  //! \param face The face ID
+  //! \return A vector of vertex coordinates for the face
+  std::vector<Vertex> face_vertex_coordinates(MeshID face) const;
 
   std::vector<Vertex> get_surface_vertices(MeshID surface) const;
 

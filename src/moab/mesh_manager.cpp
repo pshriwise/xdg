@@ -247,6 +247,9 @@ MOABMeshManager::_surface_faces(MeshID surface) const
   moab::EntityHandle surf_handle = surface_id_map_.at(surface);
   moab::Range elements;
   this->moab_interface()->get_entities_by_type(surf_handle, moab::MBTRI, elements);
+  moab::Range quads;
+  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBQUAD, quads);
+  elements.merge(quads);
   return elements;
 }
 
@@ -345,12 +348,27 @@ std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
   return std::vector<Vertex>(out.begin(), out.end());
 }
 
-std::array<Vertex, 3> MOABMeshManager::face_vertices(MeshID element) const
+std::vector<MeshID> MOABMeshManager::face_vertices(MeshID element) const
 {
   moab::EntityHandle element_handle;
-  this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
-  auto out = this->mb_direct()->get_mb_coords(element_handle);
-  return out;
+  // Try triangle first, then quad
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
+  if (rval != moab::MB_SUCCESS) {
+    rval = this->moab_interface()->handle_from_id(moab::MBQUAD, element, element_handle);
+  }
+  if (rval != moab::MB_SUCCESS) {
+    fatal_error("Invalid face ID {} for MOAB mesh", element);
+  }
+
+  std::vector<moab::EntityHandle> conn;
+  this->moab_interface()->get_connectivity(&element_handle, 1, conn);
+
+  std::vector<MeshID> ids;
+  ids.reserve(conn.size());
+  for (auto handle : conn) {
+    ids.push_back(this->moab_interface()->id_from_handle(handle));
+  }
+  return ids;
 }
 
 std::pair<MeshID, MeshID>
@@ -413,17 +431,13 @@ MOABMeshManager::get_surface_element_type(MeshID surface) const
 {
   moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
 
-  moab::EntityType type = moab::MBTRI; // TODO: hardcodeed to tri for now
-
-  switch (type)
-  {
-  case moab::MBTRI:
-    return SurfaceElementType::TRI;
-  case moab::MBQUAD:
+  moab::Range quads;
+  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBQUAD, quads);
+  if (!quads.empty()) {
     return SurfaceElementType::QUAD;
   }
 
-  fatal_error("Unsupported surface element type");
+  return SurfaceElementType::TRI;
 }
 
 MeshID

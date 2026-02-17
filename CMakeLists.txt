@@ -196,6 +196,7 @@ src/error.cpp
 src/mesh_manager_interface.cpp
 src/ray_tracing_interface.cpp
 src/triangle_intersect.cpp
+src/quadrilateral_intersection.cpp
 src/util/str_utils.cpp
 src/tetrahedron_contain.cpp
 src/config.cpp

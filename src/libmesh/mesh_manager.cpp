@@ -541,14 +541,18 @@ LibMeshManager::element_vertices(MeshID element) const {
   return vertices;
 }
 
-std::array<Vertex, 3>
+std::vector<MeshID>
 LibMeshManager::face_vertices(MeshID element) const {
   const auto& side_pair = sidepair(element);
-  std::array<Vertex, 3> vertices;
+  std::vector<MeshID> vertex_ids;
+  vertex_ids.reserve(3);
+  const auto* elem = side_pair.first();
+  const auto* tet = static_cast<const libMesh::Tet4*>(elem);
   for (unsigned int i = 0; i < 3; ++i) {
-    vertices[i] = std::move(side_pair.vertex<libMesh::Tet4>(i));
+    const auto node_ptr = elem->node_ptr(tet->side_nodes_map[side_pair.side_num()][i]);
+    vertex_ids.push_back(node_ptr->id());
   }
-  return vertices;
+  return vertex_ids;
 }
 
 std::vector<MeshID>

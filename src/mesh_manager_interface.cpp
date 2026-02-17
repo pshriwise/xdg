@@ -215,7 +215,10 @@ MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
 
 Direction MeshManager::face_normal(MeshID element) const
 {
-  auto vertices = this->face_vertices(element);
+  auto vertices = this->face_vertex_coordinates(element);
+  if (vertices.size() < 3) {
+    fatal_error("Face {} has fewer than 3 vertices", element);
+  }
   return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
 }
 
@@ -229,7 +232,7 @@ MeshManager::element_bounding_box(MeshID element) const
 BoundingBox
 MeshManager::face_bounding_box(MeshID element) const
 {
-  auto vertices = this->face_vertices(element);
+  auto vertices = this->face_vertex_coordinates(element);
   return BoundingBox::from_points(vertices);
 }
 
@@ -264,6 +267,18 @@ MeshManager::surface_bounding_box(MeshID surface) const
     bb.update(this->face_bounding_box(element));
   }
   return bb;
+}
+
+std::vector<Vertex>
+MeshManager::face_vertex_coordinates(MeshID face) const
+{
+  auto vertex_ids = this->face_vertices(face);
+  std::vector<Vertex> vertices;
+  vertices.reserve(vertex_ids.size());
+  for (auto id : vertex_ids) {
+    vertices.push_back(this->vertex_coordinates(id));
+  }
+  return vertices;
 }
 
 std::pair<MeshID, MeshID>
