@@ -16,6 +16,8 @@
 #include "xdg/xdg.h"
 #include "util.h"
 
+#include "particle_sim.h"
+
 using namespace xdg;
 using namespace xdg::test;
 
@@ -181,6 +183,69 @@ TEMPLATE_TEST_CASE("TEST MOAB Find Element Method", "[moab][elements]",
       REQUIRE(segment.second >= 0.0);
     }
   }
+}
+
+TEMPLATE_TEST_CASE("TEST MOAB Raytrace Quads", "[moab][faces][quads]",
+                   Embree_Raytracer)
+{
+  constexpr auto rt_backend = TestType::value;
+
+  DYNAMIC_SECTION(fmt::format("Backend = {}", rt_backend)) {
+    check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time
+    std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, rt_backend);
+    REQUIRE(xdg->ray_tracing_interface()->library() == rt_backend);
+    REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
+    const auto& mesh_manager = xdg->mesh_manager();
+    mesh_manager->load_file("quad_sphere.h5m");
+    mesh_manager->init();
+    xdg->prepare_raytracer();
+
+    // should have two volumes including the implicit complement
+    // REQUIRE(mesh_manager->num_volumes() == 2);
+    // REQUIRE(mesh_manager->num_volume_faces(1) == 600);
+    // REQUIRE(mesh_manager->num_surfaces() == 1);
+    // REQUIRE(mesh_manager->num_surface_faces(1) == 600);
+
+    MeshID volume = 1;
+    Position origin {0.0, 0.0, 0.0};
+    Direction dir {1.0, 0.0, 0.0};
+
+    // fire rays in random directions and verify that we get a hit at
+    // approximately the expected distance of 6.3849 (the radius of the sphere)
+    for (int i = 0; i < 10; ++i) {
+      dir = rand_dir();
+      auto hit = xdg->ray_fire(volume, origin, dir);
+      REQUIRE_THAT(hit.first, Catch::Matchers::WithinAbs(6.3849, 1e-2));
+      REQUIRE(hit.second != ID_NONE);
+    }
+  }
+}
+
+TEST_CASE("MOAB Multi-volume quad raytrace")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("cyl-brick-quads.h5m");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  // should have two volumes including the implicit complement
+  REQUIRE(mesh_manager->num_volumes() == 3);
+  REQUIRE(mesh_manager->num_surfaces() == 12);
+
+  MeshID volume = 1;
+  Position origin {0.0, 0.0, 0.0};
+  Direction dir {0.0, 0.0, -1.0};
+
+  auto hit = xdg->ray_fire(volume, origin, dir);
+  REQUIRE_THAT(hit.first, Catch::Matchers::WithinAbs(7.5, 1e-6));
+  REQUIRE(hit.second != ID_NONE);
+
+  dir = {0.0, 0.0, 1.0};
+  hit = xdg->ray_fire(volume, origin, dir);
+  REQUIRE_THAT(hit.first, Catch::Matchers::WithinAbs(7.5, 1e-6));
+  REQUIRE(hit.second != ID_NONE);
 }
 
 TEST_CASE("MOAB Element ID and Index Mapping")

@@ -25,7 +25,7 @@ test_mesh_connectivity
 )
 
 if (XDG_ENABLE_MOAB)
-    list(APPEND TEST_NAMES test_moab)
+    list(APPEND TEST_NAMES test_moab test_moab_transport)
 endif()
 
 if (XDG_ENABLE_LIBMESH)
@@ -80,6 +80,7 @@ cube-mesh-no-geom.h5m
 cube-mesh-no-geom.exo
 cube-w-multiblock-sideset.exo
 cube-w-multiblock-sideset.h5m
+cyl-brick-quads.h5m
 no_overlap.h5m
 overlap.h5m
 overlap-edge.h5m
@@ -99,6 +100,7 @@ small-tet-mesh.h5m
 small-tet-mesh.exo
 single-tet.h5m
 single-tet.exo
+quad_sphere.h5m
 )
 
 foreach(file ${TEST_FILES})
