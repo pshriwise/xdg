@@ -30,6 +30,15 @@ args.add_argument("-m", "--mfp")
     .default_value(1.0)
     .help("Mean free path of the particles").scan<'g', double>();
 
+args.add_argument("-n", "--n-particles")
+    .default_value(100u)
+    .help("Number of particles to simulate").scan<'u', uint32_t>();
+
+args.add_argument("-g", "--ipc-graveyard")
+    .default_value(false)
+    .implicit_value(true)
+    .help("Treat the implicit complement as a graveyard (i.e. particles that enter it are killed)");
+
 args.add_argument("-m", "--mesh-library")
     .help("Mesh library to use. One of (MOAB, LIBMESH)")
     .default_value("MOAB");
@@ -88,6 +97,8 @@ sim_data.xdg_ = xdg;
 sim_data.mfp_ = args.get<double>("--mfp");
 
 sim_data.verbose_particles_ = args.get<bool>("--verbose");
+sim_data.implicit_complement_is_graveyard_ = args.get<bool>("--ipc-graveyard");
+sim_data.n_particles_ = args.get<uint32_t>("--n-particles");
 
 transport_particles(sim_data);
 
