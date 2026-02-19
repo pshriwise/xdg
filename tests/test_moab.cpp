@@ -137,8 +137,8 @@ TEST_CASE("MOAB Element Types")
   mesh_manager->init();
 
   for (const auto surface: mesh_manager->surfaces()) {
-    auto element_type = mesh_manager->get_surface_element_type(surface);
-    REQUIRE(element_type == SurfaceElementType::TRI); // Each surface should be made up of triangles
+    auto element_type = mesh_manager->get_surface_face_type(surface);
+    REQUIRE(element_type == SurfaceFaceType::TRI); // Each surface should be made up of triangles
   }
 }
 

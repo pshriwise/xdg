@@ -110,9 +110,9 @@ public:
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
 
-  SurfaceElementType get_surface_element_type(MeshID surface) const override
+  SurfaceFaceType get_surface_face_type(MeshID surface) const override
   {
-    fatal_error("LibMeshManager::get_surface_element_type() not implemented yet");
+    fatal_error("LibMeshManager::get_surface_face_type() not implemented yet");
   }
 
   MeshID adjacent_element(MeshID element, int face) const override;

@@ -107,12 +107,12 @@ public:
     return connectivity;
   }
 
-  SurfaceElementType get_surface_element_type(MeshID surface) const override {
+  SurfaceFaceType get_surface_face_type(MeshID surface) const override {
     auto faces = get_surface_faces(surface);
     for (const auto& face : faces) {
-      if (face_connectivity_.at(face).size() == 4) return SurfaceElementType::QUAD;
+      if (face_connectivity_.at(face).size() == 4) return SurfaceFaceType::QUAD;
     }
-    return SurfaceElementType::TRI;
+    return SurfaceFaceType::TRI;
   }
 
   MeshID adjacent_element(MeshID /*element*/, int /*face*/) const override {

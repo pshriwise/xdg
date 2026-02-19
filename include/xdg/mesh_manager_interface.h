@@ -118,7 +118,7 @@ public:
   // Return a vector of connectivity indices for a given surface in the model
   std::vector<int> get_surface_connectivity(MeshID surface) const;
 
-  virtual SurfaceElementType get_surface_element_type(MeshID element) const = 0;
+  virtual SurfaceFaceType get_surface_face_type(MeshID element) const = 0;
 
   //! \brief Convert an element's ID to its index in the mesh
   //! \param element_idx The index of the element in the mesh

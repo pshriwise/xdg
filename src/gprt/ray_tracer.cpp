@@ -129,9 +129,10 @@ GPRTRayTracer::create_surface_tree(const std::shared_ptr<MeshManager>& mesh_mana
     GPRTGeomOf<DPTriangleGeomData> surfaceGeometry;
     GPRTAccel blas = nullptr;
 
-    if (mesh_manager->get_surface_element_type(surf) == SurfaceElementType::QUAD) {
+    if (mesh_manager->get_surface_face_type(surf) == SurfaceFaceType::QUAD) {
       fatal_error("GPRT quad intersection not implemented (surface {})", surf);
     }
+
     DPTriangleGeomData* geom_data = nullptr;
     auto [forward_parent, reverse_parent] = mesh_manager->get_parent_volumes(surf);
     auto max_parent_bbox_bump = std::max(bounding_box_bump(mesh_manager, forward_parent),

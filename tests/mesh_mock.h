@@ -171,8 +171,8 @@ public:
     return element_adjacencies_;
   }
 
-  virtual SurfaceElementType get_surface_element_type(MeshID surface) const override {
-    return SurfaceElementType::TRI; // hardcoded to Tri for this mock
+  virtual SurfaceFaceType get_surface_face_type(MeshID surface) const override {
+    return SurfaceFaceType::TRI; // hardcoded to Tri for this mock
   }
 
   virtual MeshID adjacent_element(MeshID element, int face) const override {

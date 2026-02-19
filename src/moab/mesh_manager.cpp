@@ -426,18 +426,18 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
   return this->tag_data<MeshID>(global_id_tag_, surfaces);
 }
 
-SurfaceElementType
-MOABMeshManager::get_surface_element_type(MeshID surface) const
+SurfaceFaceType
+MOABMeshManager::get_surface_face_type(MeshID surface) const
 {
   moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
 
   moab::Range quads;
   this->moab_interface()->get_entities_by_type(surf_handle, moab::MBQUAD, quads);
   if (!quads.empty()) {
-    return SurfaceElementType::QUAD;
+    return SurfaceFaceType::QUAD;
   }
 
-  return SurfaceElementType::TRI;
+  return SurfaceFaceType::TRI;
 }
 
 MeshID

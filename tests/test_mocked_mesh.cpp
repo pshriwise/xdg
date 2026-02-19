@@ -38,6 +38,6 @@ TEST_CASE("MockedMesh Face Representation")
   REQUIRE_THAT(bbox.max_y, Catch::Matchers::WithinAbs(1.0, 1e-12));
   REQUIRE_THAT(bbox.max_z, Catch::Matchers::WithinAbs(0.0, 1e-12));
 
-  REQUIRE(mm->get_surface_element_type(0) == SurfaceElementType::QUAD);
-  REQUIRE(mm->get_surface_element_type(1) == SurfaceElementType::TRI);
+  REQUIRE(mm->get_surface_face_type(0) == SurfaceFaceType::QUAD);
+  REQUIRE(mm->get_surface_face_type(1) == SurfaceFaceType::TRI);
 }

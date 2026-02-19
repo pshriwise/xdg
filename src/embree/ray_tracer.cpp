@@ -132,16 +132,16 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   surface_data->surface_id = surface;
   surface_data->mesh_manager = mesh_manager.get();
   surface_data->prim_ref_buffer = tri_ref_ptr + storage_offset;
-  surface_data->element_type = mesh_manager->get_surface_element_type(surface);
+  surface_data->element_type = mesh_manager->get_surface_face_type(surface);
   surface_user_data_map_[surface_geometry] = surface_data;
   rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
   // Set RTC callbacks
-  if (surface_data->element_type == SurfaceElementType::TRI) {
+  if (surface_data->element_type == SurfaceFaceType::TRI) {
     rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
-  } else if (surface_data->element_type == SurfaceElementType::QUAD) {
+  } else if (surface_data->element_type == SurfaceFaceType::QUAD) {
     rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&QuadBoundsFunction, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&QuadIntersectionFunction);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&QuadOcclusionFunction);
