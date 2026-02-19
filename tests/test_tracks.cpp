@@ -24,7 +24,7 @@ using namespace xdg::test;
 
 TEST_CASE("Test Internal Tracks")
 {
-  std::shared_ptr<MeshMock> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MockedTriTetMEsh> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
   REQUIRE(mm->num_volumes() == 1);
@@ -50,7 +50,7 @@ TEST_CASE("Test Internal Tracks")
 
 TEST_CASE("Test Intersecting Tracks")
 {
-  std::shared_ptr<MeshMock> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MockedTriTetMEsh> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing
   mm->create_implicit_complement(); // create the implicit complement
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
@@ -80,7 +80,7 @@ TEST_CASE("Test Intersecting Tracks")
 
 TEST_CASE("Test Random Internal Tracks")
 {
-  std::shared_ptr<MeshMock> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MockedTriTetMEsh> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
   REQUIRE(mm->num_volumes() == 1);

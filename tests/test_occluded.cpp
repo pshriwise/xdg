@@ -12,7 +12,7 @@ using namespace xdg;
 
 TEST_CASE("Test Occluded")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing, just good practice to call it
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm);
   xdg->prepare_raytracer();

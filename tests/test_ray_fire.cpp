@@ -16,7 +16,7 @@ using namespace xdg::test;
 
 // ------- single test, multiple sections (one per built backend) --------------
 
-TEMPLATE_TEST_CASE("Ray Fire on MeshMock (per-backend sections)", "[rayfire][mock]",
+TEMPLATE_TEST_CASE("Ray Fire on MockedTriTetMEsh (per-backend sections)", "[rayfire][mock]",
                    Embree_Raytracer,
                    GPRT_Raytracer)
 {
@@ -29,7 +29,7 @@ TEMPLATE_TEST_CASE("Ray Fire on MeshMock (per-backend sections)", "[rayfire][moc
     auto rti = create_raytracer(rt_backend);
     REQUIRE(rti);
 
-    auto mm = std::make_shared<MeshMock>(false);
+    auto mm = std::make_shared<MockedTriTetMEsh>(false);
     mm->init();
     REQUIRE(mm->mesh_library() == MeshLibrary::MOCK);
 

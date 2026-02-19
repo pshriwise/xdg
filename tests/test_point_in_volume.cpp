@@ -14,7 +14,7 @@ using namespace xdg::test;
 
 // ---------- single test, sections per backend --------------------------------
 
-TEMPLATE_TEST_CASE("Point-in-volume on MeshMock", "[piv][mock]",
+TEMPLATE_TEST_CASE("Point-in-volume on MockedTriTetMEsh", "[piv][mock]",
                    Embree_Raytracer,
                    GPRT_Raytracer) 
 {
@@ -26,8 +26,8 @@ TEMPLATE_TEST_CASE("Point-in-volume on MeshMock", "[piv][mock]",
     REQUIRE(rti);
     rti->init();
 
-    // Keep MeshMock usage consistent across backends
-    auto mm = std::make_shared<MeshMock>(false);
+    // Keep MockedTriTetMEsh usage consistent across backends
+    auto mm = std::make_shared<MockedTriTetMEsh>(false);
     mm->init();
     REQUIRE(mm->mesh_library() == MeshLibrary::MOCK);
 

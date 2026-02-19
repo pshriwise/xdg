@@ -20,7 +20,7 @@ using namespace xdg::test;
 
 TEST_CASE("Test Mesh Mock")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init();
 
   XDG xdg{mm, RTLibrary::EMBREE};
@@ -41,7 +41,7 @@ TEST_CASE("Test Mesh Mock")
 }
 
 TEST_CASE("Test Mesh Mock Element Volume") {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init();
 
   // Test the element_volume method

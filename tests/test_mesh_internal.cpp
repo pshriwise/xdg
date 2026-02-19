@@ -12,7 +12,7 @@ using namespace xdg;
 
 TEST_CASE("Test Mesh Mock")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing
 
   REQUIRE(mm->num_volumes() == 1);

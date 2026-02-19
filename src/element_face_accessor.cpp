@@ -28,7 +28,7 @@ std::shared_ptr<ElementFaceAccessor> ElementFaceAccessor::create(const MeshManag
   #endif
   // for testing
   if (mesh_manager->mesh_library() == MeshLibrary::MOCK) {
-    const MeshMock* mock_mesh_manager = dynamic_cast<const MeshMock*>(mesh_manager);
+    const MockedTriTetMEsh* mock_mesh_manager = dynamic_cast<const MockedTriTetMEsh*>(mesh_manager);
     return std::make_shared<MockElementFaceAccessor>(mock_mesh_manager, element);
   }
   fatal_error("ElementFaceAccessor::create: Unsupported mesh library");

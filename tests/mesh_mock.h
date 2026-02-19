@@ -14,9 +14,9 @@
 
 using namespace xdg;
 
-class MeshMock : public MeshManager {
+class MockedTriTetMEsh : public MeshManager {
 public:
-  MeshMock(bool volumetric_elements = true) : volumetric_elements_(volumetric_elements) {
+  MockedTriTetMEsh(bool volumetric_elements = true) : volumetric_elements_(volumetric_elements) {
     volumes_ = {0};
     surfaces_ = {0, 1, 2, 3, 4, 5};
 
@@ -321,7 +321,7 @@ private:
 };
 
 struct MockElementFaceAccessor : public ElementFaceAccessor {
-  MockElementFaceAccessor(const MeshMock* mesh_manager, MeshID element) :
+  MockElementFaceAccessor(const MockedTriTetMEsh* mesh_manager, MeshID element) :
   ElementFaceAccessor(element) {
     mesh_manager_ = mesh_manager;
     const auto& conn = mesh_manager->tetrahedron_connectivity()[element];
@@ -335,6 +335,6 @@ struct MockElementFaceAccessor : public ElementFaceAccessor {
   }
 
   // data members
-  const MeshMock* mesh_manager_;
+  const MockedTriTetMEsh* mesh_manager_;
   std::array<std::array<int, 3>, 4> tet_connectivity_;
 };

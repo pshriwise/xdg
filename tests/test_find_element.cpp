@@ -13,7 +13,7 @@ using namespace xdg;
 TEST_CASE("Test Find Volumetric Element")
 {
   // create a mock mesh manager without volumetric elements
-  std::shared_ptr<MeshManager> mm = std::make_shared<MeshMock>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
   mm->init(); // this should do nothing
 
   REQUIRE(mm->num_volumes() == 1);
