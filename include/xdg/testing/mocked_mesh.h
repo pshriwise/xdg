@@ -14,9 +14,9 @@
 namespace xdg {
 
 // A lightweight mesh for testing face representation (tri + quad).
-class MockedMesh : public MeshManager {
+class MockedQuadHexMesh : public MeshManager {
 public:
-  MockedMesh() {
+  MockedQuadHexMesh() {
     volumes_ = {0};
     surfaces_ = {0, 1};
     volume_surfaces_map_[0] = surfaces_;

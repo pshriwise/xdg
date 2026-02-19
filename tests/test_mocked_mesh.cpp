@@ -7,9 +7,9 @@
 
 using namespace xdg;
 
-TEST_CASE("MockedMesh Face Representation")
+TEST_CASE("MockedQuadHexMesh Face Representation")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MockedMesh>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedQuadHexMesh>();
   mm->init();
 
   auto quad_face = mm->get_surface_faces(0).at(0);

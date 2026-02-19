@@ -10,10 +10,10 @@
 using namespace xdg;
 using namespace xdg::test;
 
-TEST_CASE("Quad Ray Fire on MockedMesh (Embree)")
+TEST_CASE("Quad Ray Fire on MockedQuadHexMesh (Embree)")
 {
   check_ray_tracer_supported(RTLibrary::EMBREE);
-  std::shared_ptr<MeshManager> mm = std::make_shared<MockedMesh>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedQuadHexMesh>();
   mm->init();
 
   std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mm, RTLibrary::EMBREE);
