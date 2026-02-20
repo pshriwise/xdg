@@ -8,7 +8,7 @@
 // xdg includes
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
-#include "mesh_mock.h"
+#include "mesh_mocks.h"
 #include "util.h"
 
 using namespace xdg;
@@ -16,7 +16,7 @@ using namespace xdg::test;
 
 // ------- single test, multiple sections (one per built backend) --------------
 
-TEMPLATE_TEST_CASE("Ray Fire on MockedTriTetMEsh (per-backend sections)", "[rayfire][mock]",
+TEMPLATE_TEST_CASE("Ray Fire on MockedTriTetMesh (per-backend sections)", "[rayfire][mock]",
                    Embree_Raytracer,
                    GPRT_Raytracer)
 {
@@ -29,7 +29,7 @@ TEMPLATE_TEST_CASE("Ray Fire on MockedTriTetMEsh (per-backend sections)", "[rayf
     auto rti = create_raytracer(rt_backend);
     REQUIRE(rti);
 
-    auto mm = std::make_shared<MockedTriTetMEsh>(false);
+    auto mm = std::make_shared<MockedTriTetMesh>(false);
     mm->init();
     REQUIRE(mm->mesh_library() == MeshLibrary::MOCK);
 

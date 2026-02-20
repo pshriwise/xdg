@@ -7,14 +7,14 @@
 #include "xdg/constants.h"
 #include "xdg/mesh_manager_interface.h"
 #include "util.h"
-#include "mesh_mock.h"
+#include "mesh_mocks.h"
 
 using namespace xdg;
 using namespace xdg::test;
 
 // ---------- single test, sections per backend --------------------------------
 
-TEMPLATE_TEST_CASE("Point-in-volume on MockedTriTetMEsh", "[piv][mock]",
+TEMPLATE_TEST_CASE("Point-in-volume on MockedTriTetMesh", "[piv][mock]",
                    Embree_Raytracer,
                    GPRT_Raytracer) 
 {
@@ -26,8 +26,8 @@ TEMPLATE_TEST_CASE("Point-in-volume on MockedTriTetMEsh", "[piv][mock]",
     REQUIRE(rti);
     rti->init();
 
-    // Keep MockedTriTetMEsh usage consistent across backends
-    auto mm = std::make_shared<MockedTriTetMEsh>(false);
+    // Keep MockedTriTetMesh usage consistent across backends
+    auto mm = std::make_shared<MockedTriTetMesh>(false);
     mm->init();
     REQUIRE(mm->mesh_library() == MeshLibrary::MOCK);
 

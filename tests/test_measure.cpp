@@ -10,7 +10,7 @@
 #include "xdg/geometry/measure.h"
 
 // xdg test includes
-#include "mesh_mock.h"
+#include "mesh_mocks.h"
 #include "util.h"
 #include "xdg/embree/ray_tracer.h"
 
@@ -20,7 +20,7 @@ using namespace xdg::test;
 
 TEST_CASE("Test Mesh Mock")
 {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMesh>();
   mm->init();
 
   XDG xdg{mm, RTLibrary::EMBREE};
@@ -41,7 +41,7 @@ TEST_CASE("Test Mesh Mock")
 }
 
 TEST_CASE("Test Mesh Mock Element Volume") {
-  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMEsh>();
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMesh>();
   mm->init();
 
   // Test the element_volume method

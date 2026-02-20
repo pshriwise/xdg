@@ -1,6 +1,6 @@
 #ifndef TESTS_MOCKED_MESH_H
 #define TESTS_MOCKED_MESH_H
 
-#include "xdg/testing/mocked_mesh.h"
+#include "mesh_mocks.h"
 
 #endif // TESTS_MOCKED_MESH_H

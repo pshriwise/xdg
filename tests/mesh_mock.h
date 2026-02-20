@@ -1,13 +1,7 @@
-// Mock data for mesh interface testing
-#include <algorithm>
-#include <unordered_map>
+#ifndef TESTS_MESH_MOCK_H
+#define TESTS_MESH_MOCK_H
 
-#include "xdg/bbox.h"
-#include "xdg/constants.h"
-#include "xdg/error.h"
-#include "xdg/vec3da.h"
-#include "xdg/mesh_manager_interface.h"
-#include "xdg/element_face_accessor.h"
+#include "mesh_mocks.h"
 
 #include "xdg/geometry/measure.h"
 #include "xdg/geometry/plucker.h"

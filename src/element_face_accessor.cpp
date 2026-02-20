@@ -9,7 +9,7 @@
 #include "xdg/libmesh/mesh_manager.h"
 #endif
 
-#include "xdg/testing/mesh_mock.h"
+#include "xdg/testing/mesh_mocks.h"
 
 namespace xdg {
 
@@ -28,7 +28,7 @@ std::shared_ptr<ElementFaceAccessor> ElementFaceAccessor::create(const MeshManag
   #endif
   // for testing
   if (mesh_manager->mesh_library() == MeshLibrary::MOCK) {
-    const MockedTriTetMEsh* mock_mesh_manager = dynamic_cast<const MockedTriTetMEsh*>(mesh_manager);
+    const MockedTriTetMesh* mock_mesh_manager = dynamic_cast<const MockedTriTetMesh*>(mesh_manager);
     return std::make_shared<MockElementFaceAccessor>(mock_mesh_manager, element);
   }
   fatal_error("ElementFaceAccessor::create: Unsupported mesh library");
