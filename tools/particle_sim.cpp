@@ -31,8 +31,12 @@ args.add_argument("-m", "--mfp")
     .help("Mean free path of the particles").scan<'g', double>();
 
 args.add_argument("-n", "--n-particles")
-    .default_value(100u)
+    .default_value(100)
     .help("Number of particles to simulate").scan<'u', uint32_t>();
+
+args.add_argument("-e", "--max-events")
+    .default_value(1000)
+    .help("Maximum number of events per particle").scan<'u', uint32_t>();
 
 args.add_argument("-g", "--ipc-graveyard")
     .default_value(false)
@@ -99,6 +103,7 @@ sim_data.mfp_ = args.get<double>("--mfp");
 sim_data.verbose_particles_ = args.get<bool>("--verbose");
 sim_data.implicit_complement_is_graveyard_ = args.get<bool>("--ipc-graveyard");
 sim_data.n_particles_ = args.get<uint32_t>("--n-particles");
+sim_data.max_events_ = args.get<uint32_t>("--max-events");
 
 transport_particles(sim_data);
 
