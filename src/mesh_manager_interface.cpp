@@ -216,9 +216,6 @@ MeshID MeshManager::next_volume(MeshID current_volume, MeshID surface) const
 Direction MeshManager::face_normal(MeshID element) const
 {
   auto vertices = this->face_vertex_coordinates(element);
-  if (vertices.size() < 3) {
-    fatal_error("Face {} has fewer than 3 vertices", element);
-  }
   return (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0]).normalize();
 }
 
