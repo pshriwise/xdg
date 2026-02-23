@@ -119,6 +119,7 @@ enum class RayFireType { VOLUME, POINT_CONTAINMENT, ACCUMULATE_HITS, FIND_VOLUME
 
 // Enumerator for different element types (maybe we want more here?)
 enum class SurfaceFaceType {
+  UNSUPPORTED = -1,
   TRI = 0,
   QUAD = 1,
 };

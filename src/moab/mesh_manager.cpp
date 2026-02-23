@@ -429,15 +429,16 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 SurfaceFaceType
 MOABMeshManager::get_surface_face_type(MeshID surface) const
 {
-  moab::EntityHandle surf_handle = this->surface_id_map_.at(surface);
+  auto faces = this->_surface_faces(surface);
 
-  moab::Range quads;
-  this->moab_interface()->get_entities_by_type(surf_handle, moab::MBQUAD, quads);
-  if (!quads.empty()) {
+  if (faces.all_of_type(moab::MBTRI)) {
+    return SurfaceFaceType::TRI;
+  }
+  if (faces.all_of_type(moab::MBQUAD)) {
     return SurfaceFaceType::QUAD;
   }
 
-  return SurfaceFaceType::TRI;
+  return SurfaceFaceType::UNSUPPORTED;
 }
 
 MeshID
