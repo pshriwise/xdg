@@ -4,6 +4,7 @@
 #include <memory>
 
 // testing includes
+#include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -15,8 +16,8 @@
 #include "xdg/xdg.h"
 #include "xdg/embree/ray_tracer.h"
 
-
 using namespace xdg;
+using namespace xdg::test;
 
 void print_intersection(std::pair<double, MeshID> intersection) {
   std::cout << "Intersection: " << intersection.first << " " << intersection.second << std::endl;
@@ -498,3 +499,40 @@ TEST_CASE("Multiblock sidesets")
 
   assert(tracks.size() > 0);
 }
+
+TEMPLATE_TEST_CASE("TEST libMesh Raytrace Quads", "[moab][faces][quads]",
+                   Embree_Raytracer)
+{
+  constexpr auto rt_backend = TestType::value;
+
+  DYNAMIC_SECTION(fmt::format("Backend = {}", rt_backend)) {
+    check_ray_tracer_supported(rt_backend); // skip if backend not enabled at configuration time
+    std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH, rt_backend);
+    REQUIRE(xdg->ray_tracing_interface()->library() == rt_backend);
+    REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+    const auto& mesh_manager = xdg->mesh_manager();
+    mesh_manager->load_file("jezebel-quads.exo");
+    mesh_manager->init();
+    xdg->prepare_raytracer();
+
+    // should have two volumes including the implicit complement
+    REQUIRE(mesh_manager->num_volumes() == 2);
+    REQUIRE(mesh_manager->num_volume_faces(1) == 2400);
+    REQUIRE(mesh_manager->num_surfaces() == 1);
+    REQUIRE(mesh_manager->num_surface_faces(1) == 2400);
+
+    MeshID volume = 1;
+    Position origin {0.0, 0.0, 0.0};
+    Direction dir {1.0, 0.0, 0.0};
+
+    // fire rays in random directions and verify that we get a hit at
+    // approximately the expected distance of 6.3849 (the radius of the sphere)
+    for (int i = 0; i < 10; ++i) {
+      dir = rand_dir();
+      auto hit = xdg->ray_fire(volume, origin, dir);
+      REQUIRE_THAT(hit.first, Catch::Matchers::WithinAbs(6.3849, 1e-2));
+      REQUIRE(hit.second != ID_NONE);
+    }
+  }
+}
+>>>>>>> 9b241ac (Update name of new single volume quad files)

@@ -8,6 +8,7 @@
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/elem.h"
+#include "libmesh/cell_hex8.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/mesh_tools.h"
 
@@ -542,17 +543,73 @@ LibMeshManager::element_vertices(MeshID element) const {
 }
 
 std::vector<MeshID>
-LibMeshManager::face_vertices(MeshID element) const {
-  const auto& side_pair = sidepair(element);
+LibMeshManager::face_vertices(MeshID face) const {
+  const auto& side_pair = sidepair(face);
   std::vector<MeshID> vertex_ids;
-  vertex_ids.reserve(3);
   const auto* elem = side_pair.first();
-  const auto* tet = static_cast<const libMesh::Tet4*>(elem);
-  for (unsigned int i = 0; i < 3; ++i) {
-    const auto node_ptr = elem->node_ptr(tet->side_nodes_map[side_pair.side_num()][i]);
-    vertex_ids.push_back(node_ptr->id());
+  if (!elem) {
+    fatal_error("Invalid face ID {} for LibMesh mesh", face);
+  }
+  const auto side_num = static_cast<unsigned int>(side_pair.side_num());
+
+  switch (elem->type()) {
+    case libMesh::TET4: {
+      vertex_ids.reserve(3);
+      for (unsigned int i = 0; i < 3; ++i) {
+        const auto node_ptr = elem->node_ptr(libMesh::Tet4::side_nodes_map[side_num][i]);
+        vertex_ids.push_back(node_ptr->id());
+      }
+      break;
+    }
+    case libMesh::HEX8: {
+      vertex_ids.reserve(4);
+      for (unsigned int i = 0; i < 4; ++i) {
+        const auto node_ptr = elem->node_ptr(libMesh::Hex8::side_nodes_map[side_num][i]);
+        vertex_ids.push_back(node_ptr->id());
+      }
+      break;
+    }
+    default:
+      fatal_error("Unsupported element type {} for face {}", static_cast<int>(elem->type()), face);
   }
   return vertex_ids;
+}
+
+SurfaceFaceType
+LibMeshManager::get_surface_face_type(MeshID surface) const {
+  const auto& faces = surface_map_.at(surface);
+  if (faces.empty()) {
+    return SurfaceFaceType::UNSUPPORTED;
+  }
+
+  SurfaceFaceType type = SurfaceFaceType::UNSUPPORTED;
+  for (const auto face : faces) {
+    const auto& side_pair = sidepair(face);
+    const auto* elem = side_pair.first();
+    if (!elem) {
+      fatal_error("Invalid face ID {} for LibMesh mesh", face);
+    }
+
+    SurfaceFaceType face_type = SurfaceFaceType::UNSUPPORTED;
+    switch (elem->type()) {
+      case libMesh::TET4:
+        face_type = SurfaceFaceType::TRI;
+        break;
+      case libMesh::HEX8:
+        face_type = SurfaceFaceType::QUAD;
+        break;
+      default:
+        return SurfaceFaceType::UNSUPPORTED;
+    }
+
+    if (type == SurfaceFaceType::UNSUPPORTED) {
+      type = face_type;
+    } else if (type != face_type) {
+      return SurfaceFaceType::UNSUPPORTED;
+    }
+  }
+
+  return type;
 }
 
 std::vector<MeshID>

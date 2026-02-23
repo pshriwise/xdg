@@ -94,6 +94,8 @@ brick.exo
 brick-sidesets.exo
 jezebel.exo
 jezebel.h5m
+jezebel-quads.exo
+jezebel-quads.h5m
 pincell.h5m
 pincell-implicit.exo
 small-tet-mesh.h5m

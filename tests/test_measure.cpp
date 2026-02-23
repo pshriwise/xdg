@@ -196,7 +196,7 @@ TEMPLATE_TEST_CASE("TEST Quad Measurements", "[model_properties][quads]", MOAB_I
     std::shared_ptr<XDG> xdg = XDG::create(mesh_backend);
     REQUIRE(xdg->mesh_manager()->mesh_library() == mesh_backend);
     const auto& mesh_manager = xdg->mesh_manager();
-    mesh_manager->load_file("quad_sphere.h5m");
+    mesh_manager->load_file("jezebel-quads.h5m");
     mesh_manager->init();
     xdg->prepare_raytracer();
 

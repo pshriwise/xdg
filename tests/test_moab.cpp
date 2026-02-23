@@ -196,15 +196,15 @@ TEMPLATE_TEST_CASE("TEST MOAB Raytrace Quads", "[moab][faces][quads]",
     REQUIRE(xdg->ray_tracing_interface()->library() == rt_backend);
     REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
     const auto& mesh_manager = xdg->mesh_manager();
-    mesh_manager->load_file("quad_sphere.h5m");
+    mesh_manager->load_file("jezebel-quads.h5m");
     mesh_manager->init();
     xdg->prepare_raytracer();
 
     // should have two volumes including the implicit complement
-    // REQUIRE(mesh_manager->num_volumes() == 2);
-    // REQUIRE(mesh_manager->num_volume_faces(1) == 600);
-    // REQUIRE(mesh_manager->num_surfaces() == 1);
-    // REQUIRE(mesh_manager->num_surface_faces(1) == 600);
+    REQUIRE(mesh_manager->num_volumes() == 2);
+    REQUIRE(mesh_manager->num_volume_faces(1) == 2400);
+    REQUIRE(mesh_manager->num_surfaces() == 1);
+    REQUIRE(mesh_manager->num_surface_faces(1) == 2400);
 
     MeshID volume = 1;
     Position origin {0.0, 0.0, 0.0};
