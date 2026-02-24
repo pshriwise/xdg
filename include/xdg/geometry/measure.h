@@ -13,6 +13,9 @@ double triangle_area(const Vertex& v0, const Vertex& v1, const Vertex& v2);
 
 double tetrahedron_volume(const std::array<Vertex, 4>& vertices);
 
+double face_area_from_vertices(const std::vector<Vertex>& vertices);
+double face_volume_contribution_from_vertices(const std::vector<Vertex>& vertices);
+
 } // namespace xdg
 
 #endif // include guard

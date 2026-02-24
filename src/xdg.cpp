@@ -11,33 +11,6 @@
 #include "xdg/ray_tracers.h"
 
 namespace xdg {
-namespace {
-
-double face_area_from_vertices(const std::vector<Vertex>& vertices) {
-  if (vertices.size() == 3) {
-    return triangle_area(vertices[0], vertices[1], vertices[2]);
-  }
-  if (vertices.size() == 4) {
-    return triangle_area(vertices[0], vertices[1], vertices[2]) +
-           triangle_area(vertices[0], vertices[2], vertices[3]);
-  }
-  fatal_error("Face has unsupported vertex count {}", vertices.size());
-  return 0.0;
-}
-
-double face_volume_contribution_from_vertices(const std::vector<Vertex>& vertices) {
-  if (vertices.size() == 3) {
-    return triangle_volume_contribution(vertices[0], vertices[1], vertices[2]);
-  }
-  if (vertices.size() == 4) {
-    return triangle_volume_contribution(vertices[0], vertices[1], vertices[2]) +
-           triangle_volume_contribution(vertices[0], vertices[2], vertices[3]);
-  }
-  fatal_error("Face has unsupported vertex count {}", vertices.size());
-  return 0.0;
-}
-
-} // namespace
 
 XDG::XDG(std::shared_ptr<MeshManager> mesh_manager, RTLibrary ray_tracing_lib)
         : mesh_manager_(mesh_manager)
