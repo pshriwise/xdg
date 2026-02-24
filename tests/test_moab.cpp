@@ -3,10 +3,12 @@
 #include <cmath>
 #include <memory>
 #include <numeric>
+#include <string_view>
 
 // testing includes
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 // xdg includes
@@ -353,5 +355,37 @@ TEST_CASE("MOAB Element ID and Index Mapping")
       int mapped_idx = mesh_manager->vertex_index(vertex_id);
       REQUIRE(mapped_idx == static_cast<int>(idx));
     }
+  }
+}
+
+struct Jezebel { static constexpr std::string_view filename = "jezebel.h5m"; };
+struct JezebelQuads { static constexpr std::string_view filename = "jezebel-quads.h5m"; };
+struct CylBrick { static constexpr std::string_view filename = "cyl-brick.h5m"; };
+struct CylBrickQuads { static constexpr std::string_view filename = "cyl-brick-quads.h5m"; };
+
+TEMPLATE_TEST_CASE("Test MOAB Transport", "[moab][transport]",
+                   Jezebel,
+                   JezebelQuads,
+                   CylBrick,
+                   CylBrickQuads)
+{
+  std::string filename {TestType::filename};
+
+  DYNAMIC_SECTION("Model: " << filename) {
+    std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+    REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
+    const auto& mesh_manager = xdg->mesh_manager();
+    mesh_manager->load_file(filename);
+    mesh_manager->init();
+    mesh_manager->parse_metadata();
+    xdg->prepare_raytracer();
+
+    SimulationData sim_data;
+    sim_data.xdg_ = xdg;
+    sim_data.n_particles_ = 1000;
+    sim_data.mfp_ = 0.5;
+    sim_data.verbose_particles_ = false;
+    sim_data.implicit_complement_is_graveyard_ = true;
+    transport_particles(sim_data);
   }
 }

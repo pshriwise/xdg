@@ -23,7 +23,7 @@ test_mesh_connectivity
 )
 
 if (XDG_ENABLE_MOAB)
-    list(APPEND TEST_NAMES test_moab test_moab_transport)
+    list(APPEND TEST_NAMES test_moab)
 endif()
 
 if (XDG_ENABLE_LIBMESH)
