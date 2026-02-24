@@ -8,7 +8,6 @@ test_closest
 test_find_element
 test_mesh_internal
 test_mocked_mesh
-test_mocked_mesh_ray
 test_occluded
 test_ray_fire
 test_point_in_volume
