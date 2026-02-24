@@ -129,6 +129,19 @@ enum class VolumeElementType {
   HEX = 1,
 };
 
+static const std::map<SurfaceFaceType, std::string> SURFACE_FACE_TYPE_TO_STR =
+{
+  {SurfaceFaceType::UNSUPPORTED, "UNSUPPORTED"},
+  {SurfaceFaceType::TRI, "TRI"},
+  {SurfaceFaceType::QUAD, "QUAD"}
+};
+
+static const std::map<VolumeElementType, std::string> VOLUME_ELEMENT_TYPE_TO_STR =
+{
+  {VolumeElementType::TET, "TET"},
+  {VolumeElementType::HEX, "HEX"}
+};
+
 } // namespace xdg
 
 namespace fmt {
@@ -146,6 +159,19 @@ struct formatter<xdg::MeshLibrary> : fmt::formatter<std::string> {
   }
 };
 
+template <>
+struct formatter<xdg::SurfaceFaceType> : fmt::formatter<std::string> {
+  auto format(xdg::SurfaceFaceType type, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string>::format(xdg::SURFACE_FACE_TYPE_TO_STR.at(type), ctx);
+  }
+};
+
+template <>
+struct formatter<xdg::VolumeElementType> : fmt::formatter<std::string> {
+  auto format(xdg::VolumeElementType type, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string>::format(xdg::VOLUME_ELEMENT_TYPE_TO_STR.at(type), ctx);
+  }
+};
 
 }
 

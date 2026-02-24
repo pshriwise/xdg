@@ -81,6 +81,30 @@ void LibMeshManager::init() {
   }
 
   map_id_spaces();
+
+  check_types();
+}
+
+void LibMeshManager::check_types() const {
+  for (auto surface : surfaces_) {
+    const auto& faces = surface_map_.at(surface);
+    if (faces.empty()) {
+      fatal_error("Surface {} has no faces, which is not supported", surface);
+    }
+
+    // get the type of the first face
+    const auto& side_pair = sidepair(faces[0]);
+    SurfaceFaceType type = side_pair.face_type();
+
+    // check that all other faces are the same type
+    for (const auto face : faces) {
+      const auto& side_pair = sidepair(face);
+      if (side_pair.face_type() != type) {
+        fatal_error("Surface {} has mixed face types, which is not supported. Face ID {} has type {}, expected type {}.",
+                    surface, face, side_pair.face_type(), type);
+      }
+    }
+  }
 }
 
 MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
@@ -582,34 +606,10 @@ LibMeshManager::get_surface_face_type(MeshID surface) const {
     return SurfaceFaceType::UNSUPPORTED;
   }
 
-  SurfaceFaceType type = SurfaceFaceType::UNSUPPORTED;
-  for (const auto face : faces) {
-    const auto& side_pair = sidepair(face);
-    const auto* elem = side_pair.first();
-    if (!elem) {
-      fatal_error("Invalid face ID {} for LibMesh mesh", face);
-    }
-
-    SurfaceFaceType face_type = SurfaceFaceType::UNSUPPORTED;
-    switch (elem->type()) {
-      case libMesh::TET4:
-        face_type = SurfaceFaceType::TRI;
-        break;
-      case libMesh::HEX8:
-        face_type = SurfaceFaceType::QUAD;
-        break;
-      default:
-        return SurfaceFaceType::UNSUPPORTED;
-    }
-
-    if (type == SurfaceFaceType::UNSUPPORTED) {
-      type = face_type;
-    } else if (type != face_type) {
-      return SurfaceFaceType::UNSUPPORTED;
-    }
-  }
-
-  return type;
+  // we've already checked that all faces in the surface have the same type,
+  // so we can just check the first one and return that type
+  const auto& side_pair = sidepair(faces.front());
+  return side_pair.face_type();
 }
 
 std::vector<MeshID>

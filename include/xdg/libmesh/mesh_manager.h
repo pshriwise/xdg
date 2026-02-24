@@ -198,6 +198,16 @@ public:
       }
     }
 
+    SurfaceFaceType face_type() const {
+      switch (side.first->type()) {
+        case libMesh::TET4:
+          return SurfaceFaceType::TRI;
+        case libMesh::HEX8:
+          return SurfaceFaceType::QUAD;
+        default:
+          return SurfaceFaceType::UNSUPPORTED;
+      }
+    }
 
     //! Retrieve a vertex of the side pair face, using the type
     //! to access the node reference though an internal, non-blocking
