@@ -69,10 +69,6 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
   Direction ray_direction = {ray.ddir[0], ray.ddir[1], ray.ddir[2]};
 
-  if (face_vertices.size() != 3) {
-    fatal_error("Face {} has unsupported vertex count {}", primitive_ref.primitive_id, face_vertices.size());
-  }
-
   // local variable for distance to the triangle intersection
   auto result = plucker_ray_tri_intersect(vertices.data(),
                                           ray_origin,
@@ -133,10 +129,6 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   Position result;
   double dist = INFTY;
 
-  if (face_vertices.size() != 3) {
-    fatal_error("Face {} has unsupported vertex count {}", primitive_ref.primitive_id, face_vertices.size());
-  }
-
   std::array<Vertex, 3> tri {face_vertices[0], face_vertices[1], face_vertices[2]};
   result = closest_location_on_triangle(tri, p);
   dist = (result - p).length();
@@ -159,10 +151,6 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
   const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
 
   auto face_vertices = mesh_manager->face_vertex_coordinates(primitive_ref.primitive_id);
-
-  if (face_vertices.size() != 3) {
-    fatal_error("Face {} has unsupported vertex count {}", primitive_ref.primitive_id, face_vertices.size());
-  }
 
   // get the double precision ray from the args
   RTCSurfaceDualRay* ray = (RTCSurfaceDualRay*) args->ray;
