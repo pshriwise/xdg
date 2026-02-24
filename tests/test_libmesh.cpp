@@ -535,4 +535,34 @@ TEMPLATE_TEST_CASE("TEST libMesh Raytrace Quads", "[moab][faces][quads]",
     }
   }
 }
->>>>>>> 9b241ac (Update name of new single volume quad files)
+
+struct JezebelExo { static constexpr std::string_view filename = "jezebel.exo"; };
+struct JezebelQuadsExo { static constexpr std::string_view filename = "jezebel-quads.exo"; };
+struct CylBrickExo { static constexpr std::string_view filename = "cyl-brick.exo"; };
+struct CylBrickQuadsExo { static constexpr std::string_view filename = "cyl-brick-quads.exo"; };
+
+TEMPLATE_TEST_CASE("Test libMesh Transport", "[libmesh][transport]",
+                   JezebelExo,
+                   JezebelQuadsExo,
+                   CylBrickExo)
+{
+  std::string filename {TestType::filename};
+
+  DYNAMIC_SECTION("Model: " << filename) {
+    std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+    REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+    const auto& mesh_manager = xdg->mesh_manager();
+    mesh_manager->load_file(filename);
+    mesh_manager->parse_metadata();
+    mesh_manager->init();
+    xdg->prepare_raytracer();
+
+    SimulationData sim_data;
+    sim_data.xdg_ = xdg;
+    sim_data.n_particles_ = 1000;
+    sim_data.mfp_ = 0.5;
+    sim_data.verbose_particles_ = false;
+    sim_data.implicit_complement_is_graveyard_ = true;
+    transport_particles(sim_data);
+  }
+}

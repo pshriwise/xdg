@@ -16,8 +16,8 @@
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/moab/mesh_manager.h"
 #include "xdg/xdg.h"
-#include "util.h"
 
+#include "util.h"
 #include "particle_sim.h"
 
 using namespace xdg;
@@ -358,16 +358,16 @@ TEST_CASE("MOAB Element ID and Index Mapping")
   }
 }
 
-struct Jezebel { static constexpr std::string_view filename = "jezebel.h5m"; };
-struct JezebelQuads { static constexpr std::string_view filename = "jezebel-quads.h5m"; };
-struct CylBrick { static constexpr std::string_view filename = "cyl-brick.h5m"; };
-struct CylBrickQuads { static constexpr std::string_view filename = "cyl-brick-quads.h5m"; };
+struct JezebelH5M { static constexpr std::string_view filename = "jezebel.h5m"; };
+struct JezebelQuadsH5M { static constexpr std::string_view filename = "jezebel-quads.h5m"; };
+struct CylBrickH5M { static constexpr std::string_view filename = "cyl-brick.h5m"; };
+struct CylBrickQuadsH5M { static constexpr std::string_view filename = "cyl-brick-quads.h5m"; };
 
 TEMPLATE_TEST_CASE("Test MOAB Transport", "[moab][transport]",
-                   Jezebel,
-                   JezebelQuads,
-                   CylBrick,
-                   CylBrickQuads)
+                   JezebelH5M,
+                   JezebelQuadsH5M,
+                   CylBrickH5M,
+                   CylBrickQuadsH5M)
 {
   std::string filename {TestType::filename};
 

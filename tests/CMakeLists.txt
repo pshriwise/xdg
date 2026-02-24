@@ -79,6 +79,7 @@ cube-mesh-no-geom.exo
 cube-w-multiblock-sideset.exo
 cube-w-multiblock-sideset.h5m
 cyl-brick-quads.h5m
+cyl-brick-quads.exo
 no_overlap.h5m
 overlap.h5m
 overlap-edge.h5m

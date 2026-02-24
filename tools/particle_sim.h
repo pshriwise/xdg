@@ -15,7 +15,7 @@ struct SimulationData {
   uint32_t n_particles_ {100};
   uint32_t max_events_ {1000};
   bool verbose_particles_ {false};
-  bool implicit_complement_is_graveyard_ {false};
+  bool implicit_complement_is_graveyard_ {true};
   std::unordered_map<MeshID, double> cell_tracks;
 };
 
