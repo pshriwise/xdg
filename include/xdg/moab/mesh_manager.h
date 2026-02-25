@@ -221,7 +221,7 @@ private:
 struct MOABElementFaceAccessor : public ElementFaceAccessor {
 
   MOABElementFaceAccessor(const MOABMeshManager* mesh_manager, MeshID element) :
-  ElementFaceAccessor(element), mesh_manager_(mesh_manager), element_ordering_(mesh_manager->mb_direct()->get_face_ordering(moab::MBTET)) {
+  ElementFaceAccessor(element), mesh_manager_(mesh_manager), element_ordering_(mesh_manager->mb_direct()->get_face_ordering(VolumeElementType::TET)) {
 
     auto moab_mesh_manager = dynamic_cast<const MOABMeshManager*>(mesh_manager);
     if (!moab_mesh_manager) {

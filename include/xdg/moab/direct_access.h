@@ -2,6 +2,7 @@
 #define _MBDIRECTACCESS_
 
 #include <array>
+#include <map>
 #include <memory>
 
 // MOAB
@@ -35,21 +36,23 @@ public:
 
   //! \brief Check that a triangle is part of the managed coordinates here
   inline bool accessible(EntityHandle tri) {
+    const auto& face_data = face_data_.at(SurfaceFaceType::TRI);
     // determine the correct contiguous memory block index to use
     int block_idx = 0;
-    auto fe = face_data_.first_elements[block_idx];
+    auto fe = face_data.first_elements[block_idx];
     while(true) {
       if (tri - fe.first < fe.second) { break; }
       block_idx++;
-      if (block_idx >= face_data_.first_elements.size()) { return false; }
-      fe = face_data_.first_elements[block_idx];
+      if (block_idx >= face_data.first_elements.size()) { return false; }
+      fe = face_data.first_elements[block_idx];
     }
     return true;
   }
 
   //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
-    auto [i0, i1, i2] = face_data_.get_connectivity_indices<3>(tri);
+    const auto& face_data = face_data_.at(SurfaceFaceType::TRI);
+    auto [i0, i1, i2] = face_data.get_connectivity_indices<3>(tri);
 
     std::array<xdg::Vertex, 3> vertices;
     vertex_data_.set_coords(i0, vertices[0]);
@@ -60,7 +63,8 @@ public:
 
   //! \brief Get the connectivity of an element
   inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element) {
-    auto conn = element_data_.get_connectivity_indices<4>(element);
+    const auto& element_data = element_data_.at(VolumeElementType::TET);
+    auto conn = element_data.get_connectivity_indices<4>(element);
     return {conn.begin(), conn.end()};
   }
 
@@ -72,7 +76,8 @@ public:
 
   //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
-    auto [i0, i1, i2, i3] = element_data_.get_connectivity_indices<4>(element);
+    const auto& element_data = element_data_.at(VolumeElementType::TET);
+    auto [i0, i1, i2, i3] = element_data.get_connectivity_indices<4>(element);
 
     std::array<xdg::Vertex, 4> vertices;
     vertex_data_.set_coords(i0, vertices[0]);
@@ -84,19 +89,20 @@ public:
 
   //! \brief Get the adjacent element
   inline EntityHandle get_adjacent_element(const EntityHandle& element, int face_number) {
-    return element_adjacency_data_.get_adjacent_element(element, face_number);
+    return element_adjacency_data_.at(VolumeElementType::TET).get_adjacent_element(element, face_number);
   }
 
   inline std::vector<EntityHandle> get_element_adjacencies(const EntityHandle& element) {
-    return element_adjacency_data_.get_element_adjacencies(element);
+    return element_adjacency_data_.at(VolumeElementType::TET).get_element_adjacencies(element);
   }
 
   inline EntityHandle get_boundary_face_element(const EntityHandle& face) const {
     return boundary_face_adjacency_data_.get_boundary_face_element(face);
   }
 
-  const std::vector<std::vector<int>>& get_face_ordering(EntityType entity_type) const {
-    return element_adjacency_data_.ordering.at(entity_type);
+  const std::vector<std::vector<int>>& get_face_ordering(VolumeElementType element_type) const {
+    const auto& adjacency_data = element_adjacency_data_.at(element_type);
+    return adjacency_data.ordering.at(adjacency_data.entity_type);
   }
 
   // Accessors
@@ -348,14 +354,16 @@ private:
     moab::Range vertex_range; //!< Range of vertices managed here
   };
 
-  ConnectivityData face_data_;
-  ConnectivityData element_data_;
-  AdjacencyData element_adjacency_data_;
-  BoundaryFaceAdjacencyData boundary_face_adjacency_data_;
+  std::map<SurfaceFaceType, ConnectivityData> face_data_;
+  std::map<VolumeElementType, ConnectivityData> element_data_;
+  std::map<VolumeElementType, AdjacencyData> element_adjacency_data_;
   VertexData vertex_data_;
+  BoundaryFaceAdjacencyData boundary_face_adjacency_data_;
 
   public:
-    const ConnectivityData& element_data() const { return element_data_; }
+    const ConnectivityData& element_data(VolumeElementType element_type = VolumeElementType::TET) const {
+      return element_data_.at(element_type);
+    }
 
     const VertexData& vertex_data() const {return vertex_data_; }
 };

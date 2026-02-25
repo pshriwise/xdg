@@ -50,7 +50,7 @@ void MOABMeshManager::init() {
       };
 
   volume_element_id_map_ = IDBlockMapping<MeshID>(
-      this->mb_direct()->element_data().entity_range,
+      this->mb_direct()->element_data(VolumeElementType::TET).entity_range,
       moab_handle_to_id
   );
 
