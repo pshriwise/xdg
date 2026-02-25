@@ -286,6 +286,13 @@ public:
     return SurfaceFaceType::TRI; // hardcoded to Tri for this mock
   }
 
+  virtual VolumeElementType get_volume_element_type(MeshID volume) const override {
+    if (get_volume_elements(volume).empty()) {
+      fatal_error("MockedTriTetMesh volume {} has no elements; cannot determine element type", volume);
+    }
+    return VolumeElementType::TET;
+  }
+
   virtual MeshID adjacent_element(MeshID element, int face) const override {
     return element_adjacencies_.at(element)[face];
   }
@@ -530,6 +537,13 @@ public:
       if (face_connectivity_.at(face).size() == 4) return SurfaceFaceType::QUAD;
     }
     return SurfaceFaceType::TRI;
+  }
+
+  VolumeElementType get_volume_element_type(MeshID volume) const override {
+    if (get_volume_elements(volume).empty()) {
+      fatal_error("MockedQuadHexMesh volume {} has no elements; cannot determine element type", volume);
+    }
+    return VolumeElementType::HEX;
   }
 
   MeshID adjacent_element(MeshID /*element*/, int /*face*/) const override {

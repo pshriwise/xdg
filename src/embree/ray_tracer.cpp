@@ -4,6 +4,7 @@
 #include "xdg/quadrilateral_intersection.h"
 #include "xdg/ray.h"
 #include "xdg/tetrahedron_contain.h"
+#include "xdg/hexahedron_contain.h"
 
 
 namespace xdg {
@@ -185,8 +186,18 @@ EmbreeRayTracer::create_element_tree(const std::shared_ptr<MeshManager>& mesh_ma
   rtcSetGeometryUserData(element_geometry, volume_elements_data.get());
 
   rtcSetGeometryBoundsFunction(element_geometry, (RTCBoundsFunction)&VolumeElementBoundsFunc, nullptr);
-  rtcSetGeometryIntersectFunction(element_geometry, (RTCIntersectFunctionN)&TetrahedronIntersectionFunc);
-  rtcSetGeometryOccludedFunction(element_geometry, (RTCOccludedFunctionN)&TetrahedronOcclusionFunc);
+  switch (mesh_manager->get_volume_element_type(volume)) {
+    case VolumeElementType::TET:
+      rtcSetGeometryIntersectFunction(element_geometry, (RTCIntersectFunctionN)&TetrahedronIntersectionFunc);
+      rtcSetGeometryOccludedFunction(element_geometry, (RTCOccludedFunctionN)&TetrahedronOcclusionFunc);
+      break;
+    case VolumeElementType::HEX:
+      rtcSetGeometryIntersectFunction(element_geometry, (RTCIntersectFunctionN)&HexahedronIntersectionFunc);
+      rtcSetGeometryOccludedFunction(element_geometry, (RTCOccludedFunctionN)&HexahedronOcclusionFunc);
+      break;
+    default:
+      fatal_error("Unsupported volume element type for volume {}", volume);
+  }
 
   rtcCommitGeometry(element_geometry);
   rtcCommitScene(volume_element_scene);

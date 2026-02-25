@@ -120,6 +120,12 @@ public:
 
   virtual SurfaceFaceType get_surface_face_type(MeshID element) const = 0;
 
+  //! \brief Get the volume element type for a given volume
+  //! \note Assumes homogeneous element types within a volume
+  //! \param volume The volume ID
+  //! \return The volumetric element type for the volume
+  virtual VolumeElementType get_volume_element_type(MeshID volume) const = 0;
+
   //! \brief Convert an element's ID to its index in the mesh
   //! \param element_idx The index of the element in the mesh
   //! \return The element ID

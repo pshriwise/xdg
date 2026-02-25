@@ -278,6 +278,23 @@ TEST_CASE("Test Point Location Jezebel")
   REQUIRE(volume_id == xdg->mesh_manager()->implicit_complement());
 }
 
+TEST_CASE("Test Hex Point Location Jezebel Quads")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel-quads.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  Position inside {0.0, 0.0, 0.0};
+  REQUIRE(xdg->find_element(inside) != ID_NONE);
+
+  Position outside {0.0, 0.0, 100.0};
+  REQUIRE(xdg->find_element(outside) == ID_NONE);
+}
+
 TEST_CASE("Test Point Location Cylinder-Brick")
 {
   std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);

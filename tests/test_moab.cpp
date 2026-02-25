@@ -389,3 +389,21 @@ TEMPLATE_TEST_CASE("Test MOAB Transport", "[moab][transport]",
     transport_particles(sim_data);
   }
 }
+
+
+TEST_CASE("Test Hex Point Location Jezebel Quads")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel-quads.h5m");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  Position inside {0.0, 0.0, 0.0};
+  REQUIRE(xdg->find_element(inside) != ID_NONE);
+
+  Position outside {0.0, 0.0, 100.0};
+  REQUIRE(xdg->find_element(outside) == ID_NONE);
+}

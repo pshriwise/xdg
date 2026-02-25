@@ -612,6 +612,30 @@ LibMeshManager::get_surface_face_type(MeshID surface) const {
   return side_pair.face_type();
 }
 
+VolumeElementType
+LibMeshManager::get_volume_element_type(MeshID volume) const {
+  const auto elements = get_volume_elements(volume);
+  if (elements.empty()) {
+    fatal_error("Volume {} has no elements; cannot determine element type", volume);
+  }
+
+  const auto elem_ptr = mesh()->elem_ptr(elements.front());
+  if (!elem_ptr) {
+    fatal_error("Invalid element ID {} in get_volume_element_type", elements.front());
+  }
+
+  switch (elem_ptr->type()) {
+    case libMesh::TET4:
+      return VolumeElementType::TET;
+    case libMesh::HEX8:
+      return VolumeElementType::HEX;
+    default:
+      fatal_error("Unsupported libMesh element type {} in get_volume_element_type",
+                  static_cast<int>(elem_ptr->type()));
+  }
+  return VolumeElementType::TET;
+}
+
 std::vector<MeshID>
 LibMeshManager::get_volume_surfaces(MeshID volume) const {
   // walk the surface senses and return the surfaces that have this volume

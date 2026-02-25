@@ -86,6 +86,8 @@ public:
   std::vector<Vertex> get_surface_vertices(MeshID surface) const override;
 
   SurfaceFaceType get_surface_face_type(MeshID surface) const override;
+  
+  VolumeElementType get_volume_element_type(MeshID volume) const override;
 
   MeshID adjacent_element(MeshID element, int face) const override;
 

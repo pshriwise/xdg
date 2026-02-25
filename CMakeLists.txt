@@ -199,6 +199,7 @@ src/triangle_intersect.cpp
 src/quadrilateral_intersection.cpp
 src/util/str_utils.cpp
 src/tetrahedron_contain.cpp
+src/hexahedron_contain.cpp
 src/config.cpp
 src/xdg.cpp
 src/element_face_accessor.cpp

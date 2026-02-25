@@ -115,6 +115,10 @@ public:
     fatal_error("LibMeshManager::get_surface_face_type() not implemented yet");
   }
 
+  SurfaceFaceType get_surface_face_type(MeshID surface) const override;
+
+  VolumeElementType get_volume_element_type(MeshID volume) const override;
+
   MeshID adjacent_element(MeshID element, int face) const override;
 
   double element_volume(MeshID element) const override;

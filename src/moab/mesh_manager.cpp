@@ -441,6 +441,29 @@ MOABMeshManager::get_surface_face_type(MeshID surface) const
   return SurfaceFaceType::UNSUPPORTED;
 }
 
+VolumeElementType
+MOABMeshManager::get_volume_element_type(MeshID volume) const
+{
+  auto elements = this->get_volume_elements(volume);
+  if (elements.empty()) {
+    fatal_error("Volume {} has no elements; cannot determine element type", volume);
+  }
+
+  moab::EntityHandle element_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTET, elements.front(), element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return VolumeElementType::TET;
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBHEX, elements.front(), element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    fatal_error("MOAB hex elements are not supported for point containment yet");
+  }
+
+  fatal_error("Unsupported MOAB element type for element {}", elements.front());
+  return VolumeElementType::TET;
+}
+
 MeshID
 MOABMeshManager::adjacent_element(MeshID element, int face) const
 {
