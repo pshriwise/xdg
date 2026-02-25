@@ -342,8 +342,7 @@ MOABMeshManager::get_surface_faces(MeshID surface) const
 
 std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
-  moab::EntityHandle element_handle;
-  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  moab::EntityHandle element_handle = this->element_handle(element);
   auto out = this->mb_direct()->get_element_coords(element_handle);
   return std::vector<Vertex>(out.begin(), out.end());
 }
@@ -464,11 +463,28 @@ MOABMeshManager::get_volume_element_type(MeshID volume) const
   return VolumeElementType::TET;
 }
 
+moab::EntityHandle
+MOABMeshManager::element_handle(MeshID element) const
+{
+  moab::EntityHandle element_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return element_handle;
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBHEX, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    fatal_error("MOAB hex elements are not supported for point containment yet");
+  }
+
+  fatal_error("Unsupported MOAB element type for element {}", element);
+  return element_handle;
+}
+
 MeshID
 MOABMeshManager::adjacent_element(MeshID element, int face) const
 {
-  moab::EntityHandle element_handle;
-  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  moab::EntityHandle element_handle = this->element_handle(element);
   moab::EntityHandle next_element = this->mb_direct()->get_adjacent_element(element_handle, face);
   if (next_element == ID_NONE) return ID_NONE;
   return this->moab_interface()->id_from_handle(next_element);
@@ -487,8 +503,7 @@ MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
 std::vector<MeshID>
 MOABMeshManager::element_connectivity(MeshID element) const
 {
-  moab::EntityHandle element_handle;
-  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  moab::EntityHandle element_handle = this->element_handle(element);
   return this->mb_direct()->get_element_connectivity(element_handle);
 }
 
@@ -517,8 +532,7 @@ MOABMeshManager::get_boundary_face_element(MeshID face) const
 double
 MOABMeshManager::element_volume(MeshID element) const
 {
-  moab::EntityHandle element_handle;
-  this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  moab::EntityHandle element_handle = this->element_handle(element);
   std::array<xdg::Vertex, 4> verts = this->mb_direct()->get_element_coords(element_handle);
   return tetrahedron_volume(verts);
 }

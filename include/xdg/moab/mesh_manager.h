@@ -105,6 +105,7 @@ public:
 
 private:
   // Internal MOAB methods
+  moab::EntityHandle element_handle(MeshID element) const;
 
   /**
    * @brief Sets up required MOAB tags for geometry management
