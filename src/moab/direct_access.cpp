@@ -12,12 +12,18 @@ MBDirectAccess::MBDirectAccess(Interface* mbi)
 {
   face_data_.emplace(SurfaceFaceType::TRI, ConnectivityData{});
   face_data_.at(SurfaceFaceType::TRI).entity_type = MBTRI;
+  face_data_.emplace(SurfaceFaceType::QUAD, ConnectivityData{});
+  face_data_.at(SurfaceFaceType::QUAD).entity_type = MBQUAD;
 
   element_data_.emplace(VolumeElementType::TET, ConnectivityData{});
   element_data_.at(VolumeElementType::TET).entity_type = MBTET;
+  element_data_.emplace(VolumeElementType::HEX, ConnectivityData{});
+  element_data_.at(VolumeElementType::HEX).entity_type = MBHEX;
 
   element_adjacency_data_.emplace(VolumeElementType::TET, AdjacencyData{});
   element_adjacency_data_.at(VolumeElementType::TET).entity_type = MBTET;
+  element_adjacency_data_.emplace(VolumeElementType::HEX, AdjacencyData{});
+  element_adjacency_data_.at(VolumeElementType::HEX).entity_type = MBHEX;
   setup();
 }
 

@@ -18,7 +18,7 @@ using namespace moab;
 
 namespace xdg {
 
-/*! Class to manage direct access of triangle connectivity and coordinates */
+/*! Class to manage direct access of face and element connectivity and coordinates */
 class MBDirectAccess {
 
 public:
@@ -34,14 +34,17 @@ public:
   //! \brief Update internal data structures to account for changes in the MOAB instance
   void update();
 
-  //! \brief Check that a triangle is part of the managed coordinates here
-  inline bool accessible(EntityHandle tri) {
-    const auto& face_data = face_data_.at(SurfaceFaceType::TRI);
+  //! \brief Check that a face is part of the managed coordinates here
+  inline bool accessible(EntityHandle face, SurfaceFaceType face_type) {
+    const auto& face_data = face_data_.at(face_type);
+    if (face_data.first_elements.empty()) {
+      return false;
+    }
     // determine the correct contiguous memory block index to use
     int block_idx = 0;
     auto fe = face_data.first_elements[block_idx];
     while(true) {
-      if (tri - fe.first < fe.second) { break; }
+      if (face - fe.first < fe.second) { break; }
       block_idx++;
       if (block_idx >= face_data.first_elements.size()) { return false; }
       fe = face_data.first_elements[block_idx];
@@ -49,23 +52,62 @@ public:
     return true;
   }
 
-  //! \brief Get the coordinates of a triangle as XDG Vertices
+  //! \brief Check that a triangle is part of the managed coordinates here
+  inline bool accessible(EntityHandle tri) {
+    return accessible(tri, SurfaceFaceType::TRI);
+  }
+
+  //! \brief Get the coordinates of a tet element as XDG Vertices
   inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
     const auto& face_data = face_data_.at(SurfaceFaceType::TRI);
     auto [i0, i1, i2] = face_data.get_connectivity_indices<3>(tri);
 
     std::array<xdg::Vertex, 3> vertices;
-    vertex_data_.set_coords(i0, vertices[0]);
-    vertex_data_.set_coords(i1, vertices[1]);
-    vertex_data_.set_coords(i2, vertices[2]);
+    vertex_data_.set_coords(static_cast<int>(i0), vertices[0]);
+    vertex_data_.set_coords(static_cast<int>(i1), vertices[1]);
+    vertex_data_.set_coords(static_cast<int>(i2), vertices[2]);
     return vertices;
+  }
+
+  //! \brief Get the connectivity of a face
+  inline std::vector<MeshID> get_face_connectivity(const EntityHandle& face, SurfaceFaceType face_type) {
+    const auto& face_data = face_data_.at(face_type);
+    if (face_data.element_stride == 3) {
+      return to_mesh_ids(face_data.get_connectivity_indices<3>(face));
+    }
+    if (face_data.element_stride == 4) {
+      return to_mesh_ids(face_data.get_connectivity_indices<4>(face));
+    }
+    throw std::runtime_error("Unsupported face stride for connectivity");
+  }
+
+  //! \brief Get the coordinates of a face as XDG Vertices
+  inline std::vector<xdg::Vertex> get_face_coords(const EntityHandle& face, SurfaceFaceType face_type) {
+    const auto& face_data = face_data_.at(face_type);
+    if (face_data.element_stride == 3) {
+      return to_vertices(face_data.get_connectivity_indices<3>(face));
+    }
+    if (face_data.element_stride == 4) {
+      return to_vertices(face_data.get_connectivity_indices<4>(face));
+    }
+    throw std::runtime_error("Unsupported face stride for coordinates");
   }
 
   //! \brief Get the connectivity of an element
   inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element) {
-    const auto& element_data = element_data_.at(VolumeElementType::TET);
-    auto conn = element_data.get_connectivity_indices<4>(element);
-    return {conn.begin(), conn.end()};
+    return get_element_connectivity(element, VolumeElementType::TET);
+  }
+
+  //! \brief Get the connectivity of an element with explicit type
+  inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element, VolumeElementType element_type) {
+    const auto& element_data = element_data_.at(element_type);
+    if (element_data.element_stride == 4) {
+      return to_mesh_ids(element_data.get_connectivity_indices<4>(element));
+    }
+    if (element_data.element_stride == 8) {
+      return to_mesh_ids(element_data.get_connectivity_indices<8>(element));
+    }
+    throw std::runtime_error("Unsupported element stride for connectivity");
   }
 
   //! \brief Get the connectivity of a face
@@ -77,14 +119,38 @@ public:
   //! \brief Get the coordinates of a triangle as XDG Vertices
   inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
     const auto& element_data = element_data_.at(VolumeElementType::TET);
-    auto [i0, i1, i2, i3] = element_data.get_connectivity_indices<4>(element);
+    auto conn = element_data.get_connectivity_indices<4>(element);
 
     std::array<xdg::Vertex, 4> vertices;
-    vertex_data_.set_coords(i0, vertices[0]);
-    vertex_data_.set_coords(i1, vertices[1]);
-    vertex_data_.set_coords(i2, vertices[2]);
-    vertex_data_.set_coords(i3, vertices[3]);
+    for (int i = 0; i < 4; i++) {
+      vertex_data_.set_coords(static_cast<int>(conn[i]), vertices[i]);
+    }
     return vertices;
+  }
+  template <size_t N>
+  std::vector<MeshID> to_mesh_ids(const std::array<size_t, N>& conn) const {
+    return {conn.begin(), conn.end()};
+  }
+
+  template <size_t N>
+  std::vector<xdg::Vertex> to_vertices(const std::array<size_t, N>& conn) const {
+    std::vector<xdg::Vertex> vertices(N);
+    for (int i = 0; i < N; i++) {
+      vertex_data_.set_coords(static_cast<int>(conn[i]), vertices[i]);
+    }
+    return vertices;
+  }
+
+  //! \brief Get the coordinates of an element with explicit type
+  inline std::vector<xdg::Vertex> get_element_coords(const EntityHandle& element, VolumeElementType element_type) {
+    const auto& element_data = element_data_.at(element_type);
+    if (element_data.element_stride == 4) {
+      return to_vertices(element_data.get_connectivity_indices<4>(element));
+    }
+    if (element_data.element_stride == 8) {
+      return to_vertices(element_data.get_connectivity_indices<8>(element));
+    }
+    throw std::runtime_error("Unsupported element stride for coordinates");
   }
 
   //! \brief Get the adjacent element
@@ -98,6 +164,15 @@ public:
 
   inline EntityHandle get_boundary_face_element(const EntityHandle& face) const {
     return boundary_face_adjacency_data_.get_boundary_face_element(face);
+  }
+
+  //! \brief Get the adjacent element with explicit type
+  inline EntityHandle get_adjacent_element(const EntityHandle& element, int face_number, VolumeElementType element_type) {
+    return element_adjacency_data_.at(element_type).get_adjacent_element(element, face_number);
+  }
+
+  inline std::vector<EntityHandle> get_element_adjacencies(const EntityHandle& element, VolumeElementType element_type) {
+    return element_adjacency_data_.at(element_type).get_element_adjacencies(element);
   }
 
   const std::vector<std::vector<int>>& get_face_ordering(VolumeElementType element_type) const {
@@ -120,8 +195,7 @@ private:
     void setup(Interface* mbi) {
       ErrorCode rval;
 
-      // setup element adjacenty data
-      // TODO: support other element types
+      // setup element adjacency data
       Range elements;
       rval = mbi->get_entities_by_type(mbi->get_root_set(), entity_type, elements, true);
       MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB element adjacencies");
@@ -185,7 +259,8 @@ private:
     // ordering of element faces based on the cannonical ordering descibed here:
     // Canonical numbering systems for finite‐element codes (http://dx.doi.org/10.1002/cnm.1237)
     std::unordered_map<EntityType, std::vector<std::vector<int>>> ordering = {
-    {MBTET, {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 2, 1}}}
+      {MBTET, {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 2, 1}}},
+      {MBHEX, {{0, 1, 2, 3}, {4, 5, 6, 7}, {0, 1, 5, 4}, {1, 2, 6, 5}, {2, 3, 7, 6}, {3, 0, 4, 7}}}
     };
   };
   struct ConnectivityData {
@@ -205,8 +280,8 @@ private:
       MB_CHK_SET_ERR_CONT(rval, "Failed to get all elements for the given entity type");
       num_entities = entity_range.size();
 
-      // only supporting triangle elements for now
-      if (!entity_range.all_of_type(entity_type)) { throw std::runtime_error("Not all 2D elements are triangles"); }
+      // only supporting a single element type per ConnectivityData instance
+      if (!entity_range.all_of_type(entity_type)) { throw std::runtime_error("Not all elements match the requested type"); }
 
       moab::Range::iterator entity_it = entity_range.begin();
       while(entity_it != entity_range.end()) {
@@ -214,13 +289,13 @@ private:
         EntityHandle* conntmp;
         int n_elements;
         rval = mbi->connect_iterate(entity_it, entity_range.end(), conntmp, element_stride, n_elements);
-        MB_CHK_SET_ERR_CONT(rval, "Failed to get direct access to triangle elements");
+        MB_CHK_SET_ERR_CONT(rval, "Failed to get direct access to elements");
 
         // set const pointers for the connectivity array and add first element/length pair to the set of first elements
         vconn.push_back(conntmp);
         first_elements.push_back({*entity_it, n_elements});
 
-        // move iterator forward by the number of triangles in this contiguous memory block
+        // move iterator forward by the number of elements in this contiguous memory block
         entity_it += n_elements;
       }
     }
@@ -333,7 +408,7 @@ private:
     //! \brief Set the coordinates of a vertex based on an index into a contiguous block of memory
     //! \param i The index of the vertex in the block of memory
     //! \param v The vertex to set the coordinates of
-    void set_coords(int i, xdg::Vertex& v) {
+    void set_coords(int i, xdg::Vertex& v) const {
       // determine the correct contiguous memory block index to use
       int idx = 0;
       auto fe = first_vertices[idx];
