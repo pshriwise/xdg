@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <numeric>
+#include <random>
 
 // testing includes
 #include <catch2/catch_template_test_macros.hpp>
@@ -293,6 +295,43 @@ TEST_CASE("Test Hex Point Location Jezebel Quads")
 
   Position outside {0.0, 0.0, 100.0};
   REQUIRE(xdg->find_element(outside) == ID_NONE);
+}
+
+TEST_CASE("Test Hex Element Walk Jezebel Quads")
+{
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::LIBMESH);
+  xdg->mesh_manager()->mesh_library();
+  REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::LIBMESH);
+  const auto& mesh_manager = xdg->mesh_manager();
+  mesh_manager->load_file("jezebel-quads.exo");
+  mesh_manager->init();
+  xdg->prepare_raytracer();
+
+  Position inside {0.0, 0.0, 0.0};
+  MeshID start_element = xdg->find_element(inside);
+  REQUIRE(start_element != ID_NONE);
+
+  std::mt19937 gen(42);
+  std::uniform_real_distribution<double> dist(-1.0, 1.0);
+  Direction u;
+  do {
+    u = {dist(gen), dist(gen), dist(gen)};
+  } while (u.length() == 0.0);
+  u.normalize();
+
+  double distance = mesh_manager->global_bounding_box().max_chord_length() * 0.1;
+  if (distance <= 0.0) distance = 1.0;
+
+  auto segments = mesh_manager->walk_elements(start_element, inside, u, distance);
+  REQUIRE_FALSE(segments.empty());
+  REQUIRE(segments.front().first == start_element);
+
+  double total_length = std::accumulate(segments.begin(), segments.end(), 0.0,
+    [](double sum, const std::pair<MeshID, double>& segment) {
+      return sum + segment.second;
+    });
+  REQUIRE(total_length >= 0.0);
+  REQUIRE(total_length <= distance + 1e-6);
 }
 
 TEST_CASE("Test Point Location Cylinder-Brick")
