@@ -69,6 +69,16 @@ void MOABMeshManager::init() {
 
   for (int i = 0; i < moab_volume_ids.size(); i++) {
     volume_id_map_[moab_volume_ids[i]] = moab_volume_handles[i];
+
+    // check that the volume elements are all of the same type
+    moab::Range tets;
+    this->moab_interface()->get_entities_by_type(moab_volume_handles[i], moab::MBTET, tets);
+    moab::Range hexes;
+    this->moab_interface()->get_entities_by_type(moab_volume_handles[i], moab::MBHEX, hexes);
+    if (!tets.empty() && !hexes.empty()) {
+      fatal_error(fmt::format("Volume {} contains both hex and tet elements. Cannot yet support mixed element types",
+                              moab_volume_ids[i]));
+    }
     volumes_.push_back(moab_volume_ids[i]);
   }
   // populate volumes vector and ID map
@@ -76,6 +86,16 @@ void MOABMeshManager::init() {
   std::vector<int> moab_surface_ids = this->tag_data<int>(global_id_tag_,
                                                           moab_surface_handles);
   for (int i = 0; i < moab_surface_ids.size(); i++) {
+    // check that the surface faces are all of the same type
+    moab::Range tris;
+    this->moab_interface()->get_entities_by_type(moab_surface_handles[i], moab::MBTRI, tris);
+    moab::Range quads;
+    this->moab_interface()->get_entities_by_type(moab_surface_handles[i], moab::MBQUAD, quads);
+    if (!tris.empty() && !quads.empty()) {
+      fatal_error(fmt::format("Surface {} contains both tri and quad faces. Cannot yet support mixed face types",
+                              moab_surface_ids[i]));
+    }
+
     surface_id_map_[moab_surface_ids[i]] = moab_surface_handles[i];
     surfaces_.push_back(moab_surface_ids[i]);
   }
@@ -259,6 +279,9 @@ MOABMeshManager::_volume_elements(MeshID volume) const
   moab::EntityHandle vol_handle = volume_id_map_.at(volume);
   moab::Range elements;
   this->moab_interface()->get_entities_by_type(vol_handle, moab::MBTET, elements);
+  moab::Range hexes;
+  this->moab_interface()->get_entities_by_type(vol_handle, moab::MBHEX, hexes);
+  elements.merge(hexes);
   return elements;
 }
 
@@ -342,9 +365,21 @@ MOABMeshManager::get_surface_faces(MeshID surface) const
 
 std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 {
-  moab::EntityHandle element_handle = this->element_handle(element);
-  auto out = this->mb_direct()->get_element_coords(element_handle);
-  return std::vector<Vertex>(out.begin(), out.end());
+  moab::EntityHandle element_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    auto out = this->mb_direct()->get_element_coords(element_handle, VolumeElementType::TET);
+    return std::vector<Vertex>(out.begin(), out.end());
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBHEX, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    auto out = this->mb_direct()->get_element_coords(element_handle, VolumeElementType::HEX);
+    return std::vector<Vertex>(out.begin(), out.end());
+  }
+
+  fatal_error("Unsupported MOAB element type for element {}", element);
+  return {};
 }
 
 std::vector<MeshID> MOABMeshManager::face_vertices(MeshID element) const
@@ -456,7 +491,7 @@ MOABMeshManager::get_volume_element_type(MeshID volume) const
 
   rval = this->moab_interface()->handle_from_id(moab::MBHEX, elements.front(), element_handle);
   if (rval == moab::MB_SUCCESS) {
-    fatal_error("MOAB hex elements are not supported for point containment yet");
+    return VolumeElementType::HEX;
   }
 
   fatal_error("Unsupported MOAB element type for element {}", elements.front());
@@ -474,7 +509,7 @@ MOABMeshManager::element_handle(MeshID element) const
 
   rval = this->moab_interface()->handle_from_id(moab::MBHEX, element, element_handle);
   if (rval == moab::MB_SUCCESS) {
-    fatal_error("MOAB hex elements are not supported for point containment yet");
+    return element_handle;
   }
 
   fatal_error("Unsupported MOAB element type for element {}", element);
@@ -503,8 +538,19 @@ MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
 std::vector<MeshID>
 MOABMeshManager::element_connectivity(MeshID element) const
 {
-  moab::EntityHandle element_handle = this->element_handle(element);
-  return this->mb_direct()->get_element_connectivity(element_handle);
+  moab::EntityHandle element_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return this->mb_direct()->get_element_connectivity(element_handle, VolumeElementType::TET);
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBHEX, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return this->mb_direct()->get_element_connectivity(element_handle, VolumeElementType::HEX);
+  }
+
+  fatal_error("Unsupported MOAB element type for element {}", element);
+  return {};
 }
 
 std::vector<MeshID>
