@@ -140,7 +140,7 @@ public:
 
   //! \brief Get the adjacent element across a given face
   //! \param element The current element ID
-  //! \param face The local face index (0-3 for tetrahedra)
+  //! \param face The local face index (0-3 for tetrahedra, 0-5 for hexahedra)
   //! \return The ID of the adjacent element, or ID_NONE if the face is on a boundary
   virtual MeshID adjacent_element(MeshID element, int face) const = 0;
 

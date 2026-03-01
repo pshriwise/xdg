@@ -424,10 +424,14 @@ struct MockElementFaceAccessor : public ElementFaceAccessor {
     tet_connectivity_ = mesh_manager->tet_faces(conn);
   }
 
-  std::array<Vertex, 3> face_vertices(int i) const override {
+  std::vector<Vertex> face_vertices(int i) const override {
     return {mesh_manager_->vertices()[tet_connectivity_[i][0]],
             mesh_manager_->vertices()[tet_connectivity_[i][1]],
             mesh_manager_->vertices()[tet_connectivity_[i][2]]};
+  }
+
+  int num_faces() const override {
+    return 4;
   }
 
   // data members

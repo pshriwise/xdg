@@ -221,7 +221,7 @@ private:
 struct MOABElementFaceAccessor : public ElementFaceAccessor {
 
   MOABElementFaceAccessor(const MOABMeshManager* mesh_manager, MeshID element) :
-  ElementFaceAccessor(element), mesh_manager_(mesh_manager), element_ordering_(mesh_manager->mb_direct()->get_face_ordering(VolumeElementType::TET)) {
+  ElementFaceAccessor(element), mesh_manager_(mesh_manager) {
 
     auto moab_mesh_manager = dynamic_cast<const MOABMeshManager*>(mesh_manager);
     if (!moab_mesh_manager) {
@@ -229,20 +229,33 @@ struct MOABElementFaceAccessor : public ElementFaceAccessor {
     }
     mesh_manager_ = moab_mesh_manager;
     element_coordinates_ = mesh_manager_->element_vertices(element);
+    if (element_coordinates_.size() == 4) {
+      element_ordering_ = &mesh_manager_->mb_direct()->get_face_ordering(VolumeElementType::TET);
+    } else if (element_coordinates_.size() == 8) {
+      element_ordering_ = &mesh_manager_->mb_direct()->get_face_ordering(VolumeElementType::HEX);
+    } else {
+      throw std::runtime_error("Unsupported element vertex count in MOABElementFaceAccessor");
+    }
   }
 
-  std::array<Vertex, 3> face_vertices(int i) const override {
-    std::array<Vertex, 3> verts;
-    for (int j = 0; j < 3; j++) {
-      verts[j] = element_coordinates_[element_ordering_[i][j]];
+  std::vector<Vertex> face_vertices(int i) const override {
+    const auto& face = (*element_ordering_)[i];
+    std::vector<Vertex> verts;
+    verts.reserve(face.size());
+    for (auto idx : face) {
+      verts.push_back(element_coordinates_[idx]);
     }
-    return std::move(verts);
+    return verts;
+  }
+
+  int num_faces() const override {
+    return static_cast<int>(element_ordering_->size());
   }
 
   // data members
   const MOABMeshManager* mesh_manager_;
   std::vector<Vertex> element_coordinates_;
-  const std::vector<std::vector<int>>& element_ordering_;
+  const std::vector<std::vector<int>>* element_ordering_ {nullptr};
 };
 
 } // namespace xdg

@@ -5,7 +5,6 @@
 #include "xdg/config.h"
 #include "xdg/error.h"
 #include "xdg/geometry/plucker.h"
-#include "xdg/geometry/face_common.h"
 #include "xdg/element_face_accessor.h"
 
 namespace xdg {
@@ -151,35 +150,62 @@ MeshManager::next_element(MeshID current_element,
                            const Position& r,
                            const Position& u) const
 {
-  std::array<double, 4> dists = {INFTY, INFTY, INFTY, INFTY};
-  std::array<bool, 4> hit_types;
-
   auto element_face_accessor = ElementFaceAccessor::create(this, current_element);
+  const int num_faces = element_face_accessor->num_faces();
+  std::vector<double> dists(num_faces, INFTY);
+  std::vector<bool> hit_types(num_faces, false);
 
-  // get the faces (triangles) of this element
-  for (int i = 0; i < 4; i++) {
-    // triangle connectivity
+  // get the faces of this element
+  for (int i = 0; i < num_faces; i++) {
     auto coords = element_face_accessor->face_vertices(i);
 
-    // get the normal of the triangle face
-    const Position normal = triangle_normal(coords);
-
-    // exiting hit only, assumes triangle normals point outward
+    // exiting hit only, assumes face normals point outward
     // with respect to the element
     int orientation = 1;
-    // perform ray-triangle intersection
 
-    auto result = plucker_ray_tri_intersect(coords.data(),
-                                            r,
-                                            u,
-                                            INFTY,
-                                            0.0,
-                                            true,
-                                            orientation);
+    if (coords.size() == 3) {
+      std::array<Vertex, 3> tri {coords[0], coords[1], coords[2]};
+      auto result = plucker_ray_tri_intersect(tri.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
+      hit_types[i] = result.hit;
+      dists[i] = result.dist;
+    } else if (coords.size() == 4) {
+      std::array<Vertex, 3> tri0 {coords[0], coords[1], coords[2]};
+      std::array<Vertex, 3> tri1 {coords[0], coords[2], coords[3]};
+      double dist0 = INFTY;
+      double dist1 = INFTY;
+      auto result0 = plucker_ray_tri_intersect(tri0.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
+      auto result1 = plucker_ray_tri_intersect(tri1.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
+      bool hit0 = result0.hit;
+      bool hit1 = result1.hit;
+      if (hit0 || hit1) {
+        hit_types[i] = true;
+        if (hit0 && hit1) dists[i] = std::min(dist0, dist1);
+        else dists[i] = hit0 ? dist0 : dist1;
+      }
+    } else {
+      fatal_error("Unsupported face vertex count {} in next_element", coords.size());
+    }
 
-    hit_types[i] = result.hit;
     // set distance and ensure it is non-negative
-    dists[i] = result.hit ? std::max(0.0, result.t) : INFTY;
+    dists[i] = std::max(0.0, dists[i]);
   }
 
   // determine the minimum distance to exit and the face number

@@ -519,10 +519,23 @@ MOABMeshManager::element_handle(MeshID element) const
 MeshID
 MOABMeshManager::adjacent_element(MeshID element, int face) const
 {
-  moab::EntityHandle element_handle = this->element_handle(element);
-  moab::EntityHandle next_element = this->mb_direct()->get_adjacent_element(element_handle, face);
-  if (next_element == ID_NONE) return ID_NONE;
-  return this->moab_interface()->id_from_handle(next_element);
+  moab::EntityHandle element_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    moab::EntityHandle next_element = this->mb_direct()->get_adjacent_element(element_handle, face, VolumeElementType::TET);
+    if (next_element == ID_NONE) return ID_NONE;
+    return this->moab_interface()->id_from_handle(next_element);
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBHEX, element, element_handle);
+  if (rval == moab::MB_SUCCESS) {
+    moab::EntityHandle next_element = this->mb_direct()->get_adjacent_element(element_handle, face, VolumeElementType::HEX);
+    if (next_element == ID_NONE) return ID_NONE;
+    return this->moab_interface()->id_from_handle(next_element);
+  }
+
+  fatal_error("Unsupported MOAB element type for element {}", element);
+  return ID_NONE;
 }
 
 xdg::Vertex
