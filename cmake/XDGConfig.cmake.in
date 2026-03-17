@@ -1,10 +1,19 @@
 get_filename_component(XDG_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 
-find_package(fmt REQUIRED HINTS ${XDG_CMAKE_DIR}/../fmt)
-find_package(embree @EMBREE_VERSION@ REQUIRED HINTS @EMBREE_ROOT_DIR@)
+include(CMakeFindDependencyMacro)
+
+if(NOT TARGET fmt::fmt)
+  find_dependency(fmt CONFIG REQUIRED)
+endif()
+
+if(NOT TARGET embree)
+  find_dependency(embree @EMBREE_VERSION@ REQUIRED)
+endif()
 
 if(@XDG_ENABLE_MOAB@)
-  find_package(MOAB REQUIRED HINTS @MOAB_DIR@)
+  if(NOT TARGET MOAB)
+    find_dependency(MOAB REQUIRED)
+  endif()
 endif()
 
 if(@XDG_ENABLE_LIBMESH@)
@@ -14,12 +23,22 @@ if(@XDG_ENABLE_LIBMESH@)
   pkg_check_modules(LIBMESH REQUIRED @LIBMESH_PC_FILE@>=1.7.0 IMPORTED_TARGET)
 endif()
 
-find_package(indicators HINTS @CMAKE_INSTALL_PREFIX@)
+if(NOT TARGET indicators::indicators)
+  find_dependency(indicators CONFIG REQUIRED)
+endif()
+
+if(@XDG_LINK_MPI@)
+  find_dependency(MPI REQUIRED)
+endif()
+
+if(@OpenMP_CXX_FOUND@)
+  find_dependency(OpenMP REQUIRED)
+endif()
 
 if (NOT TARGET xdg::xdg)
     include("${XDG_CMAKE_DIR}/XDGTargets.cmake")
 endif()
 
 if (NOT TARGET xdg::xdg)
-    FATAL_ERROR("XDG Target not found")
+    message(FATAL_ERROR "XDG target not found")
 endif()
