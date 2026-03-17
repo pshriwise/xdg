@@ -1,18 +1,21 @@
 get_filename_component(XDG_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+get_filename_component(_XDG_PREFIX "${XDG_CMAKE_DIR}/../../.." ABSOLUTE)
 
 include(CMakeFindDependencyMacro)
 
 if(NOT TARGET fmt::fmt)
-  find_dependency(fmt CONFIG REQUIRED)
+  find_dependency(fmt CONFIG REQUIRED HINTS "${_XDG_PREFIX}")
 endif()
 
-if(NOT TARGET embree)
-  find_dependency(embree @EMBREE_VERSION@ REQUIRED)
+if(@XDG_ENABLE_EMBREE@)
+  if(NOT TARGET embree)
+    find_dependency(embree @EMBREE_VERSION@ REQUIRED HINTS "@EMBREE_ROOT_DIR@")
+  endif()
 endif()
 
 if(@XDG_ENABLE_MOAB@)
   if(NOT TARGET MOAB)
-    find_dependency(MOAB REQUIRED)
+    find_dependency(MOAB REQUIRED HINTS "@MOAB_DIR@")
   endif()
 endif()
 
@@ -24,7 +27,7 @@ if(@XDG_ENABLE_LIBMESH@)
 endif()
 
 if(NOT TARGET indicators::indicators)
-  find_dependency(indicators CONFIG REQUIRED)
+  find_dependency(indicators CONFIG REQUIRED HINTS "${_XDG_PREFIX}")
 endif()
 
 if(@XDG_LINK_MPI@)
