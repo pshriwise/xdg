@@ -3,10 +3,6 @@ get_filename_component(_XDG_PREFIX "${XDG_CMAKE_DIR}/../../.." ABSOLUTE)
 
 include(CMakeFindDependencyMacro)
 
-if(NOT TARGET fmt::fmt)
-  find_dependency(fmt CONFIG REQUIRED HINTS "${_XDG_PREFIX}")
-endif()
-
 if(@XDG_ENABLE_EMBREE@)
   if(NOT TARGET embree)
     find_dependency(embree @EMBREE_VERSION@ REQUIRED HINTS "@EMBREE_ROOT_DIR@")
@@ -24,6 +20,10 @@ if(@XDG_ENABLE_LIBMESH@)
   list(APPEND CMAKE_PREFIX_PATH @LIBMESH_PREFIX@)
   set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH True)
   pkg_check_modules(LIBMESH REQUIRED @LIBMESH_PC_FILE@>=1.7.0 IMPORTED_TARGET)
+endif()
+
+if(NOT TARGET fmt::fmt)
+  find_dependency(fmt CONFIG REQUIRED HINTS "${_XDG_PREFIX}")
 endif()
 
 if(NOT TARGET indicators::indicators)
