@@ -18,9 +18,32 @@ at least one of the following mesh libraries must be installed on the system
     - `MOAB <https://sigma.mcs.anl.gov/moab-library/>`_
     - `MFEM <https://mfem.org/>`_
 
+
 The location(s) of the library installation(s) should be appended to the
 ``CMAKE_PREFIX_PATH`` variable in the configuration line.
 
+For example, if MOAB is installed in ``$HOME/opt/moab``, the configuration line (as called from the source directory with a build in `build`) would be:
+
+.. code-block:: bash
+
+   cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/opt/moab -DXDG_ENABLE_MOAB=ON
+
+to configure the XDG build to use the MOAB library. If multiple libraries are installed, their paths can be
+separated by semicolons, for example:
+
+.. code-block:: bash
+
+   cmake -S . -B build -DCMAKE_PREFIX_PATH="$HOME/opt/moab;$HOME/opt/libmesh" -DXDG_ENABLE_MOAB=ON -DXDG_ENABLE_LIBMESH=ON
+
+The installation location for XDG is controlled by the ``CMAKE_INSTALL_PREFIX``
+variable, which can be set in the configuration line. By default, XDG will be
+installed to the systmem location (e.g. ``/usr/local``) which may require
+elevated permissions. To install to a user directory, set the prefix to a path
+in the user's home directory, for example:
+
+.. code-block:: bash
+
+   cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/opt/moab -DXDG_ENABLE_MOAB=ON -DCMAKE_INSTALL_PREFIX=$HOME/opt/xdg
 
 Installation
 ------------
@@ -28,6 +51,11 @@ Installation
 After a successful CMake configuration, the XDG library can be built by running
 ``make`` and then ``make install`` in the build directory.
 
+Continuing from the example above:
+
+.. code-block:: bash
+
+    make install
 
 Testing
 -------
@@ -35,8 +63,17 @@ Testing
 A variety of tests are built automatically. The test set will vary depending on
 which mesh libraries are part of the XDG build.
 
-Testing of the XDG library can be done by running the ``ctest`` command in the
-build directory.
+Tests can be run by executing the test suite with the command from the build directory:
+
+.. code-block:: bash
+
+    make test
+
+OR
+
+.. code-block:: bash
+
+    ctest
 
 Mesh Library-Specific Installation Instructions
 ===============================================
