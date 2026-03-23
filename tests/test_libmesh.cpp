@@ -439,6 +439,7 @@ TEST_CASE("LibMesh Element ID and Index Mapping")
     // keep libMesh from renumbering the elements when initializing the mesh
     // manager for the purposes of this test
     mesh->allow_renumbering(false);
+    mesh->prepare_for_use();
 
     // now initialize the mesh manager
     mesh_manager->init();
