@@ -72,6 +72,8 @@ public:
 
   std::vector<MeshID> face_connectivity(MeshID face) const override;
 
+  std::vector<MeshID> get_face_elements(MeshID face) const override;
+
   Vertex vertex_coordinates(MeshID vertex) const override;
 
   std::vector<Vertex> element_vertices(MeshID element) const override;

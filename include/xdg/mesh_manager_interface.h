@@ -150,6 +150,12 @@ public:
   virtual
   std::vector<MeshID> face_connectivity(MeshID face) const = 0;
 
+  //! \brief Get the volume element IDs adjacent to a face
+  //! \param face The face ID
+  //! \return A vector containing the adjacent element IDs
+  virtual
+  std::vector<MeshID> get_face_elements(MeshID face) const = 0;
+
   BoundingBox element_bounding_box(MeshID element) const;
 
   BoundingBox face_bounding_box(MeshID element) const;

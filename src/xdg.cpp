@@ -152,6 +152,8 @@ XDG::segments(const Position& start,
   double distance = u.length();
   u /= distance;
 
+  std::vector<xdg::MeshID> exclude_primitives;
+
   std::vector<std::pair<MeshID, double>> segments;
   while (distance > 0) {
     // attempt to find an element at the start location
@@ -177,13 +179,26 @@ XDG::segments(const Position& start,
       // determine the volume we're moving into
       mesh_manager()->next_volume(ipc, hit.second);
 
-      // determine what element is on the other side of this surface
-      current_element = find_element(r + u * TINY_BIT);
-      // if no element is found, we may be exiting the mesh
-      if (current_element == ID_NONE) {
+      // // determine what element is on the other side of this surface
+      // current_element = find_element(r + u * TINY_BIT);
+
+      // if (current_element == ID_NONE) {
+      //   // warning("Ray fire hit surface {}, but could not find element on the other side of the surface.", hit.second);
+      //   return segments;
+      // }
+
+      // Get the element on the other side of the hit face using adjacencies
+      auto adjacent_element = mesh_manager()->get_face_elements(exclude_primitives.back());
+      if (adjacent_element.size() == 0) {
+        warning("Ray fire hit surface {}, but no adjacent elements were found on the other side of the surface.", hit.second);
         return segments;
       }
-      prev_elements.clear();
+      if (adjacent_element.size() > 1) {
+        warning("Ray fire hit surface {}, but multiple adjacent elements were found on the other side of the surface. This likely indicates a problem with the mesh connectivity.", hit.second);
+        return segments;
+      }
+      current_element = adjacent_element[0];
+      exclude_primitives.clear();
     }
     auto vol_segments = mesh_manager()->walk_elements(current_element, r, u, distance);
     // add to current set of segments

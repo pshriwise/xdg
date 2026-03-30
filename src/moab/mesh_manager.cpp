@@ -462,6 +462,26 @@ MOABMeshManager::face_connectivity(MeshID face) const
   return this->mb_direct()->get_face_connectivity(face_handle);
 }
 
+std::vector<MeshID>
+MOABMeshManager::get_face_elements(MeshID face) const
+{
+  moab::EntityHandle face_handle;
+  this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
+
+  std::vector<moab::EntityHandle> face_vertices;
+  this->moab_interface()->get_connectivity(&face_handle, 1, face_vertices);
+
+  moab::Range adjacent_elements;
+  this->moab_interface()->get_adjacencies(face_vertices.data(), face_vertices.size(), 3, true, adjacent_elements);
+
+  std::vector<MeshID> element_ids;
+  element_ids.reserve(adjacent_elements.size());
+  for (const auto& element : adjacent_elements) {
+    element_ids.push_back(this->moab_interface()->id_from_handle(element));
+  }
+  return element_ids;
+}
+
 double
 MOABMeshManager::element_volume(MeshID element) const
 {

@@ -218,6 +218,26 @@ public:
     return {triangle_connectivity().at(face).begin(), triangle_connectivity().at(face).end()};
   }
 
+  virtual std::vector<MeshID> get_face_elements(MeshID face) const override {
+    const auto& tri = triangle_connectivity().at(face);
+
+    std::vector<MeshID> elements;
+    for (size_t i = 0; i < tetrahedron_connectivity_.size(); ++i) {
+      auto tet_faces_conn = tet_faces(tetrahedron_connectivity_[i]);
+      for (const auto& tet_face : tet_faces_conn) {
+        std::array<int, 3> sorted_face = tri;
+        std::array<int, 3> sorted_tet_face = tet_face;
+        std::sort(sorted_face.begin(), sorted_face.end());
+        std::sort(sorted_tet_face.begin(), sorted_tet_face.end());
+        if (sorted_face == sorted_tet_face) {
+          elements.push_back(static_cast<MeshID>(i));
+          break;
+        }
+      }
+    }
+    return elements;
+  }
+
   // Other
   virtual MeshLibrary mesh_library() const override { return MeshLibrary::MOCK; }
 
