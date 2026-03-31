@@ -462,20 +462,18 @@ MOABMeshManager::face_connectivity(MeshID face) const
   return this->mb_direct()->get_face_connectivity(face_handle);
 }
 
-std::vector<MeshID>
-MOABMeshManager::get_face_elements(MeshID face) const
+MeshID
+MOABMeshManager::get_boundary_face_element(MeshID face) const
 {
   moab::EntityHandle face_handle;
   this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
 
   moab::EntityHandle element_handle = this->mb_direct()->get_boundary_face_element(face_handle);
   if (element_handle == ID_NONE) {
-    return {};
+    return ID_NONE;
   }
 
-  std::vector<MeshID> element_ids;
-  element_ids.push_back(this->moab_interface()->id_from_handle(element_handle));
-  return element_ids;
+  return this->moab_interface()->id_from_handle(element_handle);
 }
 
 double

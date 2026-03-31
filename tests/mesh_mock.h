@@ -218,10 +218,9 @@ public:
     return {triangle_connectivity().at(face).begin(), triangle_connectivity().at(face).end()};
   }
 
-  virtual std::vector<MeshID> get_face_elements(MeshID face) const override {
+  virtual MeshID get_boundary_face_element(MeshID face) const override {
     const auto& tri = triangle_connectivity().at(face);
 
-    std::vector<MeshID> elements;
     for (size_t i = 0; i < tetrahedron_connectivity_.size(); ++i) {
       auto tet_faces_conn = tet_faces(tetrahedron_connectivity_[i]);
       for (const auto& tet_face : tet_faces_conn) {
@@ -230,12 +229,11 @@ public:
         std::sort(sorted_face.begin(), sorted_face.end());
         std::sort(sorted_tet_face.begin(), sorted_tet_face.end());
         if (sorted_face == sorted_tet_face) {
-          elements.push_back(static_cast<MeshID>(i));
-          break;
+          return static_cast<MeshID>(i);
         }
       }
     }
-    return elements;
+    return ID_NONE;
   }
 
   // Other

@@ -137,19 +137,13 @@ LibMeshManager::face_connectivity(MeshID face) const {
   return conn;
 }
 
-std::vector<MeshID>
-LibMeshManager::get_face_elements(MeshID face) const {
+MeshID
+LibMeshManager::get_boundary_face_element(MeshID face) const {
   const auto& sp = sidepair(face);
-
-  std::vector<MeshID> elements;
-  elements.reserve(2);
   if (sp.first()) {
-    elements.push_back(sp.first()->id());
+    return sp.first()->id();
   }
-  if (sp.second()) {
-    elements.push_back(sp.second()->id());
-  }
-  return elements;
+  return ID_NONE;
 }
 
 MeshID LibMeshManager::create_volume() {

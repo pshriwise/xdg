@@ -150,11 +150,11 @@ public:
   virtual
   std::vector<MeshID> face_connectivity(MeshID face) const = 0;
 
-  //! \brief Get the volume element IDs adjacent to a face
+  //! \brief Get a face's owning element for boundary-face use cases
   //! \param face The face ID
-  //! \return A vector containing the adjacent element IDs
+  //! \return The owning element ID, or ID_NONE if no boundary owner is available
   virtual
-  std::vector<MeshID> get_face_elements(MeshID face) const = 0;
+  MeshID get_boundary_face_element(MeshID face) const = 0;
 
   BoundingBox element_bounding_box(MeshID element) const;
 
