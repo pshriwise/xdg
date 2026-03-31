@@ -468,17 +468,13 @@ MOABMeshManager::get_face_elements(MeshID face) const
   moab::EntityHandle face_handle;
   this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
 
-  std::vector<moab::EntityHandle> face_vertices;
-  this->moab_interface()->get_connectivity(&face_handle, 1, face_vertices);
-
-  moab::Range adjacent_elements;
-  this->moab_interface()->get_adjacencies(face_vertices.data(), face_vertices.size(), 3, true, adjacent_elements);
+  moab::EntityHandle element_handle = this->mb_direct()->get_boundary_face_element(face_handle);
+  if (element_handle == ID_NONE) {
+    return {};
+  }
 
   std::vector<MeshID> element_ids;
-  element_ids.reserve(adjacent_elements.size());
-  for (const auto& element : adjacent_elements) {
-    element_ids.push_back(this->moab_interface()->id_from_handle(element));
-  }
+  element_ids.push_back(this->moab_interface()->id_from_handle(element_handle));
   return element_ids;
 }
 
