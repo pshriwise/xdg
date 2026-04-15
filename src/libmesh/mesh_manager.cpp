@@ -380,16 +380,16 @@ void LibMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // go. If an explicit sideset is only associated with one interface pair, we
   // will reuse the sideset ID for the surface since there is no risk of ID
   // conflicts in this case, otherwise we will assign a new surface ID.
-  std::vector<MeshID> sideset_ids;
-  sideset_ids.reserve(sideset_interface_face_map_.size());
+  std::vector<MeshID> sorted_sideset_ids;
+  sorted_sideset_ids.reserve(sideset_interface_face_map_.size());
   for (const auto& [sideset_id, _] : sideset_interface_face_map_) {
-    sideset_ids.push_back(sideset_id);
-  }
-  std::sort(sideset_ids.begin(), sideset_ids.end());
+    sorted_sideset_ids.push_back(sideset_id);
+}
+  std::sort(sorted_sideset_ids.begin(), sorted_sideset_ids.end());
 
   // here we loop over all explicit sidesets in sorted order to ensure that we
   // assign surface IDs in a deterministic way
-  for (auto sideset_id : sideset_ids) {
+  for (auto sideset_id : sorted_sideset_ids) {
     const auto& interface_face_groups = sideset_interface_face_map_.at(sideset_id);
     bool reuse_sideset_id = interface_face_groups.size() == 1;
     // for each interface pair associated with this explicit sideset, we will
@@ -420,14 +420,14 @@ void LibMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // now that explicit sidesets have been processed, we loop over remaining
   // discovered subdomain interfaces to complete the topological definition of
   // the mesh
-  std::vector<InterfacePair> interface_pairs;
-  interface_pairs.reserve(subdomain_interface_map_.size());
+  std::vector<InterfacePair> sorted_interface_pairs;
+  sorted_interface_pairs.reserve(subdomain_interface_map_.size());
   for (const auto& [pair, _] : subdomain_interface_map_) {
-    interface_pairs.push_back(pair);
+    sorted_interface_pairs.push_back(pair);
   }
-  std::sort(interface_pairs.begin(), interface_pairs.end());
+  std::sort(sorted_interface_pairs.begin(), sorted_interface_pairs.end());
 
-  for (const auto& pair : interface_pairs) {
+  for (const auto& pair : sorted_interface_pairs) {
     std::vector<MeshID> remaining_faces;
     const auto& elements = subdomain_interface_map_.at(pair);
     remaining_faces.reserve(elements.size());
