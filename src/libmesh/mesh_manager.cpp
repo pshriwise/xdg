@@ -333,10 +333,12 @@ void LibMeshManager::map_sidesets_to_discovered_interfaces() {
 void LibMeshManager::create_surfaces_from_sidesets_and_interfaces() {
   // method overview:
   // 1. loop over explicit sidesets and create surfaces for each associated
-  //    interface pair, assigning metadata from the sideset to the surface as we
-  //    go. If an explicit sideset is only associated with one interface pair,
-  //    we will reuse the sideset ID for the surface since there is no risk of
-  //    ID conflicts in this case, otherwise we will assign a new surface ID.
+  //    interface pair, tracking a mapping from the sideset to the surface(s) as
+  //    we go to support a one-to-many mapping of metadata associated with the
+  //    sideset to be registered fully when parse_metadata is called. If an
+  //    explicit sideset is only associated with one interface pair, we will
+  //    reuse the sideset ID for the surface since there is no risk of ID
+  //    conflicts in this case, otherwise we will assign a new surface ID.
   // 2. loop over discovered interface pairs and create surfaces for any pairs
   //    that are not fully covered by explicit sidesets, assigning any remaining
   //    metadata from associated sidesets to the surface  as we go. Since these
