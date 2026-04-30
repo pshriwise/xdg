@@ -22,3 +22,4 @@ libraries include:
     - `MOAB <https://sigma.mcs.anl.gov/moab-library/>`_
     - `MFEM <https://mfem.org/>`_
 
+XDG is not a meshing library and as such does not provide any meshing capabilities.

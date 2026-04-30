@@ -3,7 +3,20 @@
 XDG Design Philosophy
 =====================
 
-The primary design goals of XDG are centered on the following:
+The design of XDG has been largely influenced by the history of DAGMC's design. 
+XDG's design builds upon the success of DAGMC with an extensible design for multiple 
+ray tracers and mesh libraries. The XDG architecture diagram below shows how those 
+responsibilities are organized:
+
+.. figure:: ../assets/xdg_architecture.png
+   :alt: XDG architecture diagram
+   :align: center
+   :width: 100%
+
+   High-level XDG design architecture diagram
+
+
+The primary design goals of XDG are centered on the following core ideas:
 
 - **Mesh Library Abstraction**: all mesh-based operations in XDG are
   abstracted through a common interface, the ``MeshManagerInterface``. This
@@ -26,16 +39,16 @@ The primary design goals of XDG are centered on the following:
   core XDG codebase. This is important for one of XDG's primary goals: to
   support ray tracing on both CPUs and GPUs in a single binary.
 
-A live updated UML diagram of the current XDG class hierarchy is shown below:
+For historical context, DAGMC's design and its interaction with the subsequent
+:term:`double-down` extension help explain why XDG adopts these abstractions.
+That earlier design was more tightly coupled to :term:`MOAB`, and the ray tracing
+path through :term:`double-down` was less extensible being a direct interface only
+to the :term:`Embree` ray tracing kernels. The older DAGMC/double-down layout is 
+also shown below for comparison:
 
-.. raw:: html
+.. figure:: ../assets/dagmc_architecture_split.png
+   :alt: Historical DAGMC architecture diagram
+   :align: center
+   :width: 100%
 
-    <div style="max-width: 800px; margin: auto;">
-        <iframe 
-            src="https://viewer.diagrams.net/?tags=%7B%7D&lightbox=1&highlight=000000&edit=_blank&layers=1&nav=1&title=xdg-uml.drawio&dark=0#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1jOOYsrMjI29D81mtemU_79hzjtlid_aa%26export%3Ddownload" 
-            width="100%" 
-            height="600" 
-            frameborder="0" 
-            style="border: 1px solid #ccc; border-radius: 6px;">
-        </iframe>
-    </div>
+   Historical DAGMC design architecture with the double-down ray tracing extension
