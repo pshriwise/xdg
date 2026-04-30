@@ -39,7 +39,13 @@ endif()
 
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
-    target_link_libraries(${test} xdg Catch2::Catch2WithMain)
+    target_link_libraries(${test} PRIVATE xdg fmt::fmt Catch2::Catch2WithMain)
+    if (XDG_ENABLE_LIBMESH)
+        target_link_libraries(${test} PRIVATE ${LIBMESH_LINK_LIBRARIES})
+    endif()
+    if (XDG_ENABLE_MOAB)
+        target_link_libraries(${test} PRIVATE MOAB)
+    endif()
     set_target_properties(${test} PROPERTIES
                                   BUILD_RPATH "$<TARGET_FILE_DIR:xdg>")
     catch_discover_tests(${test}
