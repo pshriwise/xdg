@@ -284,7 +284,7 @@ endif()
 find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
   target_link_libraries(xdg PRIVATE OpenMP::OpenMP_CXX)
-  target_compile_definitions(xdg PUBLIC XDG_HAVE_OPENMP)
+  target_compile_definitions(xdg PRIVATE XDG_HAVE_OPENMP)
 endif()
 
 if (XDG_BUILD_TESTS)
@@ -303,7 +303,7 @@ target_include_directories(xdg
 )
 
 if (XDG_ENABLE_MOAB)
-  target_compile_definitions(xdg PUBLIC XDG_ENABLE_MOAB)
+  target_compile_definitions(xdg PRIVATE XDG_ENABLE_MOAB)
 endif()
 
 if (XDG_ENABLE_LIBMESH)
@@ -315,7 +315,7 @@ if (XDG_ENABLE_EMBREE)
 endif()
 
 if (XDG_ENABLE_GPRT)
-  target_compile_definitions(xdg PUBLIC XDG_ENABLE_GPRT)
+  target_compile_definitions(xdg PRIVATE XDG_ENABLE_GPRT)
   target_link_options(xdg PRIVATE -Wl,--unresolved-symbols=ignore-in-shared-libs)
 endif()
 
