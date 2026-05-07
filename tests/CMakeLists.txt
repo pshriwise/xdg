@@ -39,7 +39,16 @@ endif()
 
 foreach(test ${TEST_NAMES})
     add_executable(${test} ${test}.cpp)
-    target_link_libraries(${test} xdg Catch2::Catch2WithMain)
+    target_link_libraries(${test} PRIVATE xdg fmt::fmt Catch2::Catch2WithMain)
+    if (XDG_ENABLE_LIBMESH)
+        target_link_libraries(${test} PRIVATE ${LIBMESH_LINK_LIBRARIES})
+    endif()
+    if (XDG_ENABLE_GPRT)
+        target_link_libraries(${test} PRIVATE $<BUILD_INTERFACE:gprt>)
+    endif()
+    if (XDG_ENABLE_MOAB)
+        target_link_libraries(${test} PRIVATE MOAB)
+    endif()
     set_target_properties(${test} PROPERTIES
                                   BUILD_RPATH "$<TARGET_FILE_DIR:xdg>")
     catch_discover_tests(${test}
@@ -52,7 +61,7 @@ endforeach()
 if (TARGET test_overlap_check)
     target_sources(test_overlap_check PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/overlap.cpp)
     target_include_directories(test_overlap_check PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools)
-    target_link_libraries(test_overlap_check indicators::indicators)
+    target_link_libraries(test_overlap_check PRIVATE indicators::indicators)
 endif()
 
 

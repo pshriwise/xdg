@@ -283,8 +283,8 @@ endif()
 # attempt to find OpenMP and include it if found
 find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
-  target_link_libraries(xdg OpenMP::OpenMP_CXX)
-  target_compile_definitions(xdg PUBLIC XDG_HAVE_OPENMP)
+  target_link_libraries(xdg PRIVATE OpenMP::OpenMP_CXX)
+  target_compile_definitions(xdg PRIVATE XDG_HAVE_OPENMP)
 endif()
 
 if (XDG_BUILD_TESTS)
@@ -316,17 +316,17 @@ endif()
 
 if (XDG_ENABLE_GPRT)
   target_compile_definitions(xdg PUBLIC XDG_ENABLE_GPRT)
-  target_link_options(xdg INTERFACE -Wl,--unresolved-symbols=ignore-in-shared-libs)
+  target_link_options(xdg PRIVATE -Wl,--unresolved-symbols=ignore-in-shared-libs)
 endif()
 
-target_link_libraries(xdg fmt::fmt)
+target_link_libraries(xdg PRIVATE fmt::fmt)
 
 # ==========================
 # Link ray tracing libraries
 # ==========================
 
 if (XDG_ENABLE_EMBREE)
-  target_link_libraries(xdg embree)
+  target_link_libraries(xdg PRIVATE embree)
 endif()
 
 if (XDG_ENABLE_GPRT)
@@ -342,27 +342,27 @@ if (XDG_ENABLE_GPRT)
     SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gprt/${device_code}.slang
     )
-    target_link_libraries(xdg ${device_code})
+    target_link_libraries(xdg PRIVATE ${device_code})
   endforeach()
-target_link_libraries(xdg $<BUILD_INTERFACE:gprt>)
+target_link_libraries(xdg PRIVATE $<BUILD_INTERFACE:gprt>)
 endif()
 
 # ===================
 # Link mesh libraries
 # ===================
 if(XDG_ENABLE_LIBMESH)
-  target_link_libraries(xdg PkgConfig::LIBMESH)
+  target_link_libraries(xdg PRIVATE PkgConfig::LIBMESH)
 endif()
 
 # this provides the ability to link MPI when needed for compatibility with other
 # libraries (e.g., libMesh)
 if (XDG_LINK_MPI)
   find_package(MPI REQUIRED)
-  target_link_libraries(xdg MPI::MPI_CXX)
+  target_link_libraries(xdg PRIVATE MPI::MPI_CXX)
 endif()
 
 if (XDG_ENABLE_MOAB)
-  target_link_libraries(xdg MOAB)
+  target_link_libraries(xdg PRIVATE MOAB)
 endif()
 
 #=================================================================

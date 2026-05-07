@@ -5,7 +5,6 @@
 #include <iomanip>
 
 #include "xdg/error.h"
-#include "xdg/mesh_managers.h"
 #include "xdg/vec3da.h"
 #include "xdg/xdg.h"
 
