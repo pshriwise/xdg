@@ -61,7 +61,7 @@ endforeach()
 if (TARGET test_overlap_check)
     target_sources(test_overlap_check PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/overlap.cpp)
     target_include_directories(test_overlap_check PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools)
-    target_link_libraries(test_overlap_check indicators::indicators)
+    target_link_libraries(test_overlap_check PRIVATE indicators::indicators)
 endif()
 
 
