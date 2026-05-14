@@ -163,19 +163,15 @@ XDG::segments(const Position& start,
     MeshID volume = ID_NONE;
     if (current_element == ID_NONE) {
       // fire a ray against the implicit complement
-      auto hit = ray_fire(ipc, r, u, INFTY, HitOrientation::ANY, &prev_elements);
-      // if the hit distance is zero, we're likely stuck on an element boundary
-      // fire again and ignore the previous hit
-      while (hit.first < TINY_BIT) {
-        hit = ray_fire(ipc, r, u, INFTY, HitOrientation::ANY, &prev_elements);
-      }
+      auto hit = ray_fire(ipc, r + u * TINY_BIT, u, INFTY, HitOrientation::EXITING, &exclude_primitives);
       // if there is no entry point or the distance to the surface
       // is past the end point, return
       if (hit.second == ID_NONE || hit.first > distance) return segments;
 
+      double hit_dist = hit.first + TINY_BIT;
       // move up to the surface
-      r += u * hit.first;
-      distance -= hit.first;
+      r += u * hit_dist;
+      distance -= hit_dist;
       // determine the volume we're moving into
       mesh_manager()->next_volume(ipc, hit.second);
 
