@@ -30,7 +30,11 @@ if (XDG_ENABLE_LIBMESH)
 endif()
 
 if (XDG_ENABLE_MOAB AND XDG_ENABLE_LIBMESH)
-    list(APPEND TEST_NAMES test_cross_check)
+    list(APPEND TEST_NAMES test_mesh_library_cross_check)
+endif()
+
+if (XDG_ENABLE_MOAB)
+    list(APPEND TEST_NAMES test_ray_tracer_cross_check)
 endif()
 
 if (XDG_ENABLE_MOAB AND XDG_BUILD_TOOLS)
