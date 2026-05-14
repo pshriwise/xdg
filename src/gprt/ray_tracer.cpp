@@ -1,10 +1,15 @@
 #include "xdg/gprt/ray_tracer.h"
 #include "gprt/gprt.h"
+#include "xdg/gprt/vulkan_probe.h"
 
 namespace xdg {
 
 GPRTRayTracer::GPRTRayTracer()
 {
+  if (!system_has_vk_device()) {
+    fatal_error("No Vulkan ray tracing capable device found; cannot initialize GPRT ray tracer.");
+  }
+
   gprtRequestRayTypeCount(numRayTypes_); // Set the number of shaders which can be set to the same geometry
   context_ = gprtContextCreate();
   module_ = gprtModuleCreate(context_, dbl_deviceCode);
