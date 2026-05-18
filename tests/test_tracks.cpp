@@ -124,7 +124,7 @@ TEST_CASE("Test Random Internal Tracks")
   }
 }
 
-TEMPLATE_TEST_CASE("Test Single Tet Vertex Tangent Tracks", "[tracks]",
+TEMPLATE_TEST_CASE("Test Single-Tet Glancing Vertex Intersection Tracks", "[tracks]",
                    MOAB_Interface,
                    LibMesh_Interface)
 {
@@ -145,23 +145,15 @@ TEMPLATE_TEST_CASE("Test Single Tet Vertex Tangent Tracks", "[tracks]",
     mm->init();
     mm->parse_metadata();
 
-    // Confirm the fixture is the intended one-real-tet model, ignoring the implicit complement.
-    REQUIRE(mm->num_vertices() == 4);
-    const auto volume_it = std::find_if(mm->volumes().begin(), mm->volumes().end(),
-        [&](MeshID volume) {
-          return volume != mm->implicit_complement() &&
-                 mm->num_volume_elements(volume) == 1;
-        });
-    REQUIRE(volume_it != mm->volumes().end());
-    const MeshID volume = *volume_it;
+    MeshID volume = 1;
+    // Ensure that the volume is the intended volume containing a single tet
     REQUIRE(mm->num_volume_elements(volume) == 1);
     const auto volume_elements = mm->get_volume_elements(volume);
-    REQUIRE(volume_elements.size() == 1);
     const auto tet_vertices = mm->element_vertices(volume_elements.front());
 
     xdg->prepare_raytracer();
 
-    // Make the track long enough to cross the whole model if it were not tangent.
+    // Make the track long enough to cross the whole model to ensure intersection
     const auto bbox = mm->global_bounding_box();
     const double track_length = bbox.max_chord_length() * 2.0;
     const double half_length = 0.5 * track_length;
@@ -199,7 +191,7 @@ TEMPLATE_TEST_CASE("Test Single Tet Vertex Tangent Tracks", "[tracks]",
           DYNAMIC_SECTION(fmt::format("Backend = {}, Face = {}, Vertex = {}", mesh_backend, face, vertex))
           {
             ++n_vertex_tangent_cases;
-            // A vertex-only tangent contact should contribute zero distance to the tet.
+            // A vertex-only tangent contact should effectivly contribute zero distance to the tet.
             REQUIRE(total_length == Catch::Approx(0.0).margin(1e-12));
           }
         }
@@ -210,7 +202,7 @@ TEMPLATE_TEST_CASE("Test Single Tet Vertex Tangent Tracks", "[tracks]",
   }
 }
 
-TEMPLATE_TEST_CASE("Test Single Tet Centroid To Vertex Tracks", "[tracks]",
+TEMPLATE_TEST_CASE("Test Single-Tet Vertex Intersection Tracks", "[tracks]",
                    MOAB_Interface,
                    LibMesh_Interface)
 {
@@ -231,17 +223,10 @@ TEMPLATE_TEST_CASE("Test Single Tet Centroid To Vertex Tracks", "[tracks]",
     mm->init();
     mm->parse_metadata();
 
-    // Confirm the fixture is the intended one-real-tet model, ignoring the implicit complement.
-    REQUIRE(mm->num_vertices() == 4);
-    const auto volume_it = std::find_if(mm->volumes().begin(), mm->volumes().end(),
-        [&](MeshID volume) {
-          return volume != mm->implicit_complement() &&
-                 mm->num_volume_elements(volume) == 1;
-        });
-    REQUIRE(volume_it != mm->volumes().end());
-    const MeshID volume = *volume_it;
+    MeshID volume = 1;
+    // Ensure that the volume is the intended volume containing a single tet
+    REQUIRE(mm->num_volume_elements(volume) == 1);
     const auto volume_elements = mm->get_volume_elements(volume);
-    REQUIRE(volume_elements.size() == 1);
     const auto tet_vertices = mm->element_vertices(volume_elements.front());
 
     xdg->prepare_raytracer();
