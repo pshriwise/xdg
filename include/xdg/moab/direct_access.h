@@ -135,7 +135,7 @@ private:
           std::vector<EntityHandle> verts;
           for (auto idx : o) verts.push_back(conn[idx]);
           Range adj_ents;
-          rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, true, adj_ents);
+          rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, false, adj_ents);
 
           // there be at most two adjacent elements for a given face
           if (adj_ents.size() > 2) {
