@@ -152,7 +152,7 @@ XDG::segments(const Position& start,
   double distance = u.length();
   u /= distance;
 
-  std::vector<xdg::MeshID> exclude_primitives;
+  std::vector<xdg::MeshID> hit_primitives;
 
   std::vector<std::pair<MeshID, double>> segments;
   while (distance > 0) {
@@ -163,7 +163,7 @@ XDG::segments(const Position& start,
     MeshID volume = ID_NONE;
     if (current_element == ID_NONE) {
       // fire a ray against the implicit complement
-      auto hit = ray_fire(ipc, r + u * TINY_BIT, u, INFTY, HitOrientation::EXITING, &exclude_primitives);
+      auto hit = ray_fire(ipc, r + u * TINY_BIT, u, INFTY, HitOrientation::EXITING, &hit_primitives);
       // if there is no entry point or the distance to the surface
       // is past the end point, return
       if (hit.second == ID_NONE || hit.first > distance) return segments;
@@ -175,22 +175,14 @@ XDG::segments(const Position& start,
       // determine the volume we're moving into
       mesh_manager()->next_volume(ipc, hit.second);
 
-      // // determine what element is on the other side of this surface
-      // current_element = find_element(r + u * TINY_BIT);
-
-      // if (current_element == ID_NONE) {
-      //   // warning("Ray fire hit surface {}, but could not find element on the other side of the surface.", hit.second);
-      //   return segments;
-      // }
-
       // Get the element on the other side of the hit face using adjacencies
-      auto adjacent_element = mesh_manager()->get_boundary_face_element(exclude_primitives.back());
+      auto adjacent_element = mesh_manager()->get_boundary_face_element(hit_primitives.back());
       if (adjacent_element == ID_NONE) {
         warning("Ray fire hit surface {}, but no adjacent elements were found on the other side of the surface.", hit.second);
         return segments;
       }
       current_element = adjacent_element;
-      exclude_primitives.clear();
+      hit_primitives.clear();
     }
     auto vol_segments = mesh_manager()->walk_elements(current_element, r, u, distance);
     // add to current set of segments
