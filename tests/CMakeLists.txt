@@ -38,7 +38,7 @@ if (XDG_ENABLE_MOAB AND XDG_BUILD_TOOLS)
 endif()
 
 foreach(test ${TEST_NAMES})
-    add_executable(${test} ${test}.cpp)
+    add_executable(${test} test_main.cpp ${test}.cpp)
     target_link_libraries(${test} PRIVATE xdg fmt::fmt Catch2::Catch2WithMain)
     if (XDG_ENABLE_LIBMESH)
         target_link_libraries(${test} PRIVATE ${LIBMESH_LINK_LIBRARIES})
