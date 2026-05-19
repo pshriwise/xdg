@@ -107,8 +107,6 @@ TEST_CASE("Test Random Internal Tracks")
     start = {x_dist(gen), y_dist(gen), z_dist(gen)};
     end = {x_dist(gen), y_dist(gen), z_dist(gen)};
 
-    std::cout << "Start: " << start << ", End: " << end << std::endl;
-
     // check that the segments are valid
     auto track_segments = xdg->segments(volume_id, start, end);
     // at least one segement should always be generated
@@ -188,12 +186,11 @@ TEMPLATE_TEST_CASE("Test Single-Tet Glancing Vertex Intersection Tracks", "[trac
                 return sum + segment.second;
               });
 
-          DYNAMIC_SECTION(fmt::format("Backend = {}, Face = {}, Vertex = {}", mesh_backend, face, vertex))
-          {
-            ++n_vertex_tangent_cases;
-            // A vertex-only tangent contact should effectivly contribute zero distance to the tet.
-            REQUIRE(total_length == Catch::Approx(0.0).margin(1e-12));
-          }
+          INFO(fmt::format("Backend = {}, Face = {}, Vertex = {}", mesh_backend, face, vertex));
+          ++n_vertex_tangent_cases;
+          // A vertex-only tangent contact should effectivly contribute zero distance to the tet.
+          REQUIRE(total_length == Catch::Approx(0.0).margin(1e-12));
+
         }
       }
     }
@@ -266,12 +263,10 @@ TEMPLATE_TEST_CASE("Test Single-Tet Vertex Intersection Tracks", "[tracks]",
             return sum + segment.second;
           });
 
-      DYNAMIC_SECTION(fmt::format("Backend = {}, Vertex = {}", mesh_backend, vertex))
-      {
-        REQUIRE(forward_length == Catch::Approx(expected_length).epsilon(0.00001));
-        REQUIRE(reverse_length == Catch::Approx(expected_length).epsilon(0.00001));
-        REQUIRE(forward_length == Catch::Approx(reverse_length).epsilon(0.00001));
-      }
+      INFO(fmt::format("Backend = {}, Vertex = {}", mesh_backend, vertex));
+      REQUIRE(forward_length == Catch::Approx(expected_length).epsilon(0.00001));
+      REQUIRE(reverse_length == Catch::Approx(expected_length).epsilon(0.00001));
+      REQUIRE(forward_length == Catch::Approx(reverse_length).epsilon(0.00001));
     }
   }
 }
