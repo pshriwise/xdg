@@ -64,28 +64,6 @@ TEST_CASE("Test BVH Build Brick")
   REQUIRE(ray_tracing_interface->num_registered_trees() == 3);
 }
 
-TEST_CASE("Test Boundary Face Element Brick")
-{
-  std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};
-
-  mesh_manager->load_file("brick.exo");
-  mesh_manager->init();
-
-  for (const auto surface : mesh_manager->surfaces()) {
-    for (const auto face : mesh_manager->get_surface_faces(surface)) {
-      const auto face_conn = mesh_manager->face_connectivity(face);
-      const auto element = mesh_manager->get_boundary_face_element(face);
-
-      REQUIRE(element != ID_NONE);
-
-      const auto elem_conn = mesh_manager->element_connectivity(element);
-      for (const auto vertex : face_conn) {
-        REQUIRE(std::find(elem_conn.begin(), elem_conn.end(), vertex) != elem_conn.end());
-      }
-    }
-  }
-}
-
 TEST_CASE("Test BVH Build Brick w/ Sidesets")
 {
   std::shared_ptr<MeshManager> mesh_manager = std::make_shared<LibMeshManager>();

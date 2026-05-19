@@ -1,6 +1,7 @@
 set(
 TEST_NAMES
 test_bbox
+test_boundary_faces
 test_bvh
 test_config
 test_closest
