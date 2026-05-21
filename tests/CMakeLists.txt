@@ -39,7 +39,7 @@ endif()
 
 foreach(test ${TEST_NAMES})
     add_executable(${test} test_main.cpp ${test}.cpp)
-    target_link_libraries(${test} PRIVATE xdg fmt::fmt Catch2::Catch2WithMain)
+    target_link_libraries(${test} PRIVATE xdg fmt::fmt Catch2::Catch2)
     if (XDG_ENABLE_LIBMESH)
         target_link_libraries(${test} PRIVATE ${LIBMESH_LINK_LIBRARIES})
     endif()
