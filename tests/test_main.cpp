@@ -1,7 +1,6 @@
 // test_main.cpp
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch_all.hpp>
-#include <iostream>
 
 // Global tracking structure to capture test summary data safely
 struct RunSummary {
@@ -36,12 +35,11 @@ int main(int argc, char* argv[]) {
     // Run the isolated test file
     int result = session.run();
 
-    // if failures were reported, but the test runner returned 4 indicating a
-    // skipped test to Ctest, increment the return code to 5 to indicate a
-    // failure to Ctest instead
-    if (runSummary.failedAssertions > 0 && result == 4) {
-        result++;
-    }
+    // If any assersions failed, return 1 to indicate a failure to Ctest. This
+    // exists for a consistent return code to represent failures. Ctest treats a
+    // return code of four as a skipped test. Thus, four failed checks would be
+    // shown as a skipped test.
+    if (runSummary.failedAssertions > 0) return 1;
 
     return result;
 }
