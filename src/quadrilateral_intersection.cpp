@@ -76,10 +76,13 @@ void QuadIntersectionFunction(RTCIntersectFunctionNArguments* args) {
   std::array<Position, 3> tri0 {face_vertices[0], face_vertices[1], face_vertices[2]};
   std::array<Position, 3> tri1 {face_vertices[0], face_vertices[2], face_vertices[3]};
 
-  double dist0 = INFTY;
-  double dist1 = INFTY;
-  bool hit0 = plucker_ray_tri_intersect(tri0, ray_origin, ray_direction, dist0);
-  bool hit1 = plucker_ray_tri_intersect(tri1, ray_origin, ray_direction, dist1);
+  auto result0 = plucker_ray_tri_intersect(tri0.data(), ray_origin, ray_direction, ray.dtfar, 0.0, false, 0);
+  auto result1 = plucker_ray_tri_intersect(tri1.data(), ray_origin, ray_direction, ray.dtfar, 0.0, false, 0);
+
+  bool hit0 = result0.hit;
+  bool hit1 = result1.hit;
+  double dist0 = result0.t;
+  double dist1 = result1.t;
 
   if (!hit0 && !hit1) return;
 
@@ -182,10 +185,10 @@ void QuadOcclusionFunction(RTCOccludedFunctionNArguments* args) {
   double plucker_dist = INFTY;
   std::array<Position, 3> tri0 {face_vertices[0], face_vertices[1], face_vertices[2]};
   std::array<Position, 3> tri1 {face_vertices[0], face_vertices[2], face_vertices[3]};
-  bool hit = plucker_ray_tri_intersect(tri0, ray->dorg, ray->ddir, plucker_dist) ||
-             plucker_ray_tri_intersect(tri1, ray->dorg, ray->ddir, plucker_dist);
+  auto result0 = plucker_ray_tri_intersect(tri0.data(), ray->dorg, ray->ddir, ray->dtfar, 0.0, false, 0);
+  auto result1 = plucker_ray_tri_intersect(tri1.data(), ray->dorg, ray->ddir, ray->dtfar, 0.0, false, 0);
 
-  if (hit) ray->set_tfar(-INFTY);
+  if (result0.hit || result1.hit) ray->set_tfar(-INFTY);
 }
 
 bool SurfaceClosestFunc(RTCPointQueryFunctionArguments* args) {

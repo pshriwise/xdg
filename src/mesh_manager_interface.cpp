@@ -173,12 +173,10 @@ MeshManager::next_element(MeshID current_element,
                                                true,
                                                orientation);
       hit_types[i] = result.hit;
-      dists[i] = result.dist;
+      dists[i] = result.t;
     } else if (coords.size() == 4) {
       std::array<Vertex, 3> tri0 {coords[0], coords[1], coords[2]};
       std::array<Vertex, 3> tri1 {coords[0], coords[2], coords[3]};
-      double dist0 = INFTY;
-      double dist1 = INFTY;
       auto result0 = plucker_ray_tri_intersect(tri0.data(),
                                                r,
                                                u,
@@ -195,6 +193,8 @@ MeshManager::next_element(MeshID current_element,
                                                orientation);
       bool hit0 = result0.hit;
       bool hit1 = result1.hit;
+      double dist0 = result0.t;
+      double dist1 = result1.t;
       if (hit0 || hit1) {
         hit_types[i] = true;
         if (hit0 && hit1) dists[i] = std::min(dist0, dist1);

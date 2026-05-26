@@ -80,13 +80,8 @@ public:
 
   std::vector<MeshID> face_vertices(MeshID element) const override;
 
-  // Map from global surface connectivity indices to local surface connectivity indices and return the local connectivity for a surface
-  std::vector<int> get_surface_connectivity(MeshID surface) const override;
-
-  std::vector<Vertex> get_surface_vertices(MeshID surface) const override;
-
   SurfaceFaceType get_surface_face_type(MeshID surface) const override;
-  
+
   VolumeElementType get_volume_element_type(MeshID volume) const override;
 
   MeshID adjacent_element(MeshID element, int face) const override;

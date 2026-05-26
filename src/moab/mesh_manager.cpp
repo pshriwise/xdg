@@ -570,8 +570,18 @@ std::vector<MeshID>
 MOABMeshManager::face_connectivity(MeshID face) const
 {
   moab::EntityHandle face_handle;
-  this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
-  return this->mb_direct()->get_face_connectivity(face_handle);
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return this->mb_direct()->get_face_connectivity(face_handle, SurfaceFaceType::TRI);
+  }
+
+  rval = this->moab_interface()->handle_from_id(moab::MBQUAD, face, face_handle);
+  if (rval == moab::MB_SUCCESS) {
+    return this->mb_direct()->get_face_connectivity(face_handle, SurfaceFaceType::QUAD);
+  }
+
+  fatal_error("Unsupported MOAB face type for face {}", face);
+  return {};
 }
 
 MeshID

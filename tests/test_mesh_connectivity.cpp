@@ -8,12 +8,12 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 // xdg includes
-#include "mesh_mock.h"
+#include "mesh_mocks.h"
 
 using namespace xdg;
 
 TEST_CASE("Face Connectivity (MeshMock)", "[surface][unit]") {
-  auto mock_mesh = std::make_shared<MeshMock>();
+  auto mock_mesh = std::make_shared<MockedTriTetMesh>();
   std::shared_ptr<MeshManager> mesh_manager = mock_mesh;
   mesh_manager->init();
 
@@ -46,7 +46,7 @@ TEST_CASE("Face Connectivity (MeshMock)", "[surface][unit]") {
 }
 
 TEST_CASE("Face Vertices (MeshMock)", "[surface][unit]") {
-  auto mock_mesh = std::make_shared<MeshMock>();
+  auto mock_mesh = std::make_shared<MockedTriTetMesh>();
   std::shared_ptr<MeshManager> mesh_manager = mock_mesh;
   mesh_manager->init();
 
@@ -56,7 +56,7 @@ TEST_CASE("Face Vertices (MeshMock)", "[surface][unit]") {
 
   MeshID face = 0;
   for (const auto& expected_conn : expected_face_connectivity) {
-    const auto verts = mesh_manager->face_vertices(face++);
+    const auto verts = mesh_manager->face_vertex_coordinates(face++);
 
     auto vert_it = verts.begin();
     for (const auto vertex_id : expected_conn) {
@@ -98,7 +98,7 @@ TEST_CASE("Boundary Face Element (MeshMock)", "[surface][unit]") {
 }
 
 TEST_CASE("Get Surface Connectivity (MeshMock)", "[surface][unit]") {
-  auto mock_mesh = std::make_shared<MeshMock>();
+  auto mock_mesh = std::make_shared<MockedTriTetMesh>();
   std::shared_ptr<MeshManager> mesh_manager = mock_mesh;
   mesh_manager->init();
 
@@ -123,7 +123,7 @@ TEST_CASE("Get Surface Connectivity (MeshMock)", "[surface][unit]") {
 }
 
 TEST_CASE("Get Volume Connectivity (MeshMock)", "[volume][unit]") {
-  auto mock_mesh = std::make_shared<MeshMock>();
+  auto mock_mesh = std::make_shared<MockedTriTetMesh>();
   std::shared_ptr<MeshManager> mesh_manager = mock_mesh;
   mesh_manager->init();
 

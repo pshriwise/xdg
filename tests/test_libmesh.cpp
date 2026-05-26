@@ -18,6 +18,12 @@
 #include "xdg/xdg.h"
 #include "xdg/embree/ray_tracer.h"
 
+// for pseudo-transport testing
+#include "particle_sim.h"
+
+// for connectivity testing
+#include "util.h"
+
 using namespace xdg;
 using namespace xdg::test;
 

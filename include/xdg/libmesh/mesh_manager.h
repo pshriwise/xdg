@@ -61,6 +61,8 @@ public:
 
   void parse_metadata() override;
 
+  void check_types() const;
+
   int num_volumes() const override { return volumes_.size(); }
 
   int num_surfaces() const override { return surfaces_.size(); }
@@ -110,11 +112,6 @@ public:
   std::vector<MeshID> face_vertices(MeshID triangle) const override;
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override;
-
-  SurfaceFaceType get_surface_face_type(MeshID surface) const override
-  {
-    fatal_error("LibMeshManager::get_surface_face_type() not implemented yet");
-  }
 
   SurfaceFaceType get_surface_face_type(MeshID surface) const override;
 
