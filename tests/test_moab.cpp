@@ -251,118 +251,150 @@ TEST_CASE("MOAB Multi-volume quad raytrace")
   REQUIRE(hit.second != ID_NONE);
 }
 
-TEST_CASE("MOAB Element ID and Index Mapping")
+
+struct JezebelH5M {
+  static constexpr std::string_view filename = "jezebel.h5m";
+  static constexpr int32_t num_elements = 10333;
+  static constexpr int32_t num_faces = 1276;
+  static constexpr int32_t num_vertices = 2067;
+};
+struct JezebelQuadsH5M {
+  static constexpr std::string_view filename = "jezebel-quads.h5m";
+  static constexpr int32_t num_elements = 36800;
+  static constexpr int32_t num_faces = 2415;
+  static constexpr int32_t num_vertices = 38085;
+};
+struct CylBrickH5M {
+  static constexpr std::string_view filename = "cyl-brick.h5m";
+  static constexpr int32_t num_elements = 0;
+  static constexpr int32_t num_faces = 2474;
+  static constexpr int32_t num_vertices = 1580;
+};
+struct CylBrickQuadsH5M {
+  static constexpr std::string_view filename = "cyl-brick-quads.h5m";
+  static constexpr int32_t num_elements = 0;
+  static constexpr int32_t num_faces = 20478;
+  static constexpr int32_t num_vertices = 196869;
+};
+
+TEMPLATE_TEST_CASE("MOAB Element ID and Index Mapping", "[moab][mapping]",
+                   JezebelH5M,
+                   JezebelQuadsH5M)
 {
+  std::string filename {TestType::filename};
+
   // test mapping for contiguous MOAB IDs using jezebel model
-  {
-    std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
-    REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
-    const auto& mesh_manager = xdg->mesh_manager();
-    mesh_manager->load_file("jezebel.h5m");
-    mesh_manager->init();
+  DYNAMIC_SECTION("Model: " << filename) {
+    {
+      std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB);
+      REQUIRE(xdg->mesh_manager()->mesh_library() == MeshLibrary::MOAB);
+      const auto& mesh_manager = xdg->mesh_manager();
+      mesh_manager->load_file(filename);
+      mesh_manager->init();
 
-    size_t num_elements = mesh_manager->num_volume_elements();
-    REQUIRE(num_elements == 10333);
+      size_t num_elements = mesh_manager->num_volume_elements();
+      REQUIRE(num_elements == TestType::num_elements);
 
-    for (size_t idx = 0; idx < num_elements; ++idx) {
-      MeshID element_id = mesh_manager->element_id(idx);
-      // MOAB element IDs start at 1 and, for this model, are contiguous
-      REQUIRE(element_id == idx + 1);
-      int mapped_idx = mesh_manager->element_index(element_id);
-      REQUIRE(mapped_idx == static_cast<int>(idx));
-    }
-
-    size_t num_vertices = mesh_manager->num_vertices();
-    REQUIRE(num_vertices == 2067);
-    for (size_t idx = 0; idx < num_vertices; ++idx) {
-      MeshID vertex_id = mesh_manager->vertex_id(idx);
-      // MOAB vertex IDs start at 1 and, for this model, are contiguous
-      REQUIRE(vertex_id == idx + 1);
-      int mapped_idx = mesh_manager->vertex_index(vertex_id);
-      REQUIRE(mapped_idx == static_cast<int>(idx));
-    }
-  }
-
-  // test mapping for non-contiguous MOAB IDs via modification
-  {
-    std::shared_ptr<MOABMeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
-    mesh_manager->load_file("jezebel.h5m");
-
-    moab::Interface* mbi = mesh_manager->moab_interface();
-
-    // create gaps in the intrinsic ID space by deleteing some elements
-    moab::Range elem_range;
-    mbi->get_entities_by_type(0, moab::MBTET, elem_range);
-    int next_id = 0;
-    std::vector<MeshID> modified_ids;
-    for (const auto& elem : elem_range) {
-      if (next_id % 100 == 0) {
-        mbi->delete_entities(&elem, 1);
-        next_id++;
-        continue;
+      for (size_t idx = 0; idx < num_elements; ++idx) {
+        MeshID element_id = mesh_manager->element_id(idx);
+        // MOAB element IDs start at 1 and, for this model, are contiguous
+        REQUIRE(element_id == idx + 1);
+        int mapped_idx = mesh_manager->element_index(element_id);
+        REQUIRE(mapped_idx == static_cast<int>(idx));
       }
-      next_id ++;
-      modified_ids.push_back(mbi->id_from_handle(elem));
+
+      size_t num_vertices = mesh_manager->num_vertices();
+      REQUIRE(num_vertices == TestType::num_vertices);
+      for (size_t idx = 0; idx < num_vertices; ++idx) {
+        MeshID vertex_id = mesh_manager->vertex_id(idx);
+        // MOAB vertex IDs start at 1 and, for this model, are contiguous
+        REQUIRE(vertex_id == idx + 1);
+        int mapped_idx = mesh_manager->vertex_index(vertex_id);
+        REQUIRE(mapped_idx == static_cast<int>(idx));
+      }
     }
 
-    mesh_manager->init();
+    // test mapping for non-contiguous MOAB IDs via modification
+    {
+      std::shared_ptr<MOABMeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
+      mesh_manager->load_file(filename);
 
-    size_t num_elements = mesh_manager->num_volume_elements();
-    REQUIRE(num_elements == modified_ids.size());
-    for (size_t idx = 0; idx < num_elements; ++idx) {
-      MeshID expected_id = modified_ids[idx];
-      MeshID element_id = mesh_manager->element_id(idx);
-      REQUIRE(element_id == expected_id);
-      int mapped_idx = mesh_manager->element_index(element_id);
-      REQUIRE(mapped_idx == static_cast<int>(idx));
-    }
+      moab::Interface* mbi = mesh_manager->moab_interface();
 
-  }
+      // create gaps in the intrinsic ID space by deleteing some elements
+      moab::Range element_range;
+      mbi->get_entities_by_type(0, moab::MBTET, element_range);
+      moab::Range hex_range;
+      mbi->get_entities_by_type(0, moab::MBHEX, hex_range);
+      element_range.merge(hex_range);
 
-  {
-    std::shared_ptr<MOABMeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
-    mesh_manager->load_file("jezebel.h5m");
-
-    moab::Interface* mbi = mesh_manager->moab_interface();
-
-    moab::Range vertex_range;
-    mbi->get_entities_by_type(0, moab::MBVERTEX, vertex_range);
-    std::vector<MeshID> modified_vertex_ids;
-    int next_id = 0;
-    for (const auto& vertex : vertex_range) {
-      if (next_id % 50 == 0) {
-        // delete any elements adjacent to this vertex to avoid dangling references
-        moab::Range adj_elems;
-        mbi->get_adjacencies(&vertex, 1, 3, true, adj_elems);
-        for (const auto& adj_elem : adj_elems) {
-          mbi->delete_entities(&adj_elem, 1);
+      int next_id = 0;
+      std::vector<MeshID> modified_ids;
+      for (const auto& elem : element_range) {
+        if (next_id % 100 == 0) {
+          mbi->delete_entities(&elem, 1);
+          next_id++;
+          continue;
         }
-        mbi->delete_entities(&vertex, 1);
-        next_id++;
-        continue;
+        next_id ++;
+        modified_ids.push_back(mbi->id_from_handle(elem));
       }
-      modified_vertex_ids.push_back(mbi->id_from_handle(vertex));
-      next_id++;
+
+      mesh_manager->init();
+
+      size_t num_elements = mesh_manager->num_volume_elements();
+      REQUIRE(num_elements == modified_ids.size());
+      for (size_t idx = 0; idx < num_elements; ++idx) {
+        MeshID expected_id = modified_ids[idx];
+        MeshID element_id = mesh_manager->element_id(idx);
+        REQUIRE(element_id == expected_id);
+        int mapped_idx = mesh_manager->element_index(element_id);
+        REQUIRE(mapped_idx == static_cast<int>(idx));
+      }
+
     }
 
-    mesh_manager->init();
+    {
+      std::shared_ptr<MOABMeshManager> mesh_manager = std::make_shared<MOABMeshManager>();
+      mesh_manager->load_file(filename);
 
-    size_t num_vertices = mesh_manager->num_vertices();
-    REQUIRE(num_vertices == modified_vertex_ids.size());
-    for (size_t idx = 0; idx < num_vertices; ++idx) {
-      MeshID expected_id = modified_vertex_ids[idx];
-      MeshID vertex_id = mesh_manager->vertex_id(idx);
-      REQUIRE(vertex_id == expected_id);
-      int mapped_idx = mesh_manager->vertex_index(vertex_id);
-      REQUIRE(mapped_idx == static_cast<int>(idx));
+      moab::Interface* mbi = mesh_manager->moab_interface();
+
+      moab::Range vertex_range;
+      mbi->get_entities_by_type(0, moab::MBVERTEX, vertex_range);
+      std::vector<MeshID> modified_vertex_ids;
+      int next_id = 0;
+      for (const auto& vertex : vertex_range) {
+        if (next_id % 50 == 0) {
+          // delete any elements adjacent to this vertex to avoid dangling references
+          moab::Range adj_elems;
+          mbi->get_adjacencies(&vertex, 1, 3, true, adj_elems);
+          for (const auto& adj_elem : adj_elems) {
+            mbi->delete_entities(&adj_elem, 1);
+          }
+          mbi->delete_entities(&vertex, 1);
+          next_id++;
+          continue;
+        }
+        modified_vertex_ids.push_back(mbi->id_from_handle(vertex));
+        next_id++;
+      }
+
+      mesh_manager->init();
+
+      size_t num_vertices = mesh_manager->num_vertices();
+      REQUIRE(num_vertices == modified_vertex_ids.size());
+      for (size_t idx = 0; idx < num_vertices; ++idx) {
+        MeshID expected_id = modified_vertex_ids[idx];
+        MeshID vertex_id = mesh_manager->vertex_id(idx);
+        REQUIRE(vertex_id == expected_id);
+        int mapped_idx = mesh_manager->vertex_index(vertex_id);
+        REQUIRE(mapped_idx == static_cast<int>(idx));
+      }
     }
   }
 }
 
-struct JezebelH5M { static constexpr std::string_view filename = "jezebel.h5m"; };
-struct JezebelQuadsH5M { static constexpr std::string_view filename = "jezebel-quads.h5m"; };
-struct CylBrickH5M { static constexpr std::string_view filename = "cyl-brick.h5m"; };
-struct CylBrickQuadsH5M { static constexpr std::string_view filename = "cyl-brick-quads.h5m"; };
 
 TEMPLATE_TEST_CASE("Test MOAB Transport", "[moab][transport]",
                    JezebelH5M,

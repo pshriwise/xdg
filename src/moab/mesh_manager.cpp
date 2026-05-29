@@ -49,8 +49,11 @@ void MOABMeshManager::init() {
         return this->moab_interface()->id_from_handle(handle);
       };
 
+  auto element_range = this->mb_direct()->element_data(VolumeElementType::TET).entity_range;
+  element_range.merge(this->mb_direct()->element_data(VolumeElementType::HEX).entity_range);
+
   volume_element_id_map_ = IDBlockMapping<MeshID>(
-      this->mb_direct()->element_data(VolumeElementType::TET).entity_range,
+      element_range,
       moab_handle_to_id
   );
 
@@ -384,25 +387,21 @@ std::vector<Vertex> MOABMeshManager::element_vertices(MeshID element) const
 
 std::vector<MeshID> MOABMeshManager::face_vertices(MeshID element) const
 {
-  moab::EntityHandle element_handle;
   // Try triangle first, then quad
-  auto rval = this->moab_interface()->handle_from_id(moab::MBTRI, element, element_handle);
-  if (rval != moab::MB_SUCCESS) {
-    rval = this->moab_interface()->handle_from_id(moab::MBQUAD, element, element_handle);
+  moab::EntityHandle face_handle;
+  SurfaceFaceType face_type = SurfaceFaceType::UNSUPPORTED;
+  for (auto type : {moab::MBTRI, moab::MBQUAD}) {
+    auto rval = this->moab_interface()->handle_from_id(type, element, face_handle);
+    if (rval == moab::MB_SUCCESS) {
+      if (type == moab::MBTRI) face_type = SurfaceFaceType::TRI;
+      else if (type == moab::MBQUAD) face_type = SurfaceFaceType::QUAD;
+      break;
+    }
   }
-  if (rval != moab::MB_SUCCESS) {
-    fatal_error("Invalid face ID {} for MOAB mesh", element);
+  if (face_type == SurfaceFaceType::UNSUPPORTED) {
+    fatal_error("Unsupported MOAB face type for face {}", element);
   }
-
-  std::vector<moab::EntityHandle> conn;
-  this->moab_interface()->get_connectivity(&element_handle, 1, conn);
-
-  std::vector<MeshID> ids;
-  ids.reserve(conn.size());
-  for (auto handle : conn) {
-    ids.push_back(this->moab_interface()->id_from_handle(handle));
-  }
-  return ids;
+  return this->mb_direct()->get_face_connectivity(face_handle, face_type);
 }
 
 std::pair<MeshID, MeshID>
