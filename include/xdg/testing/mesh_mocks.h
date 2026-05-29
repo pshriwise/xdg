@@ -327,6 +327,16 @@ private:
     {1, 6, 2, 8}
   };
 
+  // 0 0
+  // 1 1
+  // 2 2
+  // 8 3
+  // 3 4
+  // 4 5
+  // 6 6
+  // 5 7
+  // 7 8
+
   // triangle connectivity for the exterior faces of the tetrahedron above
   const std::vector<std::array<int, 3>> triangle_connectivity_ {
     // Surface 0: upper z plane
