@@ -173,7 +173,7 @@ MeshManager::next_element(MeshID current_element,
                                                true,
                                                orientation);
       hit_types[i] = result.hit;
-      dists[i] = result.t;
+      if (hit_types[i]) dists[i] = result.t;
     } else if (coords.size() == 4) {
       std::array<Vertex, 3> tri0 {coords[0], coords[1], coords[2]};
       std::array<Vertex, 3> tri1 {coords[0], coords[2], coords[3]};
