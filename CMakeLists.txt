@@ -193,6 +193,7 @@ src/geometry/measure.cpp
 src/geometry/plucker.cpp
 src/geometry/closest.cpp
 src/error.cpp
+src/intersect_common.cpp
 src/mesh_manager_interface.cpp
 src/ray_tracing_interface.cpp
 src/triangle_intersect.cpp
