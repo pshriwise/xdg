@@ -597,14 +597,6 @@ MOABMeshManager::get_boundary_face_element(MeshID face) const
   return this->moab_interface()->id_from_handle(element_handle);
 }
 
-double
-MOABMeshManager::element_volume(MeshID element) const
-{
-  moab::EntityHandle element_handle = this->element_handle(element);
-  std::array<xdg::Vertex, 4> verts = this->mb_direct()->get_element_coords(element_handle);
-  return tetrahedron_volume(verts);
-}
-
 void
 MOABMeshManager::parse_metadata()
 {

@@ -248,17 +248,6 @@ public:
     return element_adjacencies_.at(element)[face];
   }
 
-  virtual double element_volume(MeshID element) const override {
-    const auto& conn = tetrahedron_connectivity()[element];
-    std::array<Vertex, 4> verts = {
-      vertices()[conn[0]],
-      vertices()[conn[1]],
-      vertices()[conn[2]],
-      vertices()[conn[3]]
-    };
-    return tetrahedron_volume(verts);
-  }
-
   inline int element_index(MeshID element) const override {
     return element;
   }
@@ -473,8 +462,6 @@ public:
   MeshID adjacent_element(MeshID /*element*/, int /*face*/) const override {
     return ID_NONE;
   }
-
-  double element_volume(MeshID /*element*/) const override { return 0.0; }
 
   Vertex vertex_coordinates(MeshID vertex_id) const override {
     return vertices_.at(vertex_id);

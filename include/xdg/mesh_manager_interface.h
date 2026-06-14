@@ -147,7 +147,7 @@ public:
   //! \brief Get the volume of a given element
   //! \param element The element ID
   //! \return The volume of the element
-  virtual double element_volume(MeshID element) const = 0;
+  virtual double element_volume(MeshID element) const;
 
   //! \brief Get the coordinates of a vertex by its ID
   //! \param vertex_id The vertex ID
@@ -160,7 +160,7 @@ public:
   //! \return A vector of vertex IDs that make up the element
   virtual
   std::vector<MeshID> element_connectivity(MeshID element) const = 0;
-  
+
   virtual
   std::vector<MeshID> face_connectivity(MeshID face) const = 0;
 

@@ -115,15 +115,6 @@ MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
   return neighbor->id();
 }
 
-double
-LibMeshManager::element_volume(MeshID element) const {
-  const auto elem_ptr = mesh()->elem_ptr(element);
-  if (!elem_ptr) {
-    fatal_error("Invalid element ID in element_volume");
-  }
-  return elem_ptr->volume();
-}
-
 xdg::Vertex
 LibMeshManager::vertex_coordinates(MeshID vertex_id) const {
   const auto node_ptr = mesh()->node_ptr(vertex_id);

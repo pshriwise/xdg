@@ -98,17 +98,17 @@ public:
     throw std::runtime_error("Unsupported element stride for connectivity");
   }
 
-  //! \brief Get the coordinates of a triangle as XDG Vertices
-  inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
-    const auto& element_data = element_data_.at(VolumeElementType::TET);
-    auto conn = element_data.get_connectivity_indices<4>(element);
+  // //! \brief Get the coordinates of a triangle as XDG Vertices
+  // inline std::array<xdg::Vertex, 4> get_element_coords(const EntityHandle& element) {
+  //   const auto& element_data = element_data_.at(VolumeElementType::TET);
+  //   auto conn = element_data.get_connectivity_indices<4>(element);
 
-    std::array<xdg::Vertex, 4> vertices;
-    for (int i = 0; i < 4; i++) {
-      vertex_data_.set_coords(static_cast<int>(conn[i]), vertices[i]);
-    }
-    return vertices;
-  }
+  //   std::array<xdg::Vertex, 4> vertices;
+  //   for (int i = 0; i < 4; i++) {
+  //     vertex_data_.set_coords(static_cast<int>(conn[i]), vertices[i]);
+  //   }
+  //   return vertices;
+  // }
 
   template <size_t N>
   std::vector<MeshID> to_mesh_ids(const std::array<size_t, N>& conn) const {
