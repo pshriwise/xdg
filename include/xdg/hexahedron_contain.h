@@ -19,8 +19,8 @@ namespace xdg {
  * canonical numbering. The containment test uses face-plane sign tests; points
  * on the boundary are considered inside.
  */
-bool plucker_hex_containment_test(const Position& point,
-                                  const std::array<Vertex, 8>& verts);
+bool hex_containment_test(const Position& point,
+                          const std::array<Vertex, 8>& verts);
 
 // Embree call back functions for element search
 void HexahedronIntersectionFunc(RTCIntersectFunctionNArguments* args);

@@ -8,8 +8,8 @@
 namespace xdg
 {
 
-bool plucker_hex_containment_test(const Position& point,
-                                  const std::array<Vertex, 8>& verts)
+bool hex_containment_test(const Position& point,
+                          const std::array<Vertex, 8>& verts)
 {
   static constexpr std::array<std::array<int, 4>, 6> k_hex_faces = {
     std::array<int, 4>{0, 1, 2, 3},
@@ -66,7 +66,7 @@ void HexahedronIntersectionFunc(RTCIntersectFunctionNArguments* args)
 
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
 
-  bool inside = plucker_hex_containment_test(ray_origin, verts);
+  bool inside = hex_containment_test(ray_origin, verts);
   if (!inside) return;
 
   rayhit->hit.u = 0.0;
@@ -97,7 +97,7 @@ void HexahedronOcclusionFunc(RTCOccludedFunctionNArguments* args)
   RTCElementDualRay* ray = (RTCElementDualRay*)args->ray;
   Position ray_origin = {ray->dorg[0], ray->dorg[1], ray->dorg[2]};
 
-  bool inside = plucker_hex_containment_test(ray_origin, verts);
+  bool inside = hex_containment_test(ray_origin, verts);
   if (!inside) return;
 
   ray->element = primitive_ref.primitive_id;
