@@ -100,6 +100,7 @@ void HexahedronOcclusionFunc(RTCOccludedFunctionNArguments* args)
   bool inside = hex_containment_test(ray_origin, verts);
   if (!inside) return;
 
+  // indicate that the query is complete due to a successful containment result
   ray->element = primitive_ref.primitive_id;
   ray->set_tfar(-INFTY);
 }
