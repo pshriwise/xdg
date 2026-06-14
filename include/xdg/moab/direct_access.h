@@ -89,10 +89,10 @@ public:
   //! \brief Get the connectivity of an element with explicit type
   inline std::vector<MeshID> get_element_connectivity(const EntityHandle& element, VolumeElementType element_type) {
     const auto& element_data = element_data_.at(element_type);
-    if (element_data.element_stride == 4) {
+    if (element_type == VolumeElementType::TET) {
       return to_mesh_ids(element_data.get_connectivity_indices<4>(element));
     }
-    if (element_data.element_stride == 8) {
+    if (element_type == VolumeElementType::HEX) {
       return to_mesh_ids(element_data.get_connectivity_indices<8>(element));
     }
     throw std::runtime_error("Unsupported element stride for connectivity");
@@ -109,6 +109,7 @@ public:
     }
     return vertices;
   }
+
   template <size_t N>
   std::vector<MeshID> to_mesh_ids(const std::array<size_t, N>& conn) const {
     return {conn.begin(), conn.end()};
@@ -126,10 +127,10 @@ public:
   //! \brief Get the coordinates of an element with explicit type
   inline std::vector<xdg::Vertex> get_element_coords(const EntityHandle& element, VolumeElementType element_type) {
     const auto& element_data = element_data_.at(element_type);
-    if (element_data.element_stride == 4) {
+    if (element_type == VolumeElementType::TET) {
       return to_vertices(element_data.get_connectivity_indices<4>(element));
     }
-    if (element_data.element_stride == 8) {
+    if (element_type == VolumeElementType::HEX) {
       return to_vertices(element_data.get_connectivity_indices<8>(element));
     }
     throw std::runtime_error("Unsupported element stride for coordinates");
