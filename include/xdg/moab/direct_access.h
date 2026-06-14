@@ -57,18 +57,6 @@ public:
     return accessible(tri, SurfaceFaceType::TRI);
   }
 
-  //! \brief Get the coordinates of a tet element as XDG Vertices
-  inline std::array<xdg::Vertex, 3> get_mb_coords(const EntityHandle& tri) {
-    const auto& face_data = face_data_.at(SurfaceFaceType::TRI);
-    auto [i0, i1, i2] = face_data.get_connectivity_indices<3>(tri);
-
-    std::array<xdg::Vertex, 3> vertices;
-    vertex_data_.set_coords(static_cast<int>(i0), vertices[0]);
-    vertex_data_.set_coords(static_cast<int>(i1), vertices[1]);
-    vertex_data_.set_coords(static_cast<int>(i2), vertices[2]);
-    return vertices;
-  }
-
   //! \brief Get the connectivity of a face
   inline std::vector<MeshID> get_face_connectivity(const EntityHandle& face, SurfaceFaceType face_type) {
     const auto& face_data = face_data_.at(face_type);
