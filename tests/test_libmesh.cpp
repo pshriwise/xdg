@@ -27,10 +27,6 @@
 using namespace xdg;
 using namespace xdg::test;
 
-void print_intersection(std::pair<double, MeshID> intersection) {
-  std::cout << "Intersection: " << intersection.first << " " << intersection.second << std::endl;
-}
-
 TEST_CASE("Test Brick")
 {
   std::unique_ptr<MeshManager> mesh_manager  {std::make_unique<LibMeshManager>()};

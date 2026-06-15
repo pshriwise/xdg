@@ -187,16 +187,21 @@ TEMPLATE_TEST_CASE("Test Area and Volume Spherical Mesh", "[measure][sphere]",
   }
 }
 
-TEMPLATE_TEST_CASE("TEST Quad Measurements", "[model_properties][quads]", MOAB_Interface)
+TEMPLATE_TEST_CASE("TEST Quad Measurements", "[model_properties][quads]", MOAB_Interface, LibMesh_Interface)
 {
   constexpr auto mesh_backend = TestType::value;
 
-  DYNAMIC_SECTION(fmt::format("Backend = {}", mesh_backend)) {
+  constexpr auto mesh_library = TestType::value;
+  const std::string file = mesh_library == MeshLibrary::MOAB ? "jezebel-quads.h5m"
+                                                            : "jezebel-quads.exo";
+
+
+  DYNAMIC_SECTION(fmt::format("Backend = {}, File = {}", mesh_backend, file)) {
     check_mesh_library_supported(mesh_backend); // skip if backend not enabled at configuration time
     std::shared_ptr<XDG> xdg = XDG::create(mesh_backend);
     REQUIRE(xdg->mesh_manager()->mesh_library() == mesh_backend);
     const auto& mesh_manager = xdg->mesh_manager();
-    mesh_manager->load_file("jezebel-quads.h5m");
+    mesh_manager->load_file(file);
     mesh_manager->init();
     xdg->prepare_raytracer();
 
