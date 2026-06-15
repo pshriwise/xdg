@@ -619,8 +619,9 @@ LibMeshManager::get_surface_face_type(MeshID surface) const {
     return SurfaceFaceType::UNSUPPORTED;
   }
 
-  // we've already checked that all faces in the surface have the same type,
-  // so we can just check the first one and return that type
+  // we've already validated that all faces in the surface have the same type,
+  // so we can rely on the type of the first face to determine the surface face
+  // type
   const auto& side_pair = sidepair(faces.front());
   return side_pair.face_type();
 }
@@ -632,6 +633,9 @@ LibMeshManager::get_volume_element_type(MeshID volume) const {
     fatal_error("Volume {} has no elements; cannot determine element type", volume);
   }
 
+  // we already validated that all elements in the volume have the same type, so
+  // we can rely on the type of the first element to determine the volume
+  // element type
   const auto elem_ptr = mesh()->elem_ptr(elements.front());
   if (!elem_ptr) {
     fatal_error("Invalid element ID {} in get_volume_element_type", elements.front());

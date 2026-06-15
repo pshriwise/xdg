@@ -125,6 +125,7 @@ enum class SurfaceFaceType {
 };
 
 enum class VolumeElementType {
+  UNSUPPORTED = -1,
   TET = 0,
   HEX = 1,
 };

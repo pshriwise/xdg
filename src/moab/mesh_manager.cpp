@@ -462,15 +462,20 @@ MOABMeshManager::get_volume_surfaces(MeshID volume) const
 SurfaceFaceType
 MOABMeshManager::get_surface_face_type(MeshID surface) const
 {
-  auto faces = this->_surface_faces(surface);
+  auto faces = this->get_surface_faces(surface);
 
-  if (faces.all_of_type(moab::MBTRI)) {
+  moab::EntityHandle face_handle;
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTRI, faces.front(), face_handle);
+  if (rval == moab::MB_SUCCESS) {
     return SurfaceFaceType::TRI;
   }
-  if (faces.all_of_type(moab::MBQUAD)) {
+
+  rval = this->moab_interface()->handle_from_id(moab::MBQUAD, faces.front(), face_handle);
+  if (rval == moab::MB_SUCCESS) {
     return SurfaceFaceType::QUAD;
   }
 
+  fatal_error("Unsupported MOAB face type for face {}", faces.front());
   return SurfaceFaceType::UNSUPPORTED;
 }
 
@@ -482,6 +487,8 @@ MOABMeshManager::get_volume_element_type(MeshID volume) const
     fatal_error("Volume {} has no elements; cannot determine element type", volume);
   }
 
+  // we already validated that all elements in the volume have the same type, so
+  // we can rely on the type of the first element to determine the volume
   moab::EntityHandle element_handle;
   auto rval = this->moab_interface()->handle_from_id(moab::MBTET, elements.front(), element_handle);
   if (rval == moab::MB_SUCCESS) {
@@ -494,7 +501,7 @@ MOABMeshManager::get_volume_element_type(MeshID volume) const
   }
 
   fatal_error("Unsupported MOAB element type for element {}", elements.front());
-  return VolumeElementType::TET;
+  return VolumeElementType::UNSUPPORTED;
 }
 
 moab::EntityHandle
