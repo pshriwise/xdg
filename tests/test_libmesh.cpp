@@ -562,7 +562,7 @@ TEST_CASE("Multiblock sidesets")
   assert(tracks.size() > 0);
 }
 
-TEMPLATE_TEST_CASE("TEST libMesh Raytrace Quads", "[moab][faces][quads]",
+TEMPLATE_TEST_CASE("TEST libMesh Raytrace Quads", "[libMesh][faces][quads]",
                    Embree_Raytracer)
 {
   constexpr auto rt_backend = TestType::value;
