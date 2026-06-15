@@ -3,12 +3,14 @@
 
 // Mock data for mesh interface testing
 #include <algorithm>
+#include <numeric>
 #include <unordered_map>
 #include <vector>
 
 #include "xdg/bbox.h"
 #include "xdg/constants.h"
 #include "xdg/error.h"
+#include "xdg/id_block_map.h"
 #include "xdg/vec3da.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/element_face_accessor.h"
@@ -29,6 +31,16 @@ public:
     for (int surface : surfaces_) {
       surface_sense_map_[surface] = {0, ID_NONE};
     }
+
+    // Setup vertex, face, and element ID to index maps
+    // each vertex and element is assigned a unique ID starting from 0
+    std::vector<int> vertex_ids(vertices_.size());
+    std::iota(vertex_ids.begin(), vertex_ids.end(), 0);
+    vertex_id_map_ = IDBlockMapping<MeshID>(vertex_ids);
+
+    std::vector<int> element_ids(tetrahedron_connectivity_.size());
+    std::iota(element_ids.begin(), element_ids.end(), 0);
+    volume_element_id_map_ = IDBlockMapping<MeshID>(element_ids);
   }
 
   // Required overloads
@@ -103,59 +115,6 @@ public:
   virtual std::vector<MeshID> face_connectivity(MeshID element) const override {
     const auto& conn = triangle_connectivity()[element];
     return {conn[0], conn[1], conn[2]};
-  }
-
-  std::vector<Vertex> get_volume_vertices(MeshID volume) const override
-  {
-    if (!volumetric_elements_) return {};
-
-    auto elements = get_volume_elements(volume);
-
-    std::unordered_map<int, int> handle_to_index;
-    std::vector<Vertex> vertices;
-    int local_index = 0;
-
-    for (const auto& element : elements) {
-      const auto& conn = tetrahedron_connectivity()[element];
-      for (const auto& global_index : conn) {
-        if (handle_to_index.find(global_index) == handle_to_index.end()) {
-          handle_to_index[global_index] = local_index++;
-          vertices.push_back(this->vertices()[global_index]);
-        }
-      }
-    }
-
-    return vertices;
-  }
-
-  std::vector<int> get_volume_connectivity(MeshID volume) const override
-  {
-    if (!volumetric_elements_) return {};
-
-    auto elements = get_volume_elements(volume);
-
-    std::unordered_map<int, int> handle_to_index;
-    int local_index = 0;
-
-    for (const auto& element : elements) {
-      const auto& conn = tetrahedron_connectivity()[element];
-      for (const auto& global_index : conn) {
-        if (handle_to_index.find(global_index) == handle_to_index.end()) {
-          handle_to_index[global_index] = local_index++;
-        }
-      }
-    }
-
-    std::vector<int> connectivity;
-    connectivity.reserve(elements.size() * 4);
-    for (const auto& element : elements) {
-      const auto& conn = tetrahedron_connectivity()[element];
-      for (const auto& global_index : conn) {
-        connectivity.push_back(handle_to_index[global_index]);
-      }
-    }
-
-    return connectivity;
   }
 
   // Topology
@@ -246,22 +205,6 @@ public:
 
   virtual MeshID adjacent_element(MeshID element, int face) const override {
     return element_adjacencies_.at(element)[face];
-  }
-
-  inline int element_index(MeshID element) const override {
-    return element;
-  }
-
-  inline MeshID element_id(size_t element_idx) const override {
-    return static_cast<MeshID>(element_idx);
-  }
-
-  inline MeshID vertex_id(size_t vertex_idx) const override {
-    return static_cast<MeshID>(vertex_idx);
-  }
-
-  inline int vertex_index(MeshID vertex) const override {
-    return static_cast<int>(vertex);
   }
 
   virtual Vertex vertex_coordinates(MeshID vertex_id) const override {
@@ -427,8 +370,6 @@ public:
   int num_vertices() const override { return static_cast<int>(vertices_.size()); }
 
   std::vector<MeshID> get_volume_elements(MeshID /*volume*/) const override { return {}; }
-  std::vector<MeshID> get_volume_connectivity(MeshID /*volume*/) const override { return {}; }
-  std::vector<Vertex> get_volume_vertices(MeshID /*volume*/) const override { return {}; }
 
   std::vector<MeshID> get_surface_faces(MeshID surface) const override {
     return surface_faces_.at(surface);
