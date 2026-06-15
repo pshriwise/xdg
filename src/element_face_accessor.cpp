@@ -28,8 +28,13 @@ std::shared_ptr<ElementFaceAccessor> ElementFaceAccessor::create(const MeshManag
   #endif
   // for testing
   if (mesh_manager->mesh_library() == MeshLibrary::MOCK) {
-    const MockedTriTetMesh* mock_mesh_manager = dynamic_cast<const MockedTriTetMesh*>(mesh_manager);
-    return std::make_shared<MockElementFaceAccessor>(mock_mesh_manager, element);
+    if (const auto* tri_tet_mesh = dynamic_cast<const MockedTriTetMesh*>(mesh_manager)) {
+      return std::make_shared<MockElementFaceAccessor>(tri_tet_mesh, element);
+    }
+    if (const auto* quad_hex_mesh = dynamic_cast<const MockedQuadHexMesh*>(mesh_manager)) {
+      return std::make_shared<MockHexElementFaceAccessor>(quad_hex_mesh, element);
+    }
+    fatal_error("ElementFaceAccessor::create: Unsupported mock mesh type");
   }
   fatal_error("ElementFaceAccessor::create: Unsupported mesh library");
   return nullptr;

@@ -334,7 +334,7 @@ struct MockElementFaceAccessor : public ElementFaceAccessor {
 
 namespace xdg {
 
-// A lightweight mesh for testing face representation (tri + quad).
+// A lightweight two-element hexahedral mesh.
 class MockedQuadHexMesh : public MeshManager {
 public:
   MockedQuadHexMesh() {
@@ -367,7 +367,9 @@ public:
     return 0;
   }
 
-  int num_volume_elements(MeshID /*volume*/) const override { return 0; }
+  int num_volume_elements(MeshID /*volume*/) const override {
+    return static_cast<int>(hexahedron_connectivity_.size());
+  }
   int num_volume_faces(MeshID volume) const override {
     int count = 0;
     for (auto surf : get_volume_surfaces(volume)) {
@@ -380,13 +382,21 @@ public:
   }
   int num_vertices() const override { return static_cast<int>(vertices_.size()); }
 
-  std::vector<MeshID> get_volume_elements(MeshID /*volume*/) const override { return {}; }
+  std::vector<MeshID> get_volume_elements(MeshID /*volume*/) const override { return {0, 1}; }
 
   std::vector<MeshID> get_surface_faces(MeshID surface) const override {
     return surface_faces_.at(surface);
   }
 
-  std::vector<Vertex> element_vertices(MeshID /*element*/) const override { return {}; }
+  std::vector<Vertex> element_vertices(MeshID element) const override {
+    const auto& connectivity = hexahedron_connectivity_.at(element);
+    std::vector<Vertex> element_vertices;
+    element_vertices.reserve(connectivity.size());
+    for (const auto vertex : connectivity) {
+      element_vertices.push_back(vertices_.at(vertex));
+    }
+    return element_vertices;
+  }
 
   std::vector<MeshID> face_vertices(MeshID face) const override {
     return face_connectivity_.at(face);
@@ -411,15 +421,18 @@ public:
     return VolumeElementType::HEX;
   }
 
-  MeshID adjacent_element(MeshID /*element*/, int /*face*/) const override {
-    return ID_NONE;
+  MeshID adjacent_element(MeshID element, int face) const override {
+    return element_adjacencies_.at(element).at(face);
   }
 
   Vertex vertex_coordinates(MeshID vertex_id) const override {
     return vertices_.at(vertex_id);
   }
 
-  std::vector<MeshID> element_connectivity(MeshID /*element*/) const override { return {}; }
+  std::vector<MeshID> element_connectivity(MeshID element) const override {
+    const auto& connectivity = hexahedron_connectivity_.at(element);
+    return {connectivity.begin(), connectivity.end()};
+  }
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override {
     auto it = volume_surfaces_map_.find(volume);
@@ -469,31 +482,81 @@ private:
     {1.0, 0.0, 1.0},
     {1.0, 1.0, 1.0},
     {0.0, 1.0, 1.0},
+    {2.0, 0.0, 0.0},
+    {2.0, 1.0, 0.0},
+    {2.0, 0.0, 1.0},
+    {2.0, 1.0, 1.0},
   };
 
-  // One unit-cube hexahedron using MBCN vertex ordering.
+  // Two unit-cube hexahedra using MBCN vertex ordering.
   const std::vector<std::array<int, 8>> hexahedron_connectivity_ {
-    {0, 1, 2, 3, 4, 5, 6, 7}
+    {0, 1, 2, 3, 4, 5, 6, 7},
+    {1, 8, 9, 2, 5, 10, 11, 6},
   };
 
-  // Boundary faces use counter-clockwise ordering when viewed from outside the hex.
+  // Exterior faces use counter-clockwise ordering when viewed from outside the volume.
   const std::unordered_map<MeshID, std::vector<MeshID>> face_connectivity_ {
-    {0, {4, 5, 6, 7}}, // top (+Z)
-    {1, {0, 3, 2, 1}}, // bottom (-Z)
-    {2, {0, 1, 5, 4}}, // front (-Y)
-    {3, {1, 2, 6, 5}}, // right (+X)
-    {4, {2, 3, 7, 6}}, // back (+Y)
-    {5, {3, 0, 4, 7}}, // left (-X)
+    {0, {4, 5, 6, 7}},    // top, element 0 (+Z)
+    {1, {5, 10, 11, 6}},  // top, element 1 (+Z)
+    {2, {0, 3, 2, 1}},    // bottom, element 0 (-Z)
+    {3, {1, 2, 9, 8}},    // bottom, element 1 (-Z)
+    {4, {0, 1, 5, 4}},    // front, element 0 (-Y)
+    {5, {1, 8, 10, 5}},   // front, element 1 (-Y)
+    {6, {8, 9, 11, 10}},  // right (+X)
+    {7, {2, 3, 7, 6}},    // back, element 0 (+Y)
+    {8, {9, 2, 6, 11}},   // back, element 1 (+Y)
+    {9, {3, 0, 4, 7}},    // left (-X)
   };
 
   const std::unordered_map<MeshID, std::vector<MeshID>> surface_faces_ {
-    {0, {0}},
-    {1, {1}},
-    {2, {2}},
-    {3, {3}},
-    {4, {4}},
-    {5, {5}},
+    {0, {0, 1}},
+    {1, {2, 3}},
+    {2, {4, 5}},
+    {3, {6}},
+    {4, {7, 8}},
+    {5, {9}},
   };
+
+  // Local face order: bottom, top, front, right, back, left.
+  const std::unordered_map<MeshID, std::array<MeshID, 6>> element_adjacencies_ {
+    {0, {ID_NONE, ID_NONE, ID_NONE, 1, ID_NONE, ID_NONE}},
+    {1, {ID_NONE, ID_NONE, ID_NONE, ID_NONE, ID_NONE, 0}},
+  };
+};
+
+struct MockHexElementFaceAccessor : public ElementFaceAccessor {
+  MockHexElementFaceAccessor(const MockedQuadHexMesh* mesh_manager, MeshID element)
+    : ElementFaceAccessor(element), mesh_manager_(mesh_manager)
+  {
+    const auto connectivity = mesh_manager_->element_connectivity(element);
+    for (size_t i = 0; i < connectivity.size(); ++i) {
+      element_vertices_[i] = mesh_manager_->vertex_coordinates(connectivity[i]);
+    }
+  }
+
+  std::vector<Vertex> face_vertices(int i) const override {
+    static constexpr std::array<std::array<int, 4>, 6> face_ordering {
+      std::array<int, 4> {0, 3, 2, 1},
+      std::array<int, 4> {4, 5, 6, 7},
+      std::array<int, 4> {0, 1, 5, 4},
+      std::array<int, 4> {1, 2, 6, 5},
+      std::array<int, 4> {2, 3, 7, 6},
+      std::array<int, 4> {3, 0, 4, 7},
+    };
+
+    const auto& face = face_ordering.at(i);
+    return {
+      element_vertices_[face[0]],
+      element_vertices_[face[1]],
+      element_vertices_[face[2]],
+      element_vertices_[face[3]],
+    };
+  }
+
+  int num_faces() const override { return 6; }
+
+  const MockedQuadHexMesh* mesh_manager_;
+  std::array<Vertex, 8> element_vertices_;
 };
 
 } // namespace xdg
