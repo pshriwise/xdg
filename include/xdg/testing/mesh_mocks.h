@@ -339,10 +339,21 @@ class MockedQuadHexMesh : public MeshManager {
 public:
   MockedQuadHexMesh() {
     volumes_ = {0};
-    surfaces_ = {0, 1};
+    surfaces_ = {0, 1, 2, 3, 4, 5};
     volume_surfaces_map_[0] = surfaces_;
-    surface_sense_map_[0] = {0, ID_NONE};
-    surface_sense_map_[1] = {0, ID_NONE};
+    for (const auto surface : surfaces_) {
+      surface_sense_map_[surface] = {0, ID_NONE};
+    }
+
+    // Setup vertex, face, and element ID to index maps
+    // each vertex and element is assigned a unique ID starting from 0
+    std::vector<int> vertex_ids(vertices_.size());
+    std::iota(vertex_ids.begin(), vertex_ids.end(), 0);
+    vertex_id_map_ = IDBlockMapping<MeshID>(vertex_ids);
+
+    std::vector<int> element_ids(hexahedron_connectivity_.size());
+    std::iota(element_ids.begin(), element_ids.end(), 0);
+    volume_element_id_map_ = IDBlockMapping<MeshID>(element_ids);
   }
 
   void load_file(const std::string& /*file_name*/) override {}
@@ -456,18 +467,32 @@ private:
     {0.0, 1.0, 0.0},
     {0.0, 0.0, 1.0},
     {1.0, 0.0, 1.0},
+    {1.0, 1.0, 1.0},
     {0.0, 1.0, 1.0},
   };
 
-  // Connectivity is CCW when viewed from +Z, yielding +Z normals (outward for a volume on -Z side).
+  // One unit-cube hexahedron using MBCN vertex ordering.
+  const std::vector<std::array<int, 8>> hexahedron_connectivity_ {
+    {0, 1, 2, 3, 4, 5, 6, 7}
+  };
+
+  // Boundary faces use counter-clockwise ordering when viewed from outside the hex.
   const std::unordered_map<MeshID, std::vector<MeshID>> face_connectivity_ {
-    {0, {0, 1, 2, 3}}, // quad (+Z normal)
-    {1, {4, 5, 6}},    // tri (+Z normal)
+    {0, {4, 5, 6, 7}}, // top (+Z)
+    {1, {0, 3, 2, 1}}, // bottom (-Z)
+    {2, {0, 1, 5, 4}}, // front (-Y)
+    {3, {1, 2, 6, 5}}, // right (+X)
+    {4, {2, 3, 7, 6}}, // back (+Y)
+    {5, {3, 0, 4, 7}}, // left (-X)
   };
 
   const std::unordered_map<MeshID, std::vector<MeshID>> surface_faces_ {
     {0, {0}},
     {1, {1}},
+    {2, {2}},
+    {3, {3}},
+    {4, {4}},
+    {5, {5}},
   };
 };
 

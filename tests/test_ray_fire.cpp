@@ -126,7 +126,7 @@ TEST_CASE("Quad Ray Fire on MockedQuadHexMesh (Embree)")
 
   MeshID volume = mm->volumes()[0];
 
-  Position origin {0.6, 0.6, 1.0};
+  Position origin {0.6, 0.6, 2.0};
   Direction dir {0.0, 0.0, -1.0};
 
   auto hit_any = rti->ray_fire(volume_tree, origin, dir, INFTY, HitOrientation::ENTERING);
@@ -137,5 +137,6 @@ TEST_CASE("Quad Ray Fire on MockedQuadHexMesh (Embree)")
   REQUIRE(hit_enter.second == 0);
 
   auto hit_exit = rti->ray_fire(volume_tree, origin, dir, INFTY, HitOrientation::EXITING);
-  REQUIRE(hit_exit.second == ID_NONE);
+  REQUIRE_THAT(hit_exit.first, Catch::Matchers::WithinAbs(2.0, 1e-6));
+  REQUIRE(hit_exit.second == 1);
 }
