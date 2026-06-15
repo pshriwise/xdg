@@ -82,10 +82,10 @@ void LibMeshManager::init() {
 
   map_id_spaces();
 
-  check_types();
+  check_face_and_element_types();
 }
 
-void LibMeshManager::check_types() const {
+void LibMeshManager::check_face_and_element_types() const {
   for (auto surface : surfaces_) {
     const auto& faces = surface_map_.at(surface);
     if (faces.empty()) {
@@ -102,6 +102,28 @@ void LibMeshManager::check_types() const {
       if (side_pair.face_type() != type) {
         fatal_error("Surface {} has mixed face types, which is not supported. Face ID {} has type {}, expected type {}.",
                     surface, face, side_pair.face_type(), type);
+      }
+
+    }
+  }
+
+  for (auto volume : volumes_) {
+    const auto& elements = get_volume_elements(volume);
+    if (elements.empty()) {
+      fatal_error("Volume {} has no elements, which is not supported", volume);
+    }
+
+    // get the type of the first element
+    const auto elem_ptr = mesh()->elem_ptr(elements[0]);
+    VolumeElementType type = get_volume_element_type(elements[0]);
+
+    // check that all other elements are the same type
+    for (const auto element : elements) {
+      const auto elem_ptr = mesh()->elem_ptr(element);
+      VolumeElementType elem_type = get_volume_element_type(element);
+      if (elem_type != type) {
+        fatal_error("Volume {} has mixed element types, which is not supported. Element ID {} has type {}, expected type {}.",
+                    volume, element, elem_type, type);
       }
     }
   }

@@ -61,7 +61,7 @@ public:
 
   void parse_metadata() override;
 
-  void check_types() const;
+  void check_face_and_element_types() const;
 
   int num_volumes() const override { return volumes_.size(); }
 
