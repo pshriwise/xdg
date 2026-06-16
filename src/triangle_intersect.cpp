@@ -13,22 +13,6 @@
 namespace xdg
 {
 
-void TriangleBoundsFunc(RTCBoundsFunctionArguments* args)
-{
-  const SurfaceUserData* user_data = (const SurfaceUserData*)args->geometryUserPtr;
-  const MeshManager* mesh_manager = user_data->mesh_manager;
-
-  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
-  BoundingBox bounds = mesh_manager->face_bounding_box(primitive_ref.primitive_id);
-
-  args->bounds_o->lower_x = bounds.min_x - user_data->box_bump;
-  args->bounds_o->lower_y = bounds.min_y - user_data->box_bump;
-  args->bounds_o->lower_z = bounds.min_z - user_data->box_bump;
-  args->bounds_o->upper_x = bounds.max_x + user_data->box_bump;
-  args->bounds_o->upper_y = bounds.max_y + user_data->box_bump;
-  args->bounds_o->upper_z = bounds.max_z + user_data->box_bump;
-}
-
 void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const SurfaceUserData* user_data = (const SurfaceUserData*)args->geometryUserPtr;
   const MeshManager* mesh_manager = user_data->mesh_manager;

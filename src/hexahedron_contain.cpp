@@ -18,7 +18,7 @@ bool hex_containment_test(const Position& point,
     std::array<int, 4>{1, 2, 6, 5},
     std::array<int, 4>{2, 3, 7, 6},
     std::array<int, 4>{3, 0, 4, 7}
-  };
+  };  
 
   Position centroid {0.0, 0.0, 0.0};
   for (const auto& v : verts) {

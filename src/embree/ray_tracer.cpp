@@ -2,6 +2,7 @@
 #include "xdg/error.h"
 #include "xdg/geometry_data.h"
 #include "xdg/quadrilateral_intersection.h"
+#include "xdg/bounds_functions.h"
 #include "xdg/ray.h"
 #include "xdg/tetrahedron_contain.h"
 #include "xdg/hexahedron_contain.h"
@@ -139,11 +140,11 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
 
   // Set RTC callbacks
   if (surface_data->element_type == SurfaceFaceType::TRI) {
-    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&TriangleBoundsFunc, nullptr);
+    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&SurfaceFaceBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
   } else if (surface_data->element_type == SurfaceFaceType::QUAD) {
-    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&QuadBoundsFunction, nullptr);
+    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&SurfaceFaceBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&QuadIntersectionFunction);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&QuadOcclusionFunction);
   } else {

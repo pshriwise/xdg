@@ -192,6 +192,7 @@ list(APPEND xdg_sources
 src/geometry/measure.cpp
 src/geometry/plucker.cpp
 src/geometry/closest.cpp
+src/bounding_functions.cpp
 src/error.cpp
 src/intersect_common.cpp
 src/mesh_manager_interface.cpp

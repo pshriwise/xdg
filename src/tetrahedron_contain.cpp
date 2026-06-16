@@ -44,23 +44,6 @@ bool plucker_tet_containment_test(const Position& point,
 
 // Embree callbacks
 
-void VolumeElementBoundsFunc(RTCBoundsFunctionArguments* args)
-{
-  const VolumeElementsUserData* user_data = (const VolumeElementsUserData*)args->geometryUserPtr;
-  const MeshManager* mesh_manager = user_data->mesh_manager;
-
-  const PrimitiveRef& primitive_ref = user_data->prim_ref_buffer[args->primID];
-
-  BoundingBox bounds = mesh_manager->element_bounding_box(primitive_ref.primitive_id);
-  double bump = bounds.dilation();
-
-  args->bounds_o->lower_x = bounds.min_x - bump;
-  args->bounds_o->lower_y = bounds.min_y - bump;
-  args->bounds_o->lower_z = bounds.min_z - bump;
-  args->bounds_o->upper_x = bounds.max_x + bump;
-  args->bounds_o->upper_y = bounds.max_y + bump;
-  args->bounds_o->upper_z = bounds.max_z + bump;
-}
 
 void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   const VolumeElementsUserData* user_data = (const VolumeElementsUserData*)args->geometryUserPtr;
