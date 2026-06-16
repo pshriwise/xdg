@@ -315,23 +315,25 @@ private:
   struct BoundaryFaceAdjacencyData {
     std::unordered_map<EntityHandle, EntityHandle> boundary_face_to_element_;
 
-    void setup(Interface* mbi, const ConnectivityData& face_data) {
+    void setup(Interface* mbi, const std::map<SurfaceFaceType, ConnectivityData>& face_data) {
       ErrorCode rval;
 
-      for (const auto& face : face_data.entity_range) {
-        auto conn = face_data.get_connectivity_indices<3>(face);
-        std::array<EntityHandle, 3> verts = {conn[0], conn[1], conn[2]};
+      for (const auto& [type, data] : face_data) {
+        for (const auto& face : data.entity_range) {
+          auto conn = data.get_connectivity_indices<3>(face);
+          std::array<EntityHandle, 3> verts = {conn[0], conn[1], conn[2]};
 
-        Range adjacent_elements;
-        rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, true, adjacent_elements);
-        MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB boundary face adjacencies");
+          Range adjacent_elements;
+          rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, true, adjacent_elements);
+          MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB boundary face adjacencies");
 
-        if (adjacent_elements.size() > 2) {
-          throw std::runtime_error("Found more than two elements adjacent to a face");
-        }
+          if (adjacent_elements.size() > 2) {
+            throw std::runtime_error("Found more than two elements adjacent to a face");
+          }
 
-        if (adjacent_elements.size() == 1) {
-          boundary_face_to_element_[face] = adjacent_elements[0];
+          if (adjacent_elements.size() == 1) {
+            boundary_face_to_element_[face] = adjacent_elements[0];
+          }
         }
       }
     }

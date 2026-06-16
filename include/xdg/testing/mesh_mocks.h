@@ -215,6 +215,14 @@ public:
     return {tetrahedron_connectivity().at(element).begin(), tetrahedron_connectivity().at(element).end()};
   }
 
+  virtual MeshID get_boundary_face_element(MeshID face) const override {
+    static const std::array<MeshID, 12> boundary_face_elements {{
+      0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 8, 9
+    }};
+    if (face < 0 || face >= static_cast<MeshID>(boundary_face_elements.size())) return ID_NONE;
+    return boundary_face_elements.at(face);
+  }
+
   // Other
   virtual MeshLibrary mesh_library() const override { return MeshLibrary::MOCK; }
 
@@ -332,6 +340,8 @@ struct MockElementFaceAccessor : public ElementFaceAccessor {
   std::array<std::array<int, 3>, 4> tet_connectivity_;
 };
 
+using MeshMock = MockedTriTetMesh;
+
 namespace xdg {
 
 // A lightweight two-element hexahedral mesh.
@@ -432,6 +442,14 @@ public:
   std::vector<MeshID> element_connectivity(MeshID element) const override {
     const auto& connectivity = hexahedron_connectivity_.at(element);
     return {connectivity.begin(), connectivity.end()};
+  }
+
+  MeshID get_boundary_face_element(MeshID face) const override {
+    static const std::array<MeshID, 10> boundary_face_elements {{
+      0, 1, 0, 1, 0, 1, 1, 0, 1, 0
+    }};
+    if (face < 0 || face >= static_cast<MeshID>(boundary_face_elements.size())) return ID_NONE;
+    return boundary_face_elements.at(face);
   }
 
   std::vector<MeshID> get_volume_surfaces(MeshID volume) const override {

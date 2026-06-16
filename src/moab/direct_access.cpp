@@ -29,41 +29,33 @@ MBDirectAccess::MBDirectAccess(Interface* mbi)
 
 void
 MBDirectAccess::setup() {
+  vertex_data_.setup(mbi);
   for (auto& [type, data] : face_data_) {
     data.setup(mbi);
   }
   for (auto& [type, data] : element_data_) {
     data.setup(mbi);
   }
-  vertex_data_.setup(mbi);
-<<<<<<< HEAD
-  element_adjacency_data_.setup(mbi);
-  boundary_face_adjacency_data_.setup(mbi, face_data_);
-=======
   for (auto& [type, data] : element_adjacency_data_) {
     data.setup(mbi);
   }
->>>>>>> 91afbd5 (Extending data layout of the MOAB direct access class to support multiple types)
+  boundary_face_adjacency_data_.setup(mbi, face_data_);
 }
 
 void
 MBDirectAccess::clear()
 {
+  vertex_data_.clear();
   for (auto& [type, data] : face_data_) {
     data.clear();
   }
   for (auto& [type, data] : element_data_) {
     data.clear();
   }
-  vertex_data_.clear();
-<<<<<<< HEAD
-  element_adjacency_data_.clear();
-  boundary_face_adjacency_data_.clear();
-=======
   for (auto& [type, data] : element_adjacency_data_) {
     data.clear();
   }
->>>>>>> 91afbd5 (Extending data layout of the MOAB direct access class to support multiple types)
+  boundary_face_adjacency_data_.clear();
 }
 
 void
