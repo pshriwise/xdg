@@ -25,13 +25,13 @@ TEST_CASE("Tetrahedron Intersection Unit Test")
   Position boundary_point(0.0, 0.0, 0.5); // On a face
 
   // Check containment
-  CHECK(plucker_tet_containment_test(inside_point, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(outside_point, v0, v1, v2, v3) == false);
-  CHECK(plucker_tet_containment_test(boundary_point, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(inside_point, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(outside_point, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(boundary_point, v0, v1, v2, v3) == true);
 
   // Check point that is co-planar with one of the faces, but outside the tet
   Position coplanar_exterior_point(-0.5, -0.5, 0.0);
-  CHECK(plucker_tet_containment_test(coplanar_exterior_point, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(coplanar_exterior_point, v0, v1, v2, v3) == false);
 
   // Test points near the faces but not coplanar
   Position near_face012(0.3, 0.3, 0.1);
@@ -39,10 +39,10 @@ TEST_CASE("Tetrahedron Intersection Unit Test")
   Position near_face023(0.1, 0.3, 0.3);
   Position near_face123(0.3, 0.3, 0.3);
 
-  CHECK(plucker_tet_containment_test(near_face012, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(near_face013, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(near_face023, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(near_face123, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(near_face012, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(near_face013, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(near_face023, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(near_face123, v0, v1, v2, v3) == true);
 
   // Test points just outside the tetrahedron
   Position just_outside_face012(0.3, 0.3, -0.1);
@@ -50,10 +50,10 @@ TEST_CASE("Tetrahedron Intersection Unit Test")
   Position just_outside_face023(-0.1, 0.3, 0.3);
   Position just_outside_face123(0.4, 0.4, 0.4);
 
-  CHECK(plucker_tet_containment_test(just_outside_face012, v0, v1, v2, v3) == false);
-  CHECK(plucker_tet_containment_test(just_outside_face013, v0, v1, v2, v3) == false);
-  CHECK(plucker_tet_containment_test(just_outside_face023, v0, v1, v2, v3) == false);
-  CHECK(plucker_tet_containment_test(just_outside_face123, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(just_outside_face012, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(just_outside_face013, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(just_outside_face023, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(just_outside_face123, v0, v1, v2, v3) == false);
 
   // Test points just inside the tetrahedron
   Position just_inside_face012(0.3, 0.3, 0.1);
@@ -61,10 +61,10 @@ TEST_CASE("Tetrahedron Intersection Unit Test")
   Position just_inside_face023(0.1, 0.3, 0.3);
   Position just_inside_face123(0.3, 0.3, 0.3);
 
-  CHECK(plucker_tet_containment_test(just_inside_face012, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(just_inside_face013, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(just_inside_face023, v0, v1, v2, v3) == true);
-  CHECK(plucker_tet_containment_test(just_inside_face123, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(just_inside_face012, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(just_inside_face013, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(just_inside_face023, v0, v1, v2, v3) == true);
+  CHECK(tet_containment_test(just_inside_face123, v0, v1, v2, v3) == true);
 
   // Create a second tetrahedron with different orientation
   Position v0_2(1.0, 1.0, 1.0);
@@ -78,18 +78,18 @@ TEST_CASE("Tetrahedron Intersection Unit Test")
   Position boundary_point_2(1.0, 1.0, 1.5);
 
   // Check containment for second tetrahedron
-  CHECK(plucker_tet_containment_test(inside_point_2, v0_2, v1_2, v2_2, v3_2) == true);
-  CHECK(plucker_tet_containment_test(outside_point_2, v0_2, v1_2, v2_2, v3_2) == false);
-  CHECK(plucker_tet_containment_test(boundary_point_2, v0_2, v1_2, v2_2, v3_2) == true);
+  CHECK(tet_containment_test(inside_point_2, v0_2, v1_2, v2_2, v3_2) == true);
+  CHECK(tet_containment_test(outside_point_2, v0_2, v1_2, v2_2, v3_2) == false);
+  CHECK(tet_containment_test(boundary_point_2, v0_2, v1_2, v2_2, v3_2) == true);
 
   // Test points near faces of second tetrahedron
   Position near_face_2(1.3, 1.3, 1.1);
   Position just_outside_face_2(1.3, 1.3, 0.9);
 
-  CHECK(plucker_tet_containment_test(near_face_2, v0_2, v1_2, v2_2, v3_2) == true);
-  CHECK(plucker_tet_containment_test(just_outside_face_2, v0_2, v1_2, v2_2, v3_2) == false);
+  CHECK(tet_containment_test(near_face_2, v0_2, v1_2, v2_2, v3_2) == true);
+  CHECK(tet_containment_test(just_outside_face_2, v0_2, v1_2, v2_2, v3_2) == false);
 
   // Test points that are in one tet but not the other
-  CHECK(plucker_tet_containment_test(inside_point, v0_2, v1_2, v2_2, v3_2) == false);
-  CHECK(plucker_tet_containment_test(inside_point_2, v0, v1, v2, v3) == false);
+  CHECK(tet_containment_test(inside_point, v0_2, v1_2, v2_2, v3_2) == false);
+  CHECK(tet_containment_test(inside_point_2, v0, v1, v2, v3) == false);
 }

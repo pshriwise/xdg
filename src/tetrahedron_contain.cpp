@@ -8,11 +8,11 @@
 namespace xdg
 {
 
-bool plucker_tet_containment_test(const Position& point,
-                                  const Position& v0,
-                                  const Position& v1,
-                                  const Position& v2,
-                                  const Position& v3) {
+bool tet_containment_test(const Position& point,
+                          const Position& v0,
+                          const Position& v1,
+                          const Position& v2,
+                          const Position& v3) {
     using namespace linalg::aliases;
     // Create matrix T = [v1 - v0, v2 - v0, v3 - v0]
     Vec3da e0 = v1 - v0;
@@ -60,7 +60,7 @@ void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
 
   // check the containment of the point
-  bool inside = plucker_tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
+  bool inside = tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
 
   if (!inside) return;
   // zero out the hit information
@@ -87,7 +87,7 @@ void TetrahedronOcclusionFunc(RTCOccludedFunctionNArguments* args)
   Position ray_origin = {ray->dorg[0], ray->dorg[1], ray->dorg[2]};
 
   // check the containment of the point
-  bool inside = plucker_tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
+  bool inside = tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
 
   if (!inside) return;
 
