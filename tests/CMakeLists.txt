@@ -16,8 +16,8 @@ test_no_geom
 test_ray_duals
 test_xdg_interface
 test_tet_containment
+test_hex_containment
 test_tracks
-test_tet_intersection
 test_tally_segments
 test_mesh_connectivity
 )

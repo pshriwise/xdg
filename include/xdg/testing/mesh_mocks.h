@@ -1,4 +1,4 @@
-#ifndef XDG_TESTING_MESH_MOCKS_H
+  #ifndef XDG_TESTING_MESH_MOCKS_H
 #define XDG_TESTING_MESH_MOCKS_H
 
 // Mock data for mesh interface testing
