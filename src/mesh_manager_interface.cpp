@@ -164,9 +164,21 @@ MeshManager::next_element(MeshID current_element,
     // with respect to the element
     int orientation = 1;
 
-    if (coords.size() == 3) {
-      std::array<Vertex, 3> tri {coords[0], coords[1], coords[2]};
-      auto result = plucker_ray_tri_intersect(tri.data(),
+    // intersect the a triangle composed of the first three vertices
+    auto result = plucker_ray_tri_intersect(coords.data(),
+                                             r,
+                                             u,
+                                             INFTY,
+                                             0.0,
+                                             true,
+                                             orientation);
+    hit_types[i] = result.hit;
+    if (result.hit) dists[i] = result.t;
+
+    // if this is a quad face (more than three vertices), we need to check the
+    // second triangle
+    if (!result.hit && coords.size() == 4) {
+      result = plucker_ray_tri_intersect(coords.data() + 1,
                                                r,
                                                u,
                                                INFTY,
@@ -174,37 +186,8 @@ MeshManager::next_element(MeshID current_element,
                                                true,
                                                orientation);
       hit_types[i] = result.hit;
-      if (hit_types[i]) dists[i] = result.t;
-    } else if (coords.size() == 4) {
-      std::array<Vertex, 3> tri0 {coords[0], coords[1], coords[2]};
-      std::array<Vertex, 3> tri1 {coords[0], coords[2], coords[3]};
-      auto result0 = plucker_ray_tri_intersect(tri0.data(),
-                                               r,
-                                               u,
-                                               INFTY,
-                                               0.0,
-                                               true,
-                                               orientation);
-      auto result1 = plucker_ray_tri_intersect(tri1.data(),
-                                               r,
-                                               u,
-                                               INFTY,
-                                               0.0,
-                                               true,
-                                               orientation);
-      bool hit0 = result0.hit;
-      bool hit1 = result1.hit;
-      double dist0 = result0.t;
-      double dist1 = result1.t;
-      if (hit0 || hit1) {
-        hit_types[i] = true;
-        if (hit0 && hit1) dists[i] = std::min(dist0, dist1);
-        else dists[i] = hit0 ? dist0 : dist1;
-      }
-    } else {
-      fatal_error("Unsupported face vertex count {} in next_element", coords.size());
+      if (result.hit) dists[i] = result.t;
     }
-
     // set distance and ensure it is non-negative
     dists[i] = std::max(0.0, dists[i]);
   }
