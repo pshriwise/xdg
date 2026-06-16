@@ -63,6 +63,17 @@ public:
 
   void check_face_and_element_types() const;
 
+  static VolumeElementType _elem_ptr_to_type(const libMesh::Elem *elem_ptr) {
+    switch (elem_ptr->type()) {
+    case libMesh::TET4:
+      return VolumeElementType::TET;
+    case libMesh::HEX8:
+      return VolumeElementType::HEX;
+    default:
+      return VolumeElementType::UNSUPPORTED;
+    }
+  }
+
   int num_volumes() const override { return volumes_.size(); }
 
   int num_surfaces() const override { return surfaces_.size(); }

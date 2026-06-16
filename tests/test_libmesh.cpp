@@ -293,7 +293,8 @@ TEST_CASE("Test Hex Point Location Jezebel Quads")
   xdg->prepare_raytracer();
 
   Position inside {0.0, 0.0, 0.0};
-  REQUIRE(xdg->find_element(inside) != ID_NONE);
+  MeshID expected_id = 33243;
+  REQUIRE(xdg->find_element(inside) == expected_id);
 
   Position outside {0.0, 0.0, 100.0};
   REQUIRE(xdg->find_element(outside) == ID_NONE);

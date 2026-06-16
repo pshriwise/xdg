@@ -108,19 +108,23 @@ void LibMeshManager::check_face_and_element_types() const {
   }
 
   for (auto volume : volumes_) {
-    const auto& elements = get_volume_elements(volume);
+    // the implicit complement contains no volumetric elements
+    // by definition, so we can skip the check for that volume
+    if (volume == this->implicit_complement()) continue;
+
+    const auto elements = get_volume_elements(volume);
     if (elements.empty()) {
       fatal_error("Volume {} has no elements, which is not supported", volume);
     }
 
     // get the type of the first element
     const auto elem_ptr = mesh()->elem_ptr(elements[0]);
-    VolumeElementType type = get_volume_element_type(elements[0]);
+    VolumeElementType type = get_volume_element_type(volume);
 
     // check that all other elements are the same type
     for (const auto element : elements) {
-      const auto elem_ptr = mesh()->elem_ptr(element);
-      VolumeElementType elem_type = get_volume_element_type(element);
+      const auto* elem_ptr = mesh()->elem_ptr(element);
+      VolumeElementType elem_type = _elem_ptr_to_type(elem_ptr);
       if (elem_type != type) {
         fatal_error("Volume {} has mixed element types, which is not supported. Element ID {} has type {}, expected type {}.",
                     volume, element, elem_type, type);
