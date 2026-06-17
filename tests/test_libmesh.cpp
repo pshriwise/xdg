@@ -310,7 +310,7 @@ TEST_CASE("Test Hex Element Walk Jezebel Quads")
   mesh_manager->init();
   xdg->prepare_raytracer();
 
-  Position inside {0.0, 0.0, 0.0};
+  Position inside {0.1, 0.1, 0.1};
   MeshID start_element = xdg->find_element(inside);
   REQUIRE(start_element != ID_NONE);
 

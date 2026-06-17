@@ -165,26 +165,28 @@ MeshManager::next_element(MeshID current_element,
     int orientation = 1;
 
     // intersect the a triangle composed of the first three vertices
-    auto result = plucker_ray_tri_intersect(coords.data(),
-                                             r,
-                                             u,
-                                             INFTY,
-                                             0.0,
-                                             true,
-                                             orientation);
+    std::array<Vertex, 3> tri = {coords[0], coords[1], coords[2]};
+    auto result = plucker_ray_tri_intersect(tri.data(),
+                                            r,
+                                            u,
+                                            INFTY,
+                                            0.0,
+                                            true,
+                                            orientation);
     hit_types[i] = result.hit;
     if (result.hit) dists[i] = result.t;
 
     // if this is a quad face (more than three vertices), we need to check the
     // second triangle
     if (!result.hit && coords.size() == 4) {
-      result = plucker_ray_tri_intersect(coords.data() + 1,
-                                               r,
-                                               u,
-                                               INFTY,
-                                               0.0,
-                                               true,
-                                               orientation);
+      tri = {coords[0], coords[2], coords[3]};
+      result = plucker_ray_tri_intersect(tri.data(),
+                                         r,
+                                         u,
+                                         INFTY,
+                                         0.0,
+                                         true,
+                                         orientation);
       hit_types[i] = result.hit;
       if (result.hit) dists[i] = result.t;
     }
