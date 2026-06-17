@@ -9,6 +9,10 @@ option(XDG_ENABLE_EMBREE  "Enable support for the Embree ray tracing library" ON
 option(XDG_ENABLE_GPRT    "Enable support for the GPRT ray tracing library"  OFF)
 option(XDG_BUILD_TESTS    "Enable C++ unit testing"                           ON)
 option(XDG_BUILD_TOOLS    "Enable tools and miniapps"                         ON)
+option(XDG_SINGLE_PRECISION "Use float for mesh primitives"                  OFF)
+if(XDG_SINGLE_PRECISION)
+  add_compile_definitions(XDG_SINGLE_PRECISION)
+endif()
 
 # Set version numbers
 set(XDG_VERSION_MAJOR 0)

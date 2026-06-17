@@ -12,7 +12,7 @@
 #include "xdg/bbox.h"
 #include "xdg/constants.h"
 #include "xdg/id_block_map.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 namespace xdg {
 
@@ -42,7 +42,7 @@ public:
   //! \param start The starting position of the ray
   //! \param end The ending position of the ray
   //! \return Vector of pairs containing element IDs and distances traveled through each element
-  std::vector<std::pair<MeshID, double>>
+  std::vector<std::pair<MeshID, Scalar>>
   walk_elements(MeshID starting_element,
                 const Position& start,
                 const Position& end) const;
@@ -54,11 +54,11 @@ public:
   //! \param u The normalized direction vector of the ray
   //! \param distance The total distance to travel along the ray
   //! \return Vector of pairs containing element IDs and distances traveled through each element
-  std::vector<std::pair<MeshID, double>>
+  std::vector<std::pair<MeshID, Scalar>>
   walk_elements(MeshID starting_element,
                 const Position& start,
                 const Direction& u,
-                double distance) const;
+                Scalar distance) const;
 
   //! \brief Find the next element along a ray from the current position.
   //! \note It is assumed that the provided position is within the element.
@@ -66,7 +66,7 @@ public:
   //! \param r The current position within the element
   //! \param u The normalized direction vector of the ray
   //! \return Pair containing the next element ID and distance to the exit point
-  std::pair<MeshID, double>
+  std::pair<MeshID, Scalar>
   next_element(MeshID current_element,
                const Position& r,
                const Position& u) const;
@@ -133,7 +133,7 @@ public:
   //! \brief Get the volume of a given element
   //! \param element The element ID
   //! \return The volume of the element
-  virtual double element_volume(MeshID element) const = 0;
+  virtual Scalar element_volume(MeshID element) const = 0;
 
   //! \brief Get the coordinates of a vertex by its ID
   //! \param vertex_id The vertex ID

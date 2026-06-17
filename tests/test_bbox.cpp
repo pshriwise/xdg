@@ -7,7 +7,7 @@
 
 // xdg includes
 #include "xdg/bbox.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 using namespace xdg;
 
@@ -52,7 +52,7 @@ TEST_CASE("Test BoundingBox")
   REQUIRE(center.z == 1.5);
 
   // Test width() method
-  Vec3da width = c.width();
+  Direction width = c.width();
   REQUIRE(width.x == 7.0);
   REQUIRE(width.y == 9.0);
   REQUIRE(width.z == 11.0);

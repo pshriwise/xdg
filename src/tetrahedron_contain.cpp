@@ -1,7 +1,7 @@
 #include "xdg/constants.h"
 #include "xdg/ray_tracing_interface.h"
 #include "xdg/ray.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 #include "xdg/util/linalg.h"
 
@@ -13,26 +13,26 @@ bool plucker_tet_containment_test(const Position& point,
                                   const Position& v1,
                                   const Position& v2,
                                   const Position& v3) {
-    using namespace linalg::aliases;
+    using namespace linalg;
     // Create matrix T = [v1 - v0, v2 - v0, v3 - v0]
-    Vec3da e0 = v1 - v0;
-    Vec3da e1 = v2 - v0;
-    Vec3da e2 = v3 - v0;
-    double3x3 T = { {e0.x, e0.y, e0.z},
-                   {e1.x, e1.y, e1.z},
-                   {e2.x, e2.y, e2.z}};
+    Position e0 = v1 - v0;
+    Position e1 = v2 - v0;
+    Position e2 = v3 - v0;
+    mat<Scalar, 3, 3> T = { {e0.x, e0.y, e0.z},
+                            {e1.x, e1.y, e1.z},
+                            {e2.x, e2.y, e2.z}};
 
     // Vector from v0 to point
-    Vec3da rhs = point - v0;
+    Position rhs = point - v0;
 
     // Solve T * [λ1, λ2, λ3] = rhs
-    double3 lambda123 = mul(inverse(T),{rhs.x, rhs.y, rhs.z});
+    vec<Scalar, 3> lambda123 = mul(inverse(T),{rhs.x, rhs.y, rhs.z});
 
     // Compute λ0
-    double lambda0 = 1.0f - (lambda123.x + lambda123.y + lambda123.z);
+    Scalar lambda0 = 1.0f - (lambda123[0] + lambda123[1] + lambda123[2]);
 
     // Final barycentric coordinate vector
-    double4 bary = { lambda0, lambda123.x, lambda123.y, lambda123.z };
+    vec<Scalar, 4> bary = { lambda0, lambda123[0], lambda123[1], lambda123[2] };
 
     // Check all λ_i in [0, 1]
     for (int i = 0; i < 4; ++i) {
@@ -74,18 +74,14 @@ void TetrahedronIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   RTCSurfaceDualRay& ray = rayhit->ray;
   RTCDualHit& hit = rayhit->hit;
 
-  Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
-
   // check the containment of the point
-  bool inside = plucker_tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
+  bool inside = plucker_tet_containment_test(ray.get_org(), vertices[0], vertices[1], vertices[2], vertices[3]);
 
   if (!inside) return;
   // zero out the hit information
   rayhit->hit.u = 0.0;
   rayhit->hit.v = 0.0;
-  rayhit->hit.Ng_x = 0.0;
-  rayhit->hit.Ng_y = 0.0;
-  rayhit->hit.Ng_z = 0.0;
+  rayhit->hit.set_Ng({0.0, 0.0, 0.0});
   // set the hit information
   rayhit->hit.geomID = args->geomID;
   rayhit->hit.primID = args->primID;
@@ -101,10 +97,9 @@ void TetrahedronOcclusionFunc(RTCOccludedFunctionNArguments* args)
   auto vertices = mesh_manager->element_vertices(primitive_ref.primitive_id);
 
   RTCElementDualRay* ray = (RTCElementDualRay*)args->ray;
-  Position ray_origin = {ray->dorg[0], ray->dorg[1], ray->dorg[2]};
 
   // check the containment of the point
-  bool inside = plucker_tet_containment_test(ray_origin, vertices[0], vertices[1], vertices[2], vertices[3]);
+  bool inside = plucker_tet_containment_test(ray->get_org(), vertices[0], vertices[1], vertices[2], vertices[3]);
 
   if (!inside) return;
 

@@ -7,7 +7,7 @@
 
 #include "xdg/ray_tracing_interface.h"
 #include "xdg/tetrahedron_contain.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 using namespace xdg;
 

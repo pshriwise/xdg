@@ -8,7 +8,7 @@
 
 #include "xdg/error.h"
 #include "progress_bars.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/timer.h"
 #include "xdg/bbox.h"
 

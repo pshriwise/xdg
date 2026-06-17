@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "xdg/error.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/xdg.h"
 
 #include "argparse/argparse.hpp"
@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
     exit(0);
   }
 
-  Position position = args.get<std::vector<double>>("--position");
-  Direction direction = args.get<std::vector<double>>("--direction");
+  Position position = args.get<std::vector<Scalar>>("--position");
+  Direction direction = args.get<std::vector<Scalar>>("--direction");
 
   MeshID volume = xdg->find_volume(position, direction);
 

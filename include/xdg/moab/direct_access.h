@@ -10,7 +10,7 @@
 
 #include "xdg/constants.h"
 #include "xdg/id_block_map.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 
 using namespace moab;

@@ -4,7 +4,7 @@
 
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/xdg.h"
 
 using namespace xdg;
@@ -17,12 +17,18 @@ struct SimulationData {
   bool verbose_particles_ {false};
   bool implicit_complement_is_graveyard_ {false};
   std::unordered_map<MeshID, double> cell_tracks;
+  std::vector<std::pair<Position, MeshID>> valid_states;
+  int n_lost {0};
+  int n_stuck {0};
 };
 
 struct Particle {
 
-Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events, bool verbose=true, bool ipc_graveyard=false)
-: verbose_(verbose), xdg_(xdg), id_(id), max_events_(max_events), ipc_graveyard_(ipc_graveyard) {}
+Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events,
+         const std::vector<std::pair<Position, MeshID>>& valid_states,
+         bool verbose=true, bool ipc_graveyard=false)
+  : verbose_(verbose), xdg_(xdg), id_(id), max_events_(max_events),
+    valid_states_(valid_states), ipc_graveyard_(ipc_graveyard) {}
 
 template<typename... Params>
 void log (const std::string& msg, const Params&... fmt_args) {
@@ -33,8 +39,7 @@ void log (const std::string& msg, const Params&... fmt_args) {
 void initialize() {
   // TODO: replace with sampling
   r_ = {0.0, 0.0, 0.0};
-  u_ = {1.0, 0.0, 0.0};
-
+  u_ = rand_dir();
   volume_ = xdg_->find_volume(r_, u_);
   log("Particle {} initialized in volume {}", id_, volume_);
 }
@@ -42,12 +47,30 @@ void initialize() {
 void surf_dist() {
   surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::EXITING, &history_);
   if (surface_intersection_.first == 0.0) {
-    fatal_error("Particle {} stuck at position ({}, {}, {}) on surfacce {}", id_, r_.x, r_.y, r_.z, surface_intersection_.second);
+    auto [dist, surf] = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::ANY, nullptr);
+    auto [dist_back, surf_back] = xdg_->ray_fire(volume_, r_, {-u_.x, -u_.y, -u_.z}, INFTY, HitOrientation::ANY, nullptr);
+    write_message(fmt::format(
+      "STUCK: particle {} at ({}, {}, {}) in volume {} | dir ({}, {}, {}) | "
+      "fwd surf dist {} | back surf dist {} | events {} events_since_coll {}",
+      id_, r_.x, r_.y, r_.z, volume_, u_.x, u_.y, u_.z,
+      dist, dist_back,
+      total_events_, n_events_));
+    n_stuck++;
     alive_ = false;
     return;
   }
   if (surface_intersection_.second == ID_NONE) {
-    fatal_error("Particle {} lost in volume {}", id_, volume_);
+    // Find nearest surface for diagnostics
+    auto [dist, surf] = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::ANY, nullptr);
+    auto [dist_back, surf_back] = xdg_->ray_fire(volume_, r_, {-u_.x, -u_.y, -u_.z}, INFTY, HitOrientation::ANY, nullptr);
+
+    write_message(fmt::format(
+      "LOST: particle {} at ({}, {}, {}) in volume {} | dir ({}, {}, {}) | "
+      "fwd surf dist {} | back surf dist {} | events {} events_since_coll {}",
+      id_, r_.x, r_.y, r_.z, volume_, u_.x, u_.y, u_.z,
+      dist, dist_back,
+      total_events_, n_events_));
+    n_lost++;
     alive_ = false;
     return;
   }
@@ -60,6 +83,7 @@ void sample_collision_distance(double mfp) {
 
 void collide() {
   n_events_++;
+  total_events_++;
   log("Event {} for particle {}", n_events_, id_);
   u_ = rand_dir();
   log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.z, u_.y, u_.z);
@@ -119,6 +143,7 @@ void cross_surface()
 }
 
 // Data Members
+const std::vector<std::pair<Position, MeshID>>& valid_states_;
 bool verbose_ {true};
 std::shared_ptr<XDG> xdg_;
 uint32_t id_ {0};
@@ -133,23 +158,33 @@ std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
 double collision_distance_ {INFTY};
 int32_t n_events_ {0};
 bool alive_ {true};
+int n_lost {0};
+int n_stuck {0};
+int32_t total_events_ {0};
 };
 
 void transport_particles(SimulationData& sim_data) {
-  // Problem Setup
   srand48(42);
   for (uint32_t i = 0; i < sim_data.n_particles_; i++) {
-    Particle p {sim_data.xdg_, i, sim_data.max_events_, sim_data.verbose_particles_, sim_data.implicit_complement_is_graveyard_};
+    Particle p {sim_data.xdg_, i, sim_data.max_events_,
+            sim_data.valid_states,
+            sim_data.verbose_particles_,
+            sim_data.implicit_complement_is_graveyard_};
     p.initialize();
-    while (p.alive_) {
+    while (p.alive_ && p.n_events_ < p.max_events_) {
       p.surf_dist();
+      if (!p.alive_) break;
+
       p.sample_collision_distance(sim_data.mfp_);
       p.advance(sim_data.cell_tracks);
+      
       if (p.collision_distance_ < p.surface_intersection_.first) {
         p.collide();
       } else {
         p.cross_surface();
       }
     }
+    sim_data.n_stuck += p.n_stuck;
+    sim_data.n_lost += p.n_lost;
   }
 }

@@ -6,6 +6,7 @@ point_in_volume
 overlap_check
 walk_elements
 tally_segments
+test_fp_miniapp
 )
 
 #===============================================================================

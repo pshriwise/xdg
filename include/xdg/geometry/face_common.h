@@ -2,7 +2,7 @@
 #define XDG_GEOMETRY_TRIANGLE_INTERSECT_H
 
 #include <array>
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 namespace xdg {
 

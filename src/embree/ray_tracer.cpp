@@ -251,7 +251,7 @@ MeshID EmbreeRayTracer::find_element(ElementTreeID tree,
     rtcOccluded1(scene, (RTCRay*)&ray);
   }
 
-  if (ray.dtfar != -INFTY) return ID_NONE;
+  if (ray.get_tfar() != -INFTY) return ID_NONE;
 
   return ray.element;
 }
@@ -283,7 +283,7 @@ bool EmbreeRayTracer::point_in_volume(SurfaceTreeID tree,
 
   // use the hit triangle normal to determine if the intersection is
   // exiting or entering
-  return rayhit.ray.ddir.dot(rayhit.hit.dNg) > 0.0;
+  return rayhit.ray.get_dir().dot(rayhit.hit.get_Ng()) > 0.0;
 }
 
 std::pair<double, MeshID>
@@ -312,9 +312,7 @@ EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
   {
     rtcIntersect1(scene, (RTCRayHit*)&rayhit);
     // TODO: I don't quite understand this...
-    rayhit.hit.Ng_x *= -1.0;
-    rayhit.hit.Ng_y *= -1.0;
-    rayhit.hit.Ng_z *= -1.0;
+    rayhit.hit.set_Ng(-rayhit.hit.get_Ng());
   }
 
   if (rayhit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
@@ -322,7 +320,7 @@ EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
   else
 
     if (exclude_primitves) exclude_primitves->push_back(rayhit.hit.primitive_ref->primitive_id);
-    return {rayhit.ray.dtfar, rayhit.hit.surface};
+    return {rayhit.ray.get_tfar(), rayhit.hit.surface};
 }
 
 std::pair<double, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
@@ -341,7 +339,7 @@ std::pair<double, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
     return {INFTY, ID_NONE};
   }
 
-  return {query.dradius, query.primitive_ref->primitive_id};
+  return {query.get_radius(), query.primitive_ref->primitive_id};
 }
 
 bool EmbreeRayTracer::occluded(SurfaceTreeID tree,
@@ -365,7 +363,7 @@ bool EmbreeRayTracer::occluded(SurfaceTreeID tree,
     rtcOccluded1(scene, (RTCRay*)&ray);
   }
 
-  distance = ray.dtfar;
+  distance = ray.get_tfar();
   return distance != INFTY;
 }
 

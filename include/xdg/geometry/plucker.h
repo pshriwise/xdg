@@ -22,7 +22,7 @@ namespace xdg {
 
 struct PluckerIntersectionResult {
   bool hit = false;    // Whether an intersection occurred
-  double t = 0.0;      // Distance along the ray to the intersection point
+  Scalar t = 0.0;      // Distance along the ray to the intersection point
 };
 
 static constexpr PluckerIntersectionResult EXIT_EARLY = {false, 0.0};
@@ -42,10 +42,10 @@ inline bool first(dp::vec3 a, dp::vec3 b) {
   return a[2] < b[2];
 }
 
-inline double plucker_edge_test(dp::vec3 vertexa, dp::vec3 vertexb,
+inline Scalar plucker_edge_test(dp::vec3 vertexa, dp::vec3 vertexb,
                                 dp::vec3 ray, dp::vec3 ray_normal)
 {
-  double pip;
+  Scalar pip;
   if (first(vertexa, vertexb)) {
     const dp::vec3 edge = vertexb - vertexa;
     const dp::vec3 edge_normal = dp::cross(edge, vertexa);
@@ -64,18 +64,18 @@ inline double plucker_edge_test(dp::vec3 vertexa, dp::vec3 vertexb,
 inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
                                 dp::vec3 origin,
                                 dp::vec3 direction,
-                                double tMax,
-                                double tMin,
-                                bool useOrientation,
+                                Scalar tMax,
+                                Scalar tMin,
+                                Scalar useOrientation,
                                 int orientation)
 {
-  double dist_out = dp::INFTY;
+  Scalar dist_out = dp::INFTY;
 
   const dp::vec3 raya = direction;
   const dp::vec3 rayb = dp::cross(direction, origin);
 
   // Determine the value of the first Plucker coordinate from edge 0
-  double plucker_coord0 =
+  Scalar plucker_coord0 =
     plucker_edge_test(vertices[0], vertices[1], raya, rayb);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
@@ -85,7 +85,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
   }
 
   // Determine the value of the second Plucker coordinate from edge 1
-  double plucker_coord1 =
+  Scalar plucker_coord1 =
     plucker_edge_test(vertices[1], vertices[2], raya, rayb);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
@@ -102,7 +102,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
   }
 
   // Determine the value of the third Plucker coordinate from edge 2
-  double plucker_coord2 =
+  Scalar plucker_coord2 =
     plucker_edge_test(vertices[2], vertices[0], raya, rayb);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
@@ -126,7 +126,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
   }
 
   // get the distance to intersection
-  const double inverse_sum =
+  const Scalar inverse_sum =
     1.0 / (plucker_coord0 + plucker_coord1 + plucker_coord2);
 
   const dp::vec3 intersection = dp::vec3(plucker_coord0 * inverse_sum * vertices[2] +
@@ -135,7 +135,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
 
   // To minimize numerical error, get index of largest magnitude direction.
   int idx = 0;
-  double max_abs_dir = 0;
+  Scalar max_abs_dir = 0;
   for (uint i = 0; i < 3; ++i) {
     if (dp::abs(direction[i]) > max_abs_dir) {
       idx = i;
@@ -146,8 +146,8 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
   dist_out = (intersection[idx] - origin[idx]) / direction[idx];
 
   // Barycentric coords check
-  double u = plucker_coord2 * inverse_sum;
-  double v = plucker_coord0 * inverse_sum;
+  Scalar u = plucker_coord2 * inverse_sum;
+  Scalar v = plucker_coord0 * inverse_sum;
 
   // Barycentric coords check
   if (u < 0.0 || v < 0.0 || (u + v) > 1.0) {

@@ -1,7 +1,7 @@
 #ifndef _XDG_AREA_H
 #define _XDG_AREA_H
 
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 namespace xdg {
 

@@ -4,7 +4,7 @@
 
 
 #include "xdg/constants.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 namespace xdg {
 

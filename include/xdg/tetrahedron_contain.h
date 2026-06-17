@@ -2,7 +2,7 @@
 #define XDG_TETRAHEDRON_INTERSECT_H
 
 
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 namespace xdg
 {

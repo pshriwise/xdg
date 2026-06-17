@@ -13,7 +13,7 @@
 #include "xdg/moab/tag_conventions.h"
 #include "xdg/util/str_utils.h"
 #include "xdg/geometry/measure.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
 #include "moab/Skinner.hpp"
 
@@ -441,9 +441,9 @@ MOABMeshManager::vertex_coordinates(MeshID vertex_id) const
 {
   moab::EntityHandle vertex_handle;
   this->moab_interface()->handle_from_id(moab::MBVERTEX, vertex_id, vertex_handle);
-  xdg::Vertex vertex;
-  this->moab_interface()->get_coords(&vertex_handle, 1, &(vertex[0]));
-  return vertex;
+  double vertex[3];
+  this->moab_interface()->get_coords(&vertex_handle, 1, vertex);
+  return Vertex(vertex[0], vertex[1], vertex[2]);
 }
 
 std::vector<MeshID>
@@ -476,8 +476,7 @@ MOABMeshManager::get_boundary_face_element(MeshID face) const
   return this->moab_interface()->id_from_handle(element_handle);
 }
 
-double
-MOABMeshManager::element_volume(MeshID element) const
+Scalar MOABMeshManager::element_volume(MeshID element) const
 {
   moab::EntityHandle element_handle;
   this->moab_interface()->handle_from_id(moab::MBTET, element, element_handle);

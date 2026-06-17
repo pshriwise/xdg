@@ -61,21 +61,17 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   RTCSurfaceDualRay& ray = rayhit->ray;
   RTCDualHit& hit = rayhit->hit;
 
-  Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
-  Direction ray_direction = {ray.ddir[0], ray.ddir[1], ray.ddir[2]};
-
   // local variable for distance to the triangle intersection
   auto result = plucker_ray_tri_intersect(vertices.data(), 
-                                          ray_origin, 
-                                          ray_direction,
-                                          rayhit->ray.dtfar,
+                                          ray.get_org(),
+                                          ray.get_dir(),
+                                          ray.get_tfar(),
                                           0.0,
                                           false,
                                           0);
   if (!result.hit) return;
-  double plucker_dist = result.t;
-
-  if (plucker_dist > rayhit->ray.dtfar) return;
+  Scalar plucker_dist = result.t;
+  if (plucker_dist > ray.get_tfar()) return;
 
   Direction normal = mesh_manager->face_normal(primitive_ref.primitive_id);
 
@@ -87,7 +83,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   }
 
   if (rayhit->ray.rf_type == RayFireType::VOLUME) {
-   if (orientation_cull(rayhit->ray.ddir, normal, rayhit->ray.orientation)) return;
+   if (orientation_cull(ray.get_dir(), normal, rayhit->ray.orientation)) return;
    if (primitive_mask_cull(rayhit, primitive_ref.primitive_id)) return;
   }
 
@@ -97,15 +93,12 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   // zero-out barycentric coords
   rayhit->hit.u = 0.0;
   rayhit->hit.v = 0.0;
-  rayhit->hit.Ng_x = 0.0;
-  rayhit->hit.Ng_y = 0.0;
-  rayhit->hit.Ng_z = 0.0;
   // set the hit information
   rayhit->hit.geomID = args->geomID;
   rayhit->hit.primID = args->primID;
   rayhit->hit.primitive_ref = &primitive_ref;
   rayhit->hit.surface = user_data->surface_id;
-  rayhit->hit.dNg = normal;
+  rayhit->hit.set_Ng(normal);
 }
 
 bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
@@ -119,14 +112,14 @@ bool TriangleClosestFunc(RTCPointQueryFunctionArguments* args) {
   auto vertices = mesh_manager->face_vertices(primitive_ref.primitive_id);
 
   RTCDPointQuery* query = (RTCDPointQuery*) args->query;
-  Position p {query->dblx, query->dbly, query->dblz};
+  Position p = query->get_point();
+  Scalar radius = query->get_radius();
 
   Position result = closest_location_on_triangle(vertices, p);
 
-  double dist = (result - p).length();
-  if ( dist < query->dradius) {
-    query->radius = dist;
-    query->dradius = dist;
+  Scalar dist = (result - p).length();
+  if ( dist < radius) {
+    query->set_radius(dist);
     query->primitive_ref = &primitive_ref;
     query->primID = args->primID;
     query->geomID = args->geomID;
@@ -145,15 +138,14 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
 
   // get the double precision ray from the args
   RTCSurfaceDualRay* ray = (RTCSurfaceDualRay*) args->ray;
-
   auto result = plucker_ray_tri_intersect(vertices.data(), 
-                                          ray->dorg, 
-                                          ray->ddir,
-                                          ray->dtfar,
+                                          ray->get_org(),
+                                          ray->get_dir(),
+                                          ray->get_tfar(),
                                           0.0,
                                           false,
                                           0);
-  double plucker_dist = result.t;
+  Scalar plucker_dist = result.t;
 
   if (result.hit) {
     ray->set_tfar(-INFTY);

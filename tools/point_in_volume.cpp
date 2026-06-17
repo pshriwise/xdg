@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "xdg/error.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/xdg.h"
 
 #include "argparse/argparse.hpp"
@@ -90,8 +90,8 @@ else
   }
 
   MeshID volume = args.get<int>("volume");
-  Position position = args.get<std::vector<double>>("--position");
-  Direction direction = args.get<std::vector<double>>("--direction");
+  Position position = args.get<std::vector<Scalar>>("--position");
+  Direction direction = args.get<std::vector<Scalar>>("--direction");
 
   xdg->prepare_volume_for_raytracing(volume);
   rti->init(); // Typically called during XDG::prepare_raytracer(). Required to build SBT after volume registration.

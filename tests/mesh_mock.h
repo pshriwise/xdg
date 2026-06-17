@@ -5,7 +5,7 @@
 #include "xdg/bbox.h"
 #include "xdg/constants.h"
 #include "xdg/error.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/mesh_manager_interface.h"
 #include "xdg/element_face_accessor.h"
 
@@ -179,7 +179,7 @@ public:
     return element_adjacencies_.at(element)[face];
   }
 
-  virtual double element_volume(MeshID element) const override {
+  virtual Scalar element_volume(MeshID element) const override {
     const auto& conn = tetrahedron_connectivity()[element];
     std::array<Vertex, 4> verts = {
       vertices()[conn[0]],

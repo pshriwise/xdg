@@ -222,8 +222,15 @@ XDG::segments(MeshID volume,
   }
 
   if (starting_element == ID_NONE) return {};
+
   auto segments = mesh_manager()->walk_elements(starting_element, start_copy, end);
-  return segments;
+  std::vector<std::pair<MeshID, double>> result;
+  result.reserve(segments.size());
+  // Upcast to preserve xdg double return
+  for (auto& [id, dist] : segments) {
+    result.emplace_back(id, static_cast<double>(dist));
+  }
+  return result;
 }
 
 std::pair<MeshID, double>

@@ -152,42 +152,6 @@ __forceinline std::ostream& operator <<(std::ostream &os, Vec3da  const& v) {
   return os << '[' << v[0] << ' ' << v[1] << ' ' << v[2] << ' ' << v.a << ']';
 }
 
-//! Determine if a position is lexicographically higher or lower than another
-//! position
-inline bool lower(const Vec3da& a, const Vec3da& b)
-{
-  for (int i = 0; i < 3; i++)
-  if (a[i] != b[i])
-      return a[i] < b[i];
-  return false;
-}
-
-// Type aliases
-using Vertex = Vec3da;
-using Position = Vec3da;
-using Direction = Vec3da;
-
-inline Direction rand_dir() {
-  double theta = drand48() * 2.0 * M_PI;
-  double u = 2.0*drand48() - 1.0;
-  double phi = acos(u);
-  return Direction(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi)).normalize();
-
-}
-
 } // end namespace xdg
-
-namespace fmt {
-template<>
-struct formatter<xdg::Vec3da> : formatter<std::string> {
-  template<typename FormatContext>
-  auto format(const xdg::Vec3da& v, FormatContext& ctx)
-  {
-    return formatter<std::string>::format(
-      fmt::format("({}, {}, {})", v.x, v.y, v.z), ctx);
-  }
-};
-
-} // end namespace fmt
 
 #endif // include guard

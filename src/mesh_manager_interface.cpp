@@ -103,15 +103,15 @@ MeshManager::get_surface_property(MeshID surface, PropertyType type) const
   return surface_metadata_.at({surface, type});
 }
 
-std::vector<std::pair<MeshID, double>>
+std::vector<std::pair<MeshID, Scalar>>
 MeshManager::walk_elements(MeshID starting_element,
                            const Position& start,
                            const Direction& u,
-                           double distance) const
+                           Scalar distance) const
 {
   // a copy of the start position that will be updated as elements are traversed
   Position r = start;
-  std::vector<std::pair<MeshID, double>> result;
+  std::vector<std::pair<MeshID, Scalar>> result;
 
   MeshID elem = starting_element;
   while (distance > 0) {
@@ -123,7 +123,7 @@ MeshManager::walk_elements(MeshID starting_element,
     distance -= exit.second;
     // only add to the result if the distance is greater than 0
     result.push_back({elem, exit.second});
-    r += exit.second * u;
+    r += static_cast<Scalar>(exit.second) * u;
     elem = exit.first;
 
     // if there is no next element, we're exiting the mesh
@@ -135,23 +135,23 @@ MeshManager::walk_elements(MeshID starting_element,
   return result;
 }
 
-std::vector<std::pair<MeshID, double>>
+std::vector<std::pair<MeshID, Scalar>>
 MeshManager::walk_elements(MeshID starting_element,
                            const Position& start,
                            const Position& end) const
 {
   Position u = (end - start);
-  double distance = u.length();
+  Scalar distance = u.length();
   u.normalize();
   return walk_elements(starting_element, start, u, distance);
 }
 
-std::pair<MeshID, double>
+std::pair<MeshID, Scalar>
 MeshManager::next_element(MeshID current_element,
                            const Position& r,
                            const Position& u) const
 {
-  std::array<double, 4> dists = {INFTY, INFTY, INFTY, INFTY};
+  std::array<Scalar, 4> dists = {INFTY, INFTY, INFTY, INFTY};
   std::array<bool, 4> hit_types;
 
   auto element_face_accessor = ElementFaceAccessor::create(this, current_element);
@@ -179,12 +179,12 @@ MeshManager::next_element(MeshID current_element,
 
     hit_types[i] = result.hit;
     // set distance and ensure it is non-negative
-    dists[i] = result.hit ? std::max(0.0, result.t) : INFTY;
+    dists[i] = result.hit ? std::max(Scalar(0.0), result.t) : INFTY;
   }
 
   // determine the minimum distance to exit and the face number
   int idx_out = ID_NONE;
-  double min_dist = INFTY;
+  Scalar min_dist = INFTY;
   // choose the exiting face based on the minimum distance,
   // if all distances are INFTY (no hit), then the index will
   // not be updated

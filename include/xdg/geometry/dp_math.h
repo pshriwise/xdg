@@ -23,18 +23,19 @@ namespace dp {
 }
 
 #else
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 
-// C++ compilation map dp::vec3 -> xdg::Vec3da
+// C++ compilation map dp::vec3 -> xdg::Vertex
 namespace dp {
-  typedef xdg::Vec3da vec3;
+  typedef xdg::Vertex vec3;
+  typedef xdg::Scalar scalar;
 
-  inline double dot(vec3 a, vec3 b) { return xdg::dot(a, b); }
+  inline scalar dot(vec3 a, vec3 b) { return xdg::dot(a, b); }
   inline vec3 cross(vec3 a, vec3 b) { return xdg::cross(a, b); }
-  inline double abs(double a) { return std::fabs(a); }
+  inline scalar abs(scalar a) { return std::fabs(a); }
 
-  static constexpr double DBL_ZERO_TOL = 20.0 * std::numeric_limits<double>::epsilon();
-  constexpr double INFTY {std::numeric_limits<double>::max()};
+  static constexpr scalar DBL_ZERO_TOL = 20.0 * std::numeric_limits<scalar>::epsilon();
+  constexpr scalar INFTY {std::numeric_limits<scalar>::max()};
 
 }
 

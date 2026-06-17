@@ -177,7 +177,7 @@ Position closest_location_on_triangle(const std::array<Position, 3>& vertices,
       break;
       default:
         fatal_error("Invalid region {}", static_cast<int>(region));
-        return {INFTY, INFTY, INFTY};
+        return {static_cast<Scalar>(INFTY), static_cast<Scalar>(INFTY), static_cast<Scalar>(INFTY)};
         break;
   }
 }

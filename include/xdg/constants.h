@@ -12,14 +12,18 @@
 
 namespace xdg {
 
-constexpr double INFTY {std::numeric_limits<double>::max()};
+#if defined(XDG_SINGLE_PRECISION)
+  constexpr float INFTY {std::numeric_limits<float>::max()};
+#else
+  constexpr double INFTY {std::numeric_limits<double>::max()};
+#endif
 
 #ifdef XDG_DEBUG
   // from Embree, if the floating point value of Tfar is larger than this value,
   // it is considered overflow by the internal hit verification function. This
   // is only enabled when Embree is compiled in debug mode. I think a
   // corresponding behavior makes sense to keep here for now
-  constexpr double INFTYF {1.844E18f};
+  constexpr float INFTYF {1.844E18f};
 #else
   constexpr double INFTYF {std::numeric_limits<float>::max()};
 #endif

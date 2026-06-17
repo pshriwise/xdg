@@ -5,7 +5,7 @@
 #include <iomanip>
 
 #include "xdg/error.h"
-#include "xdg/vec3da.h"
+#include "xdg/vec3/vec3.h"
 #include "xdg/xdg.h"
 
 #include "argparse/argparse.hpp"
@@ -95,8 +95,8 @@ else
   xdg->prepare_volume_for_raytracing(volume);
   rti->init(); // Typically called during XDG::prepare_raytracer(). Required to build SBT after volume registration.
 
-  Position origin = args.get<std::vector<double>>("--origin");
-  Direction direction = args.get<std::vector<double>>("--direction");
+  Position origin = args.get<std::vector<Scalar>>("--origin");
+  Direction direction = args.get<std::vector<Scalar>>("--direction");
   direction.normalize();
 
   std::cout << "Origin: " << origin[0] << ", " << origin[1] << ", " << origin[2] << std::endl;
