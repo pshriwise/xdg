@@ -468,39 +468,87 @@ TEST_CASE("LibMesh Element ID and Index Mapping")
     // now create a new mesh manager (create explicitly so we can modify the mesh before init)
     std::unique_ptr<LibMeshManager> mesh_manager = std::make_unique<LibMeshManager>(mesh.get());
 
-    // tweak some of the element IDs to create gaps
-    int next_id = 0;
-    std::vector<MeshID> modified_element_ids;
-    for (auto* elem : mesh->active_element_ptr_range()) {
-      // create a gap every 10 elements
-      if (elem->id() % 10 == 0) {
-        next_id += 5;
-      } else {
-        next_id++;
-      }
-      elem->set_id() = next_id; // create a gap every 10 elements
-      modified_element_ids.push_back(next_id);
-      REQUIRE(elem->id() == next_id);
-    }
+    // get the last element and vertex IDs before modification
+    MeshID last_element_id = mesh->elem_ptr(mesh->n_elem() - 1)->id();
+    MeshID last_vertex_id = mesh->node_ptr(mesh->n_nodes() - 1)->id();
 
-    next_id = 0;
+    // add some new elements to the mesh to create gaps in the element ID space
+    MeshID next_id = last_vertex_id + 1;
+
     std::vector<MeshID> modified_vertex_ids;
-    for (auto* node : mesh->node_ptr_range()) {
+    std::unordered_map<MeshID, MeshID> node_renumbering;
+    for (int i = 0; i <= last_vertex_id; i++) {
+      auto* node = mesh->node_ptr(i);
       // create a gap every 15 vertices
       if (node->id() % 15 == 0) {
         next_id += 3;
       } else {
         next_id++;
       }
-      node->set_id() = next_id;
+
+      std::unique_ptr<libMesh::Node> new_node = std::make_unique<libMesh::Node>(*node, next_id);
+      mesh->add_node(std::move(new_node));
+      node_renumbering[node->id()] = next_id;
       modified_vertex_ids.push_back(next_id);
-      REQUIRE(node->id() == next_id);
+    }
+
+    next_id = last_element_id + 1;
+    std::vector<MeshID> modified_element_ids;
+    std::vector<std::pair<MeshID, MeshID>> element_renumbering;
+    for (int i = 0; i <= last_element_id; i++) {
+      auto* elem = mesh->elem_ptr(i);
+      // create a gap every 100 elements
+      if (elem->id() % 100 == 0) {
+        next_id += 3;
+      } else {
+        next_id++;
+      }
+      modified_element_ids.push_back(next_id);
+      // create a new element with the next ID and the same nodes as the current element
+      std::unique_ptr<libMesh::Elem> new_elem = libMesh::Elem::build_with_id(elem->type(), next_id);
+      auto* new_elem_ptr = mesh->add_elem(std::move(new_elem));
+      for (unsigned int j = 0; j < elem->n_nodes(); j++) {
+        MeshID node_id = elem->node_ptr(j)->id();
+        new_elem_ptr->set_node(j) = mesh->node_ptr(node_renumbering.at(node_id));
+      }
+      mesh->delete_elem(elem);
+    }
+
+    // delete all original nodes from the mesh
+    for (int i = 0; i <= last_vertex_id; i++) {
+      mesh->delete_node(mesh->node_ptr(i));
     }
 
     // keep libMesh from renumbering the elements when initializing the mesh
     // manager for the purposes of this test
     mesh->allow_renumbering(false);
     mesh->prepare_for_use();
+
+    // ensure that the resulting ID spaces really are non-zero and non-contiguous
+    REQUIRE(modified_element_ids.size() == 10333);
+    REQUIRE(modified_vertex_ids.size() == 2067);
+
+    MeshID prev_elem_id = modified_element_ids.front() - 1;
+    int n_gaps = 0;
+    for (auto elem : mesh->active_element_ptr_range()) {
+      REQUIRE(elem->id() > prev_elem_id);
+      if (elem->id() - prev_elem_id > 1) {
+        n_gaps++;
+      }
+    }
+    if (n_gaps == 0) FAIL("Element IDs are still contiguous after modification");
+
+    MeshID prev_node_id = modified_vertex_ids.front() - 1;
+    int n_node_gaps = 0;
+    for (auto node : mesh->node_ptr_range()) {
+      REQUIRE(node->id() > prev_node_id);
+      if (node->id() - prev_node_id > 1) {
+        n_node_gaps++;
+      }
+      prev_node_id = node->id();
+    }
+
+    if (n_node_gaps == 0) FAIL("Node IDs are still contiguous after modification");
 
     // now initialize the mesh manager
     mesh_manager->init();
@@ -534,8 +582,8 @@ TEST_CASE("LibMesh Element ID and Index Mapping")
     // check index to vertex ID mapping
     size_t num_vertices = mesh_manager->mesh()->n_nodes();
     for (size_t i = 0; i < num_vertices; i++) {
-      MeshID vertex_id = mesh_manager->vertex_id(i);
-      REQUIRE(vertex_id == modified_vertex_ids[i]);
+       MeshID vertex_id = mesh_manager->vertex_id(i);
+       REQUIRE(vertex_id == modified_vertex_ids[i]);
     }
   }
 }
