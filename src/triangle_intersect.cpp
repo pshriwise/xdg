@@ -1,9 +1,9 @@
-#include <algorithm> // for find
+#include <array>
 
 #include "xdg/constants.h"
+#include "xdg/embree_interface.h"
 #include "xdg/geometry/closest.h"
 #include "xdg/primitive_ref.h"
-#include "xdg/error.h"
 #include "xdg/geometry_data.h"
 #include "xdg/geometry/face_common.h"
 #include "xdg/geometry/plucker.h"
