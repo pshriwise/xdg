@@ -613,7 +613,7 @@ LibMeshManager::face_vertices(MeshID face) const {
     default:
       fatal_error("Unsupported element type {} for face {}", static_cast<int>(elem->type()), face);
   }
-  return vertex_ids;
+  return std::move(vertex_ids);
 }
 
 SurfaceFaceType
