@@ -620,7 +620,7 @@ SurfaceFaceType
 LibMeshManager::get_surface_face_type(MeshID surface) const {
   const auto& faces = surface_map_.at(surface);
   if (faces.empty()) {
-    return SurfaceFaceType::UNSUPPORTED;
+    return SurfaceFaceType::UNKNOWN;
   }
 
   // we've already validated that all faces in the surface have the same type,
@@ -634,7 +634,7 @@ VolumeElementType
 LibMeshManager::get_volume_element_type(MeshID volume) const {
   const auto elements = get_volume_elements(volume);
   if (elements.empty()) {
-    fatal_error("Volume {} has no elements; cannot determine element type", volume);
+    return VolumeElementType::UNKNOWN;
   }
 
   // we already validated that all elements in the volume have the same type, so
