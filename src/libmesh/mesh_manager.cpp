@@ -124,7 +124,7 @@ void LibMeshManager::check_face_and_element_types() const {
     // check that all other elements are the same type
     for (const auto element : elements) {
       const auto* elem_ptr = mesh()->elem_ptr(element);
-      VolumeElementType elem_type = _elem_ptr_to_type(elem_ptr);
+      VolumeElementType elem_type = _elem_xdg_type(elem_ptr);
       if (elem_type != type) {
         fatal_error("Volume {} has mixed element types, which is not supported. Element ID {} has type {}, expected type {}.",
                     volume, element, elem_type, type);

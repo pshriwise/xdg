@@ -63,7 +63,7 @@ public:
 
   void check_face_and_element_types() const;
 
-  static VolumeElementType _elem_ptr_to_type(const libMesh::Elem *elem_ptr) {
+  static VolumeElementType _elem_xdg_type(const libMesh::Elem *elem_ptr) {
     switch (elem_ptr->type()) {
     case libMesh::TET4:
       return VolumeElementType::TET;
