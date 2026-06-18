@@ -1,14 +1,24 @@
 // stl includes
-#include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <numeric>
 #include <random>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 // testing includes
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+// libMesh includes
+#include "libmesh/elem.h"
+#include "libmesh/mesh.h"
+#include "libmesh/node.h"
 
 // xdg includes
 #include "xdg/config.h"
