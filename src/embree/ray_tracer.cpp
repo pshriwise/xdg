@@ -2,7 +2,7 @@
 #include "xdg/error.h"
 #include "xdg/geometry_data.h"
 #include "xdg/quadrilateral_intersection.h"
-#include "xdg/bounds_functions.h"
+#include "xdg/bounding_functions.h"
 #include "xdg/ray.h"
 #include "xdg/tetrahedron_contain.h"
 #include "xdg/hexahedron_contain.h"
