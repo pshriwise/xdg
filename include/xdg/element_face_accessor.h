@@ -25,8 +25,8 @@ namespace xdg {
     static std::shared_ptr<ElementFaceAccessor> create(const MeshManager* mesh_manager, MeshID element);
 
     //! \brief Get the vertices of a face
-    //! \param i The face index (0-3 for tetrahedra, 0-5 for hexahedra)
-    //! \return A vector of vertices (size 3 for tri, 4 for quad)
+    //! \param i The face index
+    //! \return A vector of vertices
     virtual std::vector<Vertex> face_vertices(int i) const = 0;
 
     //! \brief Get the number of faces for this element
