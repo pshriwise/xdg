@@ -306,7 +306,10 @@ private:
     void setup(Interface* mbi, const std::map<SurfaceFaceType, ConnectivityData>& face_data) {
       ErrorCode rval;
 
+      // loop over all face types in the mesh
       for (const auto& [type, data] : face_data) {
+        // for each face type, loop over all faces of that type
+        // and determine if the face is a boundary face
         for (const auto& face : data.entity_range) {
           auto conn = data.get_connectivity_indices<3>(face);
           std::array<EntityHandle, 3> verts = {conn[0], conn[1], conn[2]};
@@ -315,10 +318,12 @@ private:
           rval = mbi->get_adjacencies(verts.data(), verts.size(), 3, true, adjacent_elements);
           MB_CHK_SET_ERR_CONT(rval, "Failed to get MOAB boundary face adjacencies");
 
+          // sanity check: an element face should have at most two adjacent elements
           if (adjacent_elements.size() > 2) {
             throw std::runtime_error("Found more than two elements adjacent to a face");
           }
 
+          // if the face has only one adjacent element, it is a boundary face
           if (adjacent_elements.size() == 1) {
             boundary_face_to_element_[face] = adjacent_elements[0];
           }
