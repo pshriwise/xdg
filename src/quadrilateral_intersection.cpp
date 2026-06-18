@@ -153,7 +153,7 @@ bool SurfaceClosestFunc(RTCPointQueryFunctionArguments* args) {
   RTCGeometry g = rtcGetGeometry(*(RTCScene*)args->userPtr, args->geomID);
   const SurfaceUserData* user_data = (const SurfaceUserData*) rtcGetGeometryUserData(g);
 
-  if (user_data->element_type == SurfaceFaceType::QUAD) {
+  if (user_data->face_type == SurfaceFaceType::QUAD) {
     return QuadClosestFunction(args);
   }
 
