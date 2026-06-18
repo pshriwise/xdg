@@ -200,7 +200,7 @@ public:
     if (get_volume_elements(volume).empty()) {
       fatal_error("MockedTriTetMesh volume {} has no elements; cannot determine element type", volume);
     }
-    return VolumeElementType::TET;
+    return VolumeElementType::TET; // hardcoded to Tet for this mock
   }
 
   virtual MeshID adjacent_element(MeshID element, int face) const override {
