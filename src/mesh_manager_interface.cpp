@@ -280,7 +280,6 @@ MeshManager::surface_bounding_box(MeshID surface) const
 
 double MeshManager::element_volume(MeshID element) const
 {
-  auto vertices = this->element_vertices(element);
   // create an element face accessor
   auto element_face_accessor = ElementFaceAccessor::create(this, element);
   const int num_faces = element_face_accessor->num_faces();

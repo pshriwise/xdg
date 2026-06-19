@@ -18,6 +18,20 @@ using namespace moab;
 
 namespace xdg {
 
+static const std::map<moab::EntityType, SurfaceFaceType> MOAB_TYPE_TO_XDG_FACE =
+{
+  {moab::MBTRI, SurfaceFaceType::TRI},
+  {moab::MBQUAD, SurfaceFaceType::QUAD},
+  {moab::MBMAXTYPE, SurfaceFaceType::UNKNOWN}
+};
+
+static const std::map<moab::EntityType, VolumeElementType> MOAB_TYPE_TO_XDG_ELEMENT =
+{
+  {moab::MBTET, VolumeElementType::TET},
+  {moab::MBHEX, VolumeElementType::HEX},
+  {moab::MBMAXTYPE, VolumeElementType::UNKNOWN}
+};
+
 /*! Class to manage direct access of face and element connectivity and coordinates */
 class MBDirectAccess {
 
@@ -52,11 +66,6 @@ public:
     return true;
   }
 
-  //! \brief Check that a triangle is part of the managed coordinates here
-  inline bool accessible(EntityHandle tri) {
-    return accessible(tri, SurfaceFaceType::TRI);
-  }
-
   //! \brief Get the connectivity of a face
   inline std::vector<MeshID> get_face_connectivity(const EntityHandle& face, SurfaceFaceType face_type) {
     const auto& face_data = face_data_.at(face_type);
@@ -66,7 +75,7 @@ public:
     if (face_data.element_stride == 4) {
       return to_mesh_ids(face_data.get_connectivity_indices<4>(face));
     }
-    throw std::runtime_error("Unsupported face stride for connectivity");
+    fatal_error(fmt::format("Unsupported face stride {0} for connectivity", face_data.element_stride));
   }
 
   //! \brief Get the coordinates of a face as XDG Vertices
@@ -78,7 +87,7 @@ public:
     if (face_data.element_stride == 4) {
       return to_vertices(face_data.get_connectivity_indices<4>(face));
     }
-    throw std::runtime_error("Unsupported face stride for coordinates");
+    fatal_error(fmt::format("Unsupported face stride {} for coordinates", face_data.element_stride));
   }
 
   //! \brief Get the connectivity of an element
@@ -95,7 +104,7 @@ public:
     if (element_type == VolumeElementType::HEX) {
       return to_mesh_ids(element_data.get_connectivity_indices<8>(element));
     }
-    throw std::runtime_error("Unsupported element stride for connectivity");
+    fatal_error(fmt::format("Unsupported element stride {} for connectivity", element_data.element_stride));
   }
 
   template <size_t N>
@@ -121,7 +130,7 @@ public:
     if (element_type == VolumeElementType::HEX) {
       return to_vertices(element_data.get_connectivity_indices<8>(element));
     }
-    throw std::runtime_error("Unsupported element stride for coordinates");
+    fatal_error(fmt::format("Unsupported element stride {} for coordinates", element_data.element_stride));
   }
 
   //! \brief Get the adjacent element
@@ -190,14 +199,14 @@ private:
 
           // there be at most two adjacent elements for a given face
           if (adj_ents.size() > 2) {
-            throw std::runtime_error("Something went wrong gathering adjacent face");
+            fatal_error(fmt::format("Something went wrong gathering adjacent face for element {}", element));
           }
 
           // if only one adjacent element, the face is on a boundary
           if (adj_ents.size() == 1) {
             // in this case, the returned element must be the current element itself
             if (adj_ents[0] != element) {
-              throw std::runtime_error("The face is on a boundary, but the returned adjacent element is not the current element");
+              fatal_error("The face is on a boundary, but the returned adjacent element is not the current element");
             }
             // if this face is on the boundary, there is no adjacency to add. Move on to the next face
             continue;
@@ -252,7 +261,9 @@ private:
       num_entities = entity_range.size();
 
       // only supporting a single element type per ConnectivityData instance
-      if (!entity_range.all_of_type(entity_type)) { throw std::runtime_error("Not all elements match the requested type"); }
+      if (!entity_range.all_of_type(entity_type)) {
+        fatal_error(fmt::format("Not all elements match the requested type: {}", MOAB_TYPE_TO_XDG_ELEMENT.at(entity_type)));
+      }
 
       moab::Range::iterator entity_it = entity_range.begin();
       while(entity_it != entity_range.end()) {
