@@ -139,12 +139,11 @@ EmbreeRayTracer::register_surface(const std::shared_ptr<MeshManager>& mesh_manag
   rtcSetGeometryUserData(surface_geometry, surface_data.get());
 
   // Set RTC callbacks
+  rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&SurfaceFaceBoundsFunc, nullptr);
   if (surface_data->face_type == SurfaceFaceType::TRI) {
-    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&SurfaceFaceBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&TriangleIntersectionFunc);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&TriangleOcclusionFunc);
   } else if (surface_data->face_type == SurfaceFaceType::QUAD) {
-    rtcSetGeometryBoundsFunction(surface_geometry, (RTCBoundsFunction)&SurfaceFaceBoundsFunc, nullptr);
     rtcSetGeometryIntersectFunction(surface_geometry, (RTCIntersectFunctionN)&QuadIntersectionFunction);
     rtcSetGeometryOccludedFunction(surface_geometry, (RTCOccludedFunctionN)&QuadOcclusionFunction);
   } else {
