@@ -1,4 +1,5 @@
 // stl includes
+#include <array>
 #include <memory>
 
 // testing includes
@@ -9,7 +10,56 @@
 #include "xdg/tetrahedron_contain.h"
 #include "xdg/vec3da.h"
 
+#include "mesh_mocks.h"
+
 using namespace xdg;
+
+TEST_CASE("MockedTriTetMesh Face Representation")
+{
+  std::shared_ptr<MeshManager> mm = std::make_shared<MockedTriTetMesh>();
+  mm->init();
+
+  REQUIRE(mm->num_surfaces() == 6);
+  REQUIRE(mm->num_volume_faces(0) == 12);
+  REQUIRE(mm->num_volume_elements(0) == 12);
+  REQUIRE(mm->get_volume_elements(0) ==
+          std::vector<MeshID> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
+  REQUIRE(mm->element_connectivity(0) == std::vector<MeshID> {0, 1, 2, 8});
+  REQUIRE(mm->element_connectivity(1) == std::vector<MeshID> {0, 2, 3, 8});
+  REQUIRE(mm->adjacent_element(0, 1) == 1);
+  REQUIRE(mm->adjacent_element(1, 2) == 0);
+
+  const std::array<Direction, 6> expected_normals {
+    Direction {0.0, 0.0, 1.0},
+    Direction {0.0, 0.0, -1.0},
+    Direction {1.0, 0.0, 0.0},
+    Direction {-1.0, 0.0, 0.0},
+    Direction {0.0, 1.0, 0.0},
+    Direction {0.0, -1.0, 0.0},
+  };
+
+  for (MeshID surface = 0; surface < 6; ++surface) {
+    REQUIRE(mm->get_surface_face_type(surface) == SurfaceFaceType::TRI);
+    const auto faces = mm->get_surface_faces(surface);
+    REQUIRE(mm->get_surface_connectivity(surface).size() == faces.size() * 3);
+    for (const auto face : faces) {
+      REQUIRE(mm->face_vertices(face).size() == 3);
+
+      const auto normal = mm->face_normal(face);
+      REQUIRE_THAT(normal.x, Catch::Matchers::WithinAbs(expected_normals[surface].x, 1e-12));
+      REQUIRE_THAT(normal.y, Catch::Matchers::WithinAbs(expected_normals[surface].y, 1e-12));
+      REQUIRE_THAT(normal.z, Catch::Matchers::WithinAbs(expected_normals[surface].z, 1e-12));
+    }
+  }
+
+  const auto bbox = mm->volume_bounding_box(0);
+  REQUIRE_THAT(bbox.min_x, Catch::Matchers::WithinAbs(-2.0, 1e-12));
+  REQUIRE_THAT(bbox.min_y, Catch::Matchers::WithinAbs(-3.0, 1e-12));
+  REQUIRE_THAT(bbox.min_z, Catch::Matchers::WithinAbs(-4.0, 1e-12));
+  REQUIRE_THAT(bbox.max_x, Catch::Matchers::WithinAbs(5.0, 1e-12));
+  REQUIRE_THAT(bbox.max_y, Catch::Matchers::WithinAbs(6.0, 1e-12));
+  REQUIRE_THAT(bbox.max_z, Catch::Matchers::WithinAbs(7.0, 1e-12));
+}
 
 TEST_CASE("Tetrahedron Containment Unit Test")
 {
