@@ -11,7 +11,7 @@
 
 using namespace xdg;
 
-TEST_CASE("Tetrahedron Intersection Unit Test")
+TEST_CASE("Tetrahedron Containment Unit Test")
 {
   // Define tetrahedron vertices
   Position v0(0.0, 0.0, 0.0);
