@@ -331,7 +331,7 @@ private:
 
           // sanity check: an element face should have at most two adjacent elements
           if (adjacent_elements.size() > 2) {
-            throw std::runtime_error("Found more than two elements adjacent to a face");
+            fatal_error("Found more than two elements adjacent to a face. {} element adjacencies found.", adjacent_elements.size());
           }
 
           // if the face has only one adjacent element, it is a boundary face
