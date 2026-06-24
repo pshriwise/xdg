@@ -17,6 +17,7 @@
 
 #include "mesh_mocks.h"
 #include "util.h"
+#include "../tools/tally_segments.h"
 
 using namespace xdg;
 using namespace xdg::test;
@@ -120,6 +121,27 @@ TEST_CASE("Test Random Internal Tracks")
       });
     REQUIRE(total_length == Catch::Approx((start-end).length()).epsilon(0.00001));
   }
+}
+
+TEST_CASE("Test Random Jezebel Quad Tally Segments")
+{
+  check_mesh_library_supported(MeshLibrary::MOAB);
+  check_ray_tracer_supported(RTLibrary::EMBREE);
+
+  std::shared_ptr<XDG> xdg = XDG::create(MeshLibrary::MOAB, RTLibrary::EMBREE);
+  const auto& mm = xdg->mesh_manager();
+  mm->load_file("jezebel-quads.h5m");
+  mm->init();
+  xdg->prepare_raytracer();
+
+  TallyContext context;
+  context.xdg_ = xdg;
+  context.n_threads_ = 1;
+  context.n_tracks_ = 5000;
+  context.check_tracks_ = false;
+  context.verbose_ = false;
+  context.quiet_ = true;
+  tally_segments(context);
 }
 
 TEMPLATE_TEST_CASE("Test Single-Tet Glancing Vertex Intersection Tracks", "[tracks]",

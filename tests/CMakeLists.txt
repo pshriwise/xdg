@@ -18,6 +18,7 @@ test_xdg_interface
 test_tet_containment
 test_hex_containment
 test_tracks
+test_walk_elements
 test_tally_segments
 test_mesh_connectivity
 )
