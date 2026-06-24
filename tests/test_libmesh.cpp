@@ -661,7 +661,8 @@ struct CylBrickQuadsExo { static constexpr std::string_view filename = "cyl-bric
 TEMPLATE_TEST_CASE("Test libMesh Transport", "[libmesh][transport]",
                    JezebelExo,
                    JezebelQuadsExo,
-                   CylBrickExo)
+                   CylBrickExo,
+                   CylBrickQuadsExo)
 {
   std::string filename {TestType::filename};
 
