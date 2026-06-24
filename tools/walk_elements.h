@@ -38,6 +38,9 @@ void walk_elements(const WalkElementsContext& context) {
 
   int n_particles_run = 0;
 
+  // set random seeds for consistency
+  seed_rand_double(12345);
+
   #ifdef XDG_OPENMP
     omp_set_num_threads(context.n_threads_);
     std::cout << fmt::format("Using {} threads", context.n_threads_) << "\n";
