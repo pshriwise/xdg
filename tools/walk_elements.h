@@ -50,6 +50,7 @@ void walk_elements(const WalkElementsContext& context) {
     }
   #endif
 
+  double max_distance = bbox.max_chord_length();
 
   Timer timer;
   timer.start();
@@ -77,7 +78,9 @@ void walk_elements(const WalkElementsContext& context) {
       while (element != ID_NONE) {
         // determine the distace to the next element
         auto [next_element, exit_distance] = xdg->next_element(element, r, u);
-
+        if (exit_distance > max_distance) {
+          fatal_error(fmt::format("Particle {}, exit distance is too large: {}. Location {}", i, exit_distance, r));
+        }
         // determine the distance to the next collision
         double collision_distance = -std::log(1.0 - drand48()) * mean_free_path;
 
