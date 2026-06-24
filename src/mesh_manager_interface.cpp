@@ -1,5 +1,6 @@
 #include "xdg/mesh_manager_interface.h"
 
+#include <array>
 #include <set>
 
 #include "xdg/config.h"
@@ -9,6 +10,27 @@
 #include "xdg/element_face_accessor.h"
 
 namespace xdg {
+
+namespace {
+
+bool canonical_first_diagonal(const std::vector<Vertex>& coords)
+{
+  auto pair_less = [](const Vertex& a0, const Vertex& a1,
+                      const Vertex& b0, const Vertex& b1) {
+    const Vertex& a_min = lower(a0, a1) ? a0 : a1;
+    const Vertex& a_max = lower(a0, a1) ? a1 : a0;
+    const Vertex& b_min = lower(b0, b1) ? b0 : b1;
+    const Vertex& b_max = lower(b0, b1) ? b1 : b0;
+
+    if (lower(a_min, b_min)) return true;
+    if (lower(b_min, a_min)) return false;
+    return lower(a_max, b_max);
+  };
+
+  return pair_less(coords[0], coords[2], coords[1], coords[3]);
+}
+
+} // namespace
 
 MeshManager::MeshManager() {
   if (XDGConfig::config().initialized() == false) {
@@ -156,7 +178,6 @@ MeshManager::next_element(MeshID current_element,
   std::vector<double> dists(num_faces, INFTY);
   std::vector<bool> hit_types(num_faces, false);
 
-  // get the faces of this element
   for (int i = 0; i < num_faces; i++) {
     auto coords = element_face_accessor->face_vertices(i);
 
@@ -164,32 +185,54 @@ MeshManager::next_element(MeshID current_element,
     // with respect to the element
     int orientation = 1;
 
-    // intersect the a triangle composed of the first three vertices
-    std::array<Vertex, 3> tri = {coords[0], coords[1], coords[2]};
-    auto result = plucker_ray_tri_intersect(tri.data(),
-                                            r,
-                                            u,
-                                            INFTY,
-                                            0.0,
-                                            true,
-                                            orientation);
-    hit_types[i] = result.hit;
-    if (result.hit) dists[i] = result.t;
-
-    // if this is a quad face (more than three vertices), we need to check the
-    // second triangle
-    if (!result.hit && coords.size() == 4) {
-      tri = {coords[0], coords[2], coords[3]};
-      result = plucker_ray_tri_intersect(tri.data(),
-                                         r,
-                                         u,
-                                         INFTY,
-                                         0.0,
-                                         true,
-                                         orientation);
+    if (coords.size() == 3) {
+      std::array<Vertex, 3> tri {coords[0], coords[1], coords[2]};
+      auto result = plucker_ray_tri_intersect(tri.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
       hit_types[i] = result.hit;
-      if (result.hit) dists[i] = result.t;
+      if (hit_types[i]) dists[i] = result.t;
+    } else if (coords.size() == 4) {
+      std::array<Vertex, 3> tri0;
+      std::array<Vertex, 3> tri1;
+      if (canonical_first_diagonal(coords)) {
+        tri0 = {coords[0], coords[1], coords[2]};
+        tri1 = {coords[0], coords[2], coords[3]};
+      } else {
+        tri0 = {coords[1], coords[2], coords[3]};
+        tri1 = {coords[1], coords[3], coords[0]};
+      }
+      auto result0 = plucker_ray_tri_intersect(tri0.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
+      auto result1 = plucker_ray_tri_intersect(tri1.data(),
+                                               r,
+                                               u,
+                                               INFTY,
+                                               0.0,
+                                               true,
+                                               orientation);
+      bool hit0 = result0.hit;
+      bool hit1 = result1.hit;
+      double dist0 = result0.t;
+      double dist1 = result1.t;
+      if (hit0 || hit1) {
+        hit_types[i] = true;
+        if (hit0 && hit1) dists[i] = std::min(dist0, dist1);
+        else dists[i] = hit0 ? dist0 : dist1;
+      }
+    } else {
+      fatal_error("Unsupported face vertex count {} in next_element", coords.size());
     }
+
     // set distance and ensure it is non-negative
     dists[i] = std::max(0.0, dists[i]);
   }

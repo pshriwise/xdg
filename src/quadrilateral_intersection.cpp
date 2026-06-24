@@ -1,4 +1,5 @@
 #include <algorithm> // for find
+#include <array>
 
 #include "xdg/geometry/closest.h"
 #include "xdg/primitive_ref.h"
@@ -13,6 +14,15 @@
 
 namespace xdg
 {
+
+std::pair<std::array<Position, 3>, std::array<Position, 3>>
+quad_triangles(const std::vector<Vertex>& verts) {
+  if (quad_diagonal_selection(verts)) {
+    return {{verts[0], verts[1], verts[2]}, {verts[0], verts[2], verts[3]}};
+  } else {
+    return {{verts[1], verts[2], verts[3]}, {verts[1], verts[3], verts[0]}};
+  }
+}
 
 void QuadIntersectionFunction(RTCIntersectFunctionNArguments* args) {
   const SurfaceUserData* user_data = (const SurfaceUserData*)args->geometryUserPtr;
@@ -31,9 +41,7 @@ void QuadIntersectionFunction(RTCIntersectFunctionNArguments* args) {
   Position ray_origin = {ray.dorg[0], ray.dorg[1], ray.dorg[2]};
   Direction ray_direction = {ray.ddir[0], ray.ddir[1], ray.ddir[2]};
 
-  std::array<Position, 3> tri0 {face_vertices[0], face_vertices[1], face_vertices[2]};
-  std::array<Position, 3> tri1 {face_vertices[0], face_vertices[2], face_vertices[3]};
-
+  auto [tri0, tri1] = quad_triangles(face_vertices);
   auto result0 = plucker_ray_tri_intersect(tri0.data(), ray_origin, ray_direction, ray.dtfar, 0.0, false, 0);
   auto result1 = plucker_ray_tri_intersect(tri1.data(), ray_origin, ray_direction, ray.dtfar, 0.0, false, 0);
 
@@ -44,7 +52,7 @@ void QuadIntersectionFunction(RTCIntersectFunctionNArguments* args) {
 
   if (!hit0 && !hit1) return;
 
-  std::array<Position, 3> hit_tri_vertices;
+  std::array<Vertex, 3> hit_tri_vertices;
   double plucker_dist = INFTY;
   if (hit0 && dist0 < plucker_dist) {
     plucker_dist = dist0;
@@ -104,8 +112,7 @@ bool QuadClosestFunction(RTCPointQueryFunctionArguments* args) {
   RTCDPointQuery* query = (RTCDPointQuery*) args->query;
   Position p {query->dblx, query->dbly, query->dblz};
 
-  std::array<Vertex, 3> tri0 {face_vertices[0], face_vertices[1], face_vertices[2]};
-  std::array<Vertex, 3> tri1 {face_vertices[0], face_vertices[2], face_vertices[3]};
+  const auto [tri0, tri1] = quad_triangles(face_vertices);
   Position result0 = closest_location_on_triangle(tri0, p);
   Position result1 = closest_location_on_triangle(tri1, p);
   double dist0 = (result0 - p).length();
@@ -141,8 +148,7 @@ void QuadOcclusionFunction(RTCOccludedFunctionNArguments* args) {
   RTCSurfaceDualRay* ray = (RTCSurfaceDualRay*) args->ray;
 
   double plucker_dist = INFTY;
-  std::array<Position, 3> tri0 {face_vertices[0], face_vertices[1], face_vertices[2]};
-  std::array<Position, 3> tri1 {face_vertices[0], face_vertices[2], face_vertices[3]};
+  auto [tri0, tri1] = quad_triangles(face_vertices);
   auto result0 = plucker_ray_tri_intersect(tri0.data(), ray->dorg, ray->ddir, ray->dtfar, 0.0, false, 0);
   auto result1 = plucker_ray_tri_intersect(tri1.data(), ray->dorg, ray->ddir, ray->dtfar, 0.0, false, 0);
 
