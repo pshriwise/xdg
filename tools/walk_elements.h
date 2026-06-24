@@ -2,12 +2,10 @@
 #include <string>
 #include <vector>
 #include <numeric>
+#include <functional>
 #include <omp.h>
 
-#include <indicators/block_progress_bar.hpp>
-
 #include "xdg/error.h"
-#include "progress_bars.h"
 #include "xdg/vec3da.h"
 #include "xdg/timer.h"
 #include "xdg/bbox.h"
@@ -23,6 +21,7 @@ struct WalkElementsContext {
   size_t n_particles_;
   bool verbose_;
   bool quiet_;
+  std::function<void(size_t, int, double, int)> on_particle_complete_ {};
 };
 
 void walk_elements(const WalkElementsContext& context) {
@@ -34,7 +33,6 @@ void walk_elements(const WalkElementsContext& context) {
   std::cout << fmt::format("Mesh Bounding Box: {}", bbox) << "\n";
 
   double total_distance = 0.0;
-  auto prog_bar = block_progress_bar(fmt::format("Running {} particles", context.n_particles_));
 
   int n_particles_run = 0;
 
@@ -114,11 +112,9 @@ void walk_elements(const WalkElementsContext& context) {
       thread_total_distance += distance;
       #pragma omp atomic
       n_particles_run++;
-      if (context.quiet_) continue;
-      if (context.verbose_) {
-          std::cout << fmt::format("Particle {} underwent {} events. Distance: {}", i, n_events, distance) << "\n";
-      } else {
-          prog_bar.set_progress(100.0 * (double)n_particles_run / (double)context.n_particles_);
+      if (context.on_particle_complete_) {
+        #pragma omp critical
+        context.on_particle_complete_(i, n_events, distance, n_particles_run);
       }
     }
 
@@ -126,8 +122,6 @@ void walk_elements(const WalkElementsContext& context) {
     total_distance += thread_total_distance;
   }
   timer.stop();
-
-  if (!context.quiet_) prog_bar.mark_as_completed();
 
   std::cout << fmt::format("Time elapsed: {} s", timer.elapsed()) << "\n";
 
