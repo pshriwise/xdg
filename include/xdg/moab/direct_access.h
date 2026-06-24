@@ -240,7 +240,7 @@ private:
     // Canonical numbering systems for finite‐element codes (http://dx.doi.org/10.1002/cnm.1237)
     std::unordered_map<EntityType, std::vector<std::vector<int>>> ordering = {
       {MBTET, {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 2, 1}}},
-      {MBHEX, {{0, 1, 2, 3}, {4, 5, 6, 7}, {0, 1, 5, 4}, {1, 2, 6, 5}, {2, 3, 7, 6}, {3, 0, 4, 7}}}
+      {MBHEX, {{0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {1, 2, 6, 5}, {2, 3, 7, 6}, {3, 0, 4, 7}}}
     };
   };
   struct ConnectivityData {
