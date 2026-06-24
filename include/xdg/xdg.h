@@ -68,23 +68,23 @@ bool point_in_volume(MeshID volume,
       const Direction* direction = nullptr,
       const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
-std::pair<double, MeshID> ray_fire(MeshID volume,
+std::pair<Scalar, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
-                                   const double dist_limit = INFTY,
+                                   const Scalar dist_limit = INFTY,
                                    HitOrientation orientation = HitOrientation::EXITING,
                                    std::vector<MeshID>* const exclude_primitives = nullptr) const;
 
-std::pair<double, MeshID> closest(MeshID volume,
+std::pair<Scalar, MeshID> closest(MeshID volume,
                                   const Position& origin) const;
 
-double closest_distance(MeshID volume,
+Scalar closest_distance(MeshID volume,
                         const Position& origin) const;
 
 bool occluded(MeshID volume,
               const Position& origin,
               const Direction& direction,
-              double& dist) const;
+              Scalar& dist) const;
 
 Direction surface_normal(MeshID surface,
                          Position point,

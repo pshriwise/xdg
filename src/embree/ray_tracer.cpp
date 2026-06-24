@@ -286,11 +286,11 @@ bool EmbreeRayTracer::point_in_volume(SurfaceTreeID tree,
   return rayhit.ray.get_dir().dot(rayhit.hit.get_Ng()) > 0.0;
 }
 
-std::pair<double, MeshID>
+std::pair<Scalar, MeshID>
 EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
                     const Position& origin,
                     const Direction& direction,
-                    const double dist_limit,
+                    const Scalar dist_limit,
                     HitOrientation orientation,
                     std::vector<MeshID>* const exclude_primitves)
 {
@@ -323,7 +323,7 @@ EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
     return {rayhit.ray.get_tfar(), rayhit.hit.surface};
 }
 
-std::pair<double, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
+std::pair<Scalar, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
                                                    const Position& point)
 {
   RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
@@ -345,7 +345,7 @@ std::pair<double, MeshID> EmbreeRayTracer::closest(SurfaceTreeID tree,
 bool EmbreeRayTracer::occluded(SurfaceTreeID tree,
                          const Position& origin,
                          const Direction& direction,
-                         double& distance) const
+                         Scalar& distance) const
 {
   RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCSurfaceDualRay ray;

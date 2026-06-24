@@ -78,10 +78,10 @@ public:
                        const Direction* direction = nullptr,
                        const std::vector<MeshID>* exclude_primitives = nullptr) const = 0;
 
-  virtual std::pair<double, MeshID> ray_fire(TreeID tree,
+  virtual std::pair<Scalar, MeshID> ray_fire(TreeID tree,
                                      const Position& origin,
                                      const Direction& direction,
-                                     const double dist_limit = INFTY,
+                                     const Scalar dist_limit = INFTY,
                                      HitOrientation orientation = HitOrientation::EXITING,
                                      std::vector<MeshID>* const exclude_primitives = nullptr) = 0;
 
@@ -106,13 +106,13 @@ public:
    */
   virtual MeshID find_element(TreeID tree, const Position& point) const = 0;
 
-  virtual std::pair<double, MeshID> closest(TreeID tree,
+  virtual std::pair<Scalar, MeshID> closest(TreeID tree,
                                             const Position& origin) = 0;
 
   virtual bool occluded(TreeID tree,
                 const Position& origin,
                 const Direction& direction,
-                double& dist) const = 0;
+                Scalar& dist) const = 0;
 
   virtual RTLibrary library() const = 0;
 
@@ -124,7 +124,7 @@ public:
 
 protected:
   // Common functions across RayTracers
-  const double bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id); // return a bump value based on the size of a bounding box (minimum 1e-3). Should this be a part of mesh_manager?
+  const Scalar bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id); // return a bump value based on the size of a bounding box (minimum 1e-3). Should this be a part of mesh_manager?
 
   SurfaceTreeID next_surface_tree_id(); // get next surface treeid
   ElementTreeID next_element_tree_id(); // get next element treeid
@@ -143,7 +143,7 @@ protected:
   // Internal parameters
   SurfaceTreeID next_surface_tree_id_ {0};
   ElementTreeID next_element_tree_id_ {0};
-  double numerical_precision_ {1e-3};
+  Scalar numerical_precision_ {1e-3};
 };
 
 } // namespace xdg

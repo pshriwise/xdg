@@ -84,7 +84,7 @@ struct RTCDualRay : RTCRay {
 
   //! \brief Set both the single and double precision versions of the ray max distance
   void set_tfar(double d) {
-    tfar = std::min(static_cast<float>(d), INFTYF);
+    tfar = std::min(static_cast<Scalar>(d), INFTYF);
     dtfar = d;
   }
 
@@ -181,7 +181,7 @@ struct RTCDPointQuery : RTCPointQuery {
 
   //! \brief Set both the single and double precision versions of the query radius
   void set_radius(double rad) {
-    radius = std::min(static_cast<float>(rad), INFTYF);
+    radius = std::min(static_cast<Scalar>(rad), INFTYF);
     dradius = rad;
   }
 

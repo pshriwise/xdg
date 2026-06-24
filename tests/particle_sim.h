@@ -31,35 +31,39 @@ void log (const std::string& msg, const Params&... fmt_args) {
 }
 
 void initialize() {
-  //TODO: replace with sampling
-  double min_val = -312.323;
-  double span = 624.646;
-  
-  moab::Interface* mbi = xdg_->mesh_manager()->moab_interface();
+  // //TODO: replace with sampling
+  // double min_val = -312.323;
+  // double span = 624.646;
 
-  do {
-    r_ = {(drand48() * span) + min_val,
-          (drand48() * span) + min_val,
-          (drand48() * span) + min_val};
-    u_ = rand_dir();
-    xdg::MeshID element = xdg_->find_element(r_);
-    
-    if (element != ID_NONE) {
-      moab::EntityHandle elem_handle = static_cast<moab::EntityHandle>(element);
+  // // moab::Interface* mbi = xdg_->mesh_manager()->moab_interface();
 
-      std::vector<moab::EntityHandle> parent_sets;
-      mbi->get_parent_meshsets(elem_handle, parent_sets);
-      
-      if (!parent_sets.empty()) {
-        volume_ = static_cast<xdg::MeshID>(parent_sets[0]);
-      } else {
-        volume_ = ID_NONE;
-      }
-    } else {
-      volume_ = ID_NONE;
-    }
+  // do {
+  //   r_ = {(drand48() * span) + min_val,
+  //         (drand48() * span) + min_val,
+  //         (drand48() * span) + min_val};
+  //   u_ = rand_dir();
+  //   xdg::MeshID element = xdg_->find_element(r_);
 
-  } while (volume_ == ID_NONE);
+  //   if (element != ID_NONE) {
+  //     moab::EntityHandle elem_handle = static_cast<moab::EntityHandle>(element);
+
+  //     std::vector<moab::EntityHandle> parent_sets;
+  //     mbi->get_parent_meshsets(elem_handle, parent_sets);
+
+  //     if (!parent_sets.empty()) {
+  //       volume_ = static_cast<xdg::MeshID>(parent_sets[0]);
+  //     } else {
+  //       volume_ = ID_NONE;
+  //     }
+  //   } else {
+  //     volume_ = ID_NONE;
+  //   }
+
+  // } while (volume_ == ID_NONE);
+
+    r_ = {0.0, 0.0, 0.0};
+    u_ = {1.0, 0.0, 0.0};
+    volume_ = xdg_->find_volume(r_, u_);
 
   log("Particle {} initialized in volume {}", id_, volume_);
 }
@@ -155,7 +159,7 @@ Position r_;
 Direction u_;
 MeshID volume_ {ID_NONE};
 std::vector<MeshID> history_ {};
-std::pair<double, MeshID> surface_intersection_ {INFTY, ID_NONE};
+std::pair<Scalar, MeshID> surface_intersection_ {INFTY, ID_NONE};
 double collision_distance_ {INFTY};
 int32_t n_events_ {0};
 bool alive_ {true};

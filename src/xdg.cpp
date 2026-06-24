@@ -241,11 +241,11 @@ XDG::next_element(MeshID current_element,
   return mesh_manager()->next_element(current_element, r, u);
 }
 
-std::pair<double, MeshID>
+std::pair<Scalar, MeshID>
 XDG::ray_fire(MeshID volume,
               const Position& origin,
               const Direction& direction,
-              const double dist_limit,
+              const Scalar dist_limit,
               HitOrientation orientation,
               std::vector<MeshID>* const exclude_primitives) const
 {
@@ -253,7 +253,7 @@ XDG::ray_fire(MeshID volume,
   return ray_tracing_interface()->ray_fire(scene, origin, direction, dist_limit, orientation, exclude_primitives);
 }
 
-std::pair<double, MeshID> XDG::closest(MeshID volume,
+std::pair<Scalar, MeshID> XDG::closest(MeshID volume,
                                        const Position& origin) const
 {
   TreeID scene = volume_to_surface_tree_map_.at(volume);
@@ -270,7 +270,7 @@ double XDG::closest_distance(MeshID volume,
 bool XDG::occluded(MeshID volume,
               const Position& origin,
               const Direction& direction,
-              double& dist) const
+              Scalar& dist) const
 {
   TreeID scene = volume_to_surface_tree_map_.at(volume);
   return ray_tracing_interface()->occluded(scene, origin, direction, dist);
