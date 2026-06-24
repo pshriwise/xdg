@@ -594,7 +594,13 @@ MeshID
 MOABMeshManager::get_boundary_face_element(MeshID face) const
 {
   moab::EntityHandle face_handle;
-  this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
+  auto rval = this->moab_interface()->handle_from_id(moab::MBTRI, face, face_handle);
+  if (rval != moab::MB_SUCCESS) {
+    rval = this->moab_interface()->handle_from_id(moab::MBQUAD, face, face_handle);
+    if (rval != moab::MB_SUCCESS) {
+      fatal_error("Unsupported MOAB face type for face {}", face);
+    }
+  }
 
   moab::EntityHandle element_handle = this->mb_direct()->get_boundary_face_element(face_handle);
   if (element_handle == ID_NONE) {

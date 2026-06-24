@@ -178,7 +178,7 @@ XDG::segments(const Position& start,
       // Get the element on the other side of the hit face using adjacencies
       auto adjacent_element = mesh_manager()->get_boundary_face_element(hit_primitives.back());
       if (adjacent_element == ID_NONE) {
-        warning("Ray fire hit surface {}, but no adjacent elements were found on the other side of the surface.", hit.second);
+        warning(fmt::format("Ray fire hit surface {}, but no adjacent elements were found on the other side of the surface.", hit.second));
         return segments;
       }
       current_element = adjacent_element;
