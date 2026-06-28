@@ -1,6 +1,9 @@
+#include <algorithm>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
@@ -34,9 +37,17 @@ args.add_argument("-n", "--n-particles")
     .default_value(100u)
     .help("Number of particles to simulate").scan<'u', uint32_t>();
 
+args.add_argument("--start-particle-id")
+    .default_value(0u)
+    .help("Particle ID to start the simulation from").scan<'u', uint32_t>();
+
 args.add_argument("-e", "--max-events")
     .default_value(1000u)
     .help("Maximum number of events per particle").scan<'u', uint32_t>();
+
+args.add_argument("-s", "--seed")
+    .default_value(uint64_t{1})
+    .help("Base random seed used to initialize particle histories").scan<'u', uint64_t>();
 
 args.add_argument("-g", "--ipc-graveyard")
     .default_value(false)
@@ -58,9 +69,6 @@ catch (const std::runtime_error& err) {
   std::cout << args;
   exit(0);
 }
-
-// Problem Setup
-srand48(42);
 
 SimulationData sim_data;
 
@@ -103,14 +111,29 @@ sim_data.mfp_ = args.get<double>("--mfp");
 sim_data.verbose_particles_ = args.get<bool>("--verbose");
 sim_data.implicit_complement_is_graveyard_ = args.get<bool>("--ipc-graveyard");
 sim_data.n_particles_ = args.get<uint32_t>("--n-particles");
+sim_data.start_particle_id_ = args.get<uint32_t>("--start-particle-id");
 sim_data.max_events_ = args.get<uint32_t>("--max-events");
+sim_data.initial_seed_ = args.get<uint64_t>("--seed");
+
+if (sim_data.n_particles_ > 0 &&
+    sim_data.start_particle_id_ > std::numeric_limits<uint32_t>::max() - (sim_data.n_particles_ - 1)) {
+  fatal_error("Particle ID range starting at {} for {} particles exceeds uint32_t",
+              sim_data.start_particle_id_, sim_data.n_particles_);
+}
 
 transport_particles(sim_data);
 
 // report distances in each cell in a table
 write_message("Cell Track Lengths");
 write_message("-----------");
-for (const auto& [cell, dist] : sim_data.cell_tracks) {
+for (const auto volume : mm->volumes()) {
+  sim_data.cell_tracks.emplace(volume, 0.0);
+}
+std::vector<std::pair<MeshID, double>> sorted_cell_tracks(
+    sim_data.cell_tracks.begin(), sim_data.cell_tracks.end());
+std::sort(sorted_cell_tracks.begin(), sorted_cell_tracks.end(),
+          [](const auto& a, const auto& b) { return a.first < b.first; });
+for (const auto& [cell, dist] : sorted_cell_tracks) {
   write_message("Cell {}: {}", cell, dist);
 }
 write_message("-----------");

@@ -17,7 +17,7 @@ ElementTreeID RayTracer::next_element_tree_id()
   return ++next_element_tree_id_;
 }
 
-const double RayTracer::bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id)
+const Scalar RayTracer::bounding_box_bump(const std::shared_ptr<MeshManager> mesh_manager, MeshID volume_id)
 {
   auto volume_bounding_box = mesh_manager->volume_bounding_box(volume_id);
   return std::max(volume_bounding_box.dilation(), numerical_precision_);

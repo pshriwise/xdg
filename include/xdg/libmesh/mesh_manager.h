@@ -117,7 +117,7 @@ public:
 
   MeshID adjacent_element(MeshID element, int face) const override;
 
-  double element_volume(MeshID element) const override;
+  Scalar element_volume(MeshID element) const override;
 
   MeshID create_volume() override;
 

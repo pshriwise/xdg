@@ -260,7 +260,7 @@ std::pair<Scalar, MeshID> XDG::closest(MeshID volume,
   return ray_tracing_interface()->closest(scene, origin);
 }
 
-double XDG::closest_distance(MeshID volume,
+Scalar XDG::closest_distance(MeshID volume,
                              const Position& origin) const
 {
   TreeID scene = volume_to_surface_tree_map_.at(volume);

@@ -1,6 +1,9 @@
 #ifndef _XDG_PLUCKER_H
 #define _XDG_PLUCKER_H
 
+#include <cmath>
+#include <limits>
+
 #include "dp_math.h"
 
 namespace xdg {
@@ -30,13 +33,13 @@ static constexpr PluckerIntersectionResult EXIT_EARLY = {false, 0.0};
 /* Function to return the vertex with the lowest coordinates. To force the same
   ray-edge computation, the Plücker test needs to use consistent edge
   representation. This would be more simple with MOAB handles instead of
-  coordinates... 
+  coordinates...
 */
 inline bool first(dp::vec3 a, dp::vec3 b) {
-  if (a[0] < b[0]) return true;  
+  if (a[0] < b[0]) return true;
   if (a[0] > b[0]) return false;
 
-  if (a[1] < b[1]) return true;  
+  if (a[1] < b[1]) return true;
   if (a[1] > b[1]) return false;
 
   return a[2] < b[2];
@@ -133,17 +136,46 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
                                          plucker_coord1 * inverse_sum * vertices[0] +
                                          plucker_coord2 * inverse_sum * vertices[1]);
 
+  // std::cout << "Plucker weights: " << plucker_coord0 * inverse_sum << ", "
+  //           << plucker_coord1 * inverse_sum << ", "
+  //           << plucker_coord2 * inverse_sum << std::endl;
+
   // To minimize numerical error, get index of largest magnitude direction.
   int idx = 0;
   Scalar max_abs_dir = 0;
   for (uint i = 0; i < 3; ++i) {
-    if (dp::abs(direction[i]) > max_abs_dir) {
+    if (std::abs(direction[i]) > max_abs_dir) {
       idx = i;
-      max_abs_dir = dp::abs(direction[i]);
+      max_abs_dir = std::abs(direction[i]);
     }
   }
 
   dist_out = (intersection[idx] - origin[idx]) / direction[idx];
+
+
+
+  // Determine the floating-point resolution at the coordinate scale involved.
+  Scalar coord_scale = std::abs(origin[idx]);
+
+  coord_scale = std::max(coord_scale, std::abs(intersection[idx]));
+  coord_scale = std::max(coord_scale, std::abs(vertices[0][idx]));
+  coord_scale = std::max(coord_scale, std::abs(vertices[1][idx]));
+  coord_scale = std::max(coord_scale, std::abs(vertices[2][idx]));
+
+  const Scalar next_coord =
+      std::nextafter(coord_scale,
+                    std::numeric_limits<Scalar>::infinity());
+
+  const Scalar coordinate_ulp = next_coord - coord_scale;
+
+  // Allow a small number of ULPs for the weighted-sum reconstruction.
+  const Scalar coordinate_tol = Scalar(2) * coordinate_ulp;
+  const Scalar t_zero_tol =
+      coordinate_tol / std::abs(direction[idx]);
+
+  if (std::abs(dist_out) <= t_zero_tol) {
+      dist_out = Scalar(0);
+  }
 
   // Barycentric coords check
   Scalar u = plucker_coord2 * inverse_sum;

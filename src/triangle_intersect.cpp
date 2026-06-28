@@ -61,8 +61,9 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   RTCSurfaceDualRay& ray = rayhit->ray;
   RTCDualHit& hit = rayhit->hit;
 
+  // std::cout << "Triangle: " << primitive_ref.primitive_id << std::endl;
   // local variable for distance to the triangle intersection
-  auto result = plucker_ray_tri_intersect(vertices.data(), 
+  auto result = plucker_ray_tri_intersect(vertices.data(),
                                           ray.get_org(),
                                           ray.get_dir(),
                                           ray.get_tfar(),
@@ -78,7 +79,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
   // Check if ray is entering or exiting the volume it was fired against
   // if this is a normal ray fire, flip the normal as needed
   if (ray.volume_tree == user_data->reverse_vol && rayhit->ray.rf_type != RayFireType::FIND_VOLUME)
-  {  
+  {
     normal = -normal;
   }
 
@@ -138,7 +139,7 @@ void TriangleOcclusionFunc(RTCOccludedFunctionNArguments* args) {
 
   // get the double precision ray from the args
   RTCSurfaceDualRay* ray = (RTCSurfaceDualRay*) args->ray;
-  auto result = plucker_ray_tri_intersect(vertices.data(), 
+  auto result = plucker_ray_tri_intersect(vertices.data(),
                                           ray->get_org(),
                                           ray->get_dir(),
                                           ray->get_tfar(),

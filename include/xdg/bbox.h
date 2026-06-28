@@ -95,7 +95,7 @@ double max_chord_length() const {
   return  std::sqrt(w.dot(w));
 }
 
-double dilation() const {
+Scalar dilation() const {
   return max_chord_length() * FP_BOX_TOL;
 }
 
@@ -104,7 +104,7 @@ static BoundingBox from_points(const T& points) {
   const Scalar s_infty     = static_cast<Scalar>(INFTY);
   const Scalar s_neg_infty = static_cast<Scalar>(-INFTY);
   BoundingBox bbox {s_infty, s_infty, s_infty, s_neg_infty, s_neg_infty, s_neg_infty};
-  
+
   for (const auto& p : points) {
     bbox.update(p);
   }

@@ -90,7 +90,7 @@ MeshID LibMeshManager::adjacent_element(MeshID element, int face) const {
   return neighbor->id();
 }
 
-double
+Scalar
 LibMeshManager::element_volume(MeshID element) const {
   const auto elem_ptr = mesh()->elem_ptr(element);
   if (!elem_ptr) {

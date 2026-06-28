@@ -22,7 +22,7 @@ TEST_CASE("Test Occluded")
   // setup ray to fire that won't hit the mock model
   Position r {-100.0, 0.0, 0.0};
   Direction u {1.0, 0.0, 0.0};
-  double dist {0.0};
+  Scalar dist {0.0};
 
   bool result = rti->occluded(volume_tree, r, u, dist);
   REQUIRE(result == true);
