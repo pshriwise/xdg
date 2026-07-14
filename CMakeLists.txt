@@ -151,7 +151,7 @@ endif()
 
 # fmt
 if (NOT fmt_FOUND)
-  set(FMT_INSTALL ON CACHE BOOL "Generate the fmt install target")
+  set(FMT_INSTALL OFF CACHE BOOL "Generate the fmt install target")
   add_subdirectory(vendor/fmt)
 endif()
 message(STATUS "Using fmt ${fmt_VERSION} at ${fmt_DIR}")
@@ -410,3 +410,8 @@ install(FILES
 )
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+if (NOT fmt_FOUND)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/fmt/include/
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
