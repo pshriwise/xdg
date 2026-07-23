@@ -17,7 +17,7 @@ namespace xdg
 
 std::pair<std::array<Position, 3>, std::array<Position, 3>>
 quad_triangles(const std::vector<Vertex>& verts) {
-  if (quad_diagonal_selection(verts)) {
+  if (canonical_diagonal(verts)) {
     return {{verts[0], verts[1], verts[2]}, {verts[0], verts[2], verts[3]}};
   } else {
     return {{verts[1], verts[2], verts[3]}, {verts[1], verts[3], verts[0]}};

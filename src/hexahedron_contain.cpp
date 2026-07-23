@@ -13,7 +13,7 @@ bool select_diagonal(const std::array<Vertex, 8>& verts,
                      const std::array<int, 4>& face)
 {
   std::array<Vertex, 4> face_verts = {verts[face[0]], verts[face[1]], verts[face[2]], verts[face[3]]};
-  return quad_diagonal_selection(face_verts);
+  return canonical_diagonal(face_verts);
 }
 
 bool hex_containment_test(const Position& point,

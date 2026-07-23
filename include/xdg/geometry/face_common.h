@@ -13,7 +13,7 @@ inline Direction triangle_normal(const std::array<Vertex, 3>& vertices) {
 }
 
 template<typename T>
-bool quad_diagonal_selection(const T& verts) {
+bool canonical_diagonal(const T& verts) {
   const Vertex& a0 = verts[0];
   const Vertex& a1 = verts[2];
   const Vertex& b0 = verts[1];

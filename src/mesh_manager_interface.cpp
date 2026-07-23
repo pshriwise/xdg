@@ -7,30 +7,10 @@
 #include "xdg/error.h"
 #include "xdg/geometry/plucker.h"
 #include "xdg/geometry/measure.h"
+#include "xdg/geometry/face_common.h"
 #include "xdg/element_face_accessor.h"
 
 namespace xdg {
-
-namespace {
-
-bool canonical_first_diagonal(const std::vector<Vertex>& coords)
-{
-  auto pair_less = [](const Vertex& a0, const Vertex& a1,
-                      const Vertex& b0, const Vertex& b1) {
-    const Vertex& a_min = lower(a0, a1) ? a0 : a1;
-    const Vertex& a_max = lower(a0, a1) ? a1 : a0;
-    const Vertex& b_min = lower(b0, b1) ? b0 : b1;
-    const Vertex& b_max = lower(b0, b1) ? b1 : b0;
-
-    if (lower(a_min, b_min)) return true;
-    if (lower(b_min, a_min)) return false;
-    return lower(a_max, b_max);
-  };
-
-  return pair_less(coords[0], coords[2], coords[1], coords[3]);
-}
-
-} // namespace
 
 MeshManager::MeshManager() {
   if (XDGConfig::config().initialized() == false) {
@@ -199,7 +179,7 @@ MeshManager::next_element(MeshID current_element,
     } else if (coords.size() == 4) {
       std::array<Vertex, 3> tri0;
       std::array<Vertex, 3> tri1;
-      if (canonical_first_diagonal(coords)) {
+      if (canonical_diagonal(coords)) {
         tri0 = {coords[0], coords[1], coords[2]};
         tri1 = {coords[0], coords[2], coords[3]};
       } else {
