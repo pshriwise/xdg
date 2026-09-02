@@ -33,6 +33,8 @@ public:
   //! \brief Map ID spaces into indices for ordered access by downstream applications
   void map_id_spaces();
 
+  //! \brief Apply a custom mapping of elements to subdomain IDs, overriding the mesh's subdomain IDs
+  void apply_custom_subdomain_mapping();
 
   //! \brief Set a custom mapping of elements to subdomain IDs, overriding the mesh's subdomain IDs
   void set_subdomain_mapping(const std::unordered_map<MeshID, MeshID>& mapping);
@@ -65,6 +67,8 @@ public:
   void load_file(const std::string& filepath) override;
 
   void init() override;
+
+  void reset() override;
 
   void parse_metadata() override;
 

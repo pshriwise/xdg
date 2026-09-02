@@ -58,6 +58,10 @@ TEST_CASE("Test Brick w/ Sidesets")
 
   REQUIRE(mesh_manager->num_volumes() == 2);
   REQUIRE(mesh_manager->num_surfaces() == 6);
+
+  mesh_manager->reset();
+  REQUIRE(mesh_manager->num_volumes() == 0);
+  REQUIRE(mesh_manager->num_surfaces() == 0);
 }
 
 TEST_CASE("Test BVH Build Brick")
@@ -688,7 +692,7 @@ TEMPLATE_TEST_CASE("Test libMesh Transport", "[libmesh][transport]",
 TEST_CASE("Test libMesh Subdomain Mapping","[libmesh][subdomains]")
 {
   // create a libmesh manager object
-  std::unique_ptr<LibMeshManager> mesh_manager = std::make_unique<LibMeshManager>();
+  std::shared_ptr<LibMeshManager> mesh_manager = std::make_shared<LibMeshManager>();
   mesh_manager->load_file("regularized_tet_mesh.exo");
   mesh_manager->init();
   mesh_manager->parse_metadata();
@@ -704,15 +708,30 @@ TEST_CASE("Test libMesh Subdomain Mapping","[libmesh][subdomains]")
   std::unordered_map<MeshID, MeshID> custom_mapping;
   for (const auto *elem : mesh_manager->mesh()->active_element_ptr_range()) {
     MeshID elem_id = elem->id();
-    MeshID subdomain_id = (elem_id % 1000) + 1;
+    MeshID subdomain_id = (elem_id % 12) + 1;
     custom_mapping[elem_id] = subdomain_id;
   }
 
   // set the custom mapping in the mesh manager and reinitialize
   // the mesh
   mesh_manager->set_subdomain_mapping(custom_mapping);
-  mesh_manager->init();
+  mesh_manager->apply_custom_subdomain_mapping();
+  mesh_manager->parse_metadata();
 
   // there should now be 9 volumes (including the implicit complement)
   REQUIRE(mesh_manager->num_volumes() == 13);
+  for (MeshID vol = 1; vol <= 12; ++vol) {
+    REQUIRE(mesh_manager->num_volume_elements(vol) == 1000);
+  }
+
+  // attach the mesh manager to an XDG object and prepare the raytracer
+  std::shared_ptr<XDG> xdg = std::make_shared<XDG>(mesh_manager);
+  xdg->prepare_raytracer();
+
+  // we should be able to find an element in the mesh
+  MeshID element = xdg->find_element({0.0, 0.0, 0.0});
+  REQUIRE(element != ID_NONE);
+
+  element = xdg->find_element(10, {0.0, 0.0, 0.0});
+  REQUIRE(element == ID_NONE);
 }

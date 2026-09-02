@@ -22,6 +22,18 @@ MeshManager::MeshManager() {
   }
 }
 
+void
+MeshManager::reset()
+{
+  volume_metadata_.clear();
+  surface_metadata_.clear();
+  volumes_.clear();
+  surfaces_.clear();
+  volume_element_id_map_ = IDBlockMapping<MeshID>();
+  vertex_id_map_ = IDBlockMapping<MeshID>();
+  implicit_complement_ = ID_NONE;
+}
+
 MeshID
 MeshManager::create_implicit_complement()
 {

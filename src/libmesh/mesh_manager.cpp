@@ -27,6 +27,72 @@ void LibMeshManager::load_file(const std::string &filepath) {
   mesh_ = managed_mesh_.get();
 }
 
+void LibMeshManager::reset() {
+  MeshManager::reset();
+  mesh_id_to_sidepair_.clear();
+  sidepair_to_mesh_id_.clear();
+  sideset_face_map_.clear();
+  subdomain_interface_map_.clear();
+  sideset_interface_map_.clear();
+  sideset_interface_face_map_.clear();
+  sideset_surface_map_.clear();
+  surface_map_.clear();
+  surface_senses_.clear();
+  num_elements_ = -1;
+  next_sidepair_id_ = 1;
+}
+
+void LibMeshManager::apply_custom_subdomain_mapping()
+{
+  reset();
+  // populate the volumes vector with the unique subdomain IDs from the mapping
+  std::set<MeshID> unique_subdomain_ids;
+  for (const auto& entry : element_subdomain_map_) {
+    unique_subdomain_ids.insert(entry.second);
+  }
+  volumes_.assign(unique_subdomain_ids.begin(), unique_subdomain_ids.end());
+
+  // identify all existing explicit sideset IDs in the mesh
+  std::set<MeshID> boundary_ids;
+  auto boundary_info = mesh()->get_boundary_info();
+  for (auto entry : boundary_info.get_sideset_name_map()) {
+    boundary_ids.insert(entry.first);
+  }
+
+  // invert the boundary info sideset map so that we can identify
+  // the elements associated with each sideset
+  for (auto entry : boundary_info.get_sideset_map()) {
+    const libMesh::Elem* other_elem = entry.first->neighbor_ptr(entry.second.first);
+    sideset_face_map_[entry.second.second].push_back(sidepair_id({entry.first, entry.second.first}));
+  }
+
+    // search for any implicit sidesets (faces that are the boundary between two
+  // subdomains/volumes)
+  discover_surface_elements();
+
+  // map sidesets to discovered interfaces where possible
+  map_sidesets_to_discovered_interfaces();
+
+  // create surfaces from sidesets and interfaces
+  create_surfaces_from_sidesets_and_interfaces();
+
+  // determine the senses of the surfaces, defines
+  // the mesh-based topology of the geometry
+  determine_surface_senses();
+
+  // create an implicit complement
+  create_implicit_complement();
+
+  // libMesh initialization
+  if (managed_mesh_) {
+    managed_mesh_->prepare_for_use();
+  }
+
+  map_id_spaces();
+
+  check_face_and_element_types();
+}
+
 void LibMeshManager::init() {
   // ensure that the mesh is 3-dimensional, for our use case this is expected
   if (mesh()->mesh_dimension() != 3) {
@@ -347,7 +413,7 @@ void LibMeshManager::map_sidesets_to_discovered_interfaces() {
     for (const auto& face_id : sideset_elems) {
       const auto& face = sidepair(face_id);
       if (face.second() != nullptr &&
-          face.first()->subdomain_id() == face.second()->subdomain_id()) {
+          this->determine_element_subdomain(face.first()->id()) == this->determine_element_subdomain(face.second()->id())) {
         continue;
       }
 
@@ -355,8 +421,8 @@ void LibMeshManager::map_sidesets_to_discovered_interfaces() {
       // If there is no neighbor element, use ID_NONE for the second subdomain ID.
       // Then resolve this pair against the discovered interface pairs to determine which interface set this face belongs to.
       InterfacePair face_pair {
-          face.first()->subdomain_id(),
-          face.second() ? face.second()->subdomain_id() : ID_NONE};
+          this->determine_element_subdomain(face.first()->id()),
+          face.second() ? this->determine_element_subdomain(face.second()->id()) : ID_NONE};
 
       // If for some reason the face is internal to a subdomain, continue and do
       // not associate it with an interface pair. This may occur in cases where
@@ -368,7 +434,7 @@ void LibMeshManager::map_sidesets_to_discovered_interfaces() {
       }
 
       InterfacePair resolved_pair;
-      // If the interface pair cannot be located in a disocvered interface set,
+      // If the interface pair cannot be located in a discovered interface set,
       // then this face is not properly represented by the mesh-based topology and the missing face count is incremented.
       if (!resolve_interface_pair(face_pair, resolved_pair)) {
         missing_face_count++;
@@ -538,20 +604,21 @@ void LibMeshManager::determine_surface_senses() {
     if (surface_faces.size() == 0) continue;
 
     // choose the reference block based on the first face in the set
-    int reference_block = mesh_id_to_sidepair_.at(surface_faces.at(0)).first()->subdomain_id();
+    int reference_block = this->determine_element_subdomain(mesh_id_to_sidepair_.at(surface_faces.at(0)).first()->id());
     surface_senses_[surface_id] = {reference_block, ID_NONE};
 
     for (const auto &face : surface_faces) {
       auto& pair = mesh_id_to_sidepair_.at(face);
       // swap the element positions based on subdomain ID if needed
-      if (pair.first()->subdomain_id() != reference_block) {
+      if (this->determine_element_subdomain(pair.first()->id()) != reference_block) {
+        if (pair.second() == nullptr) fatal_error("Boundary face {} does not match reference block {}", face, reference_block);
         pair.swap();
         // if we've swapped a nullptr into the first position, we have a problem
         if (pair.first() == nullptr) fatal_error("Attempting to swap nullptr to first face value");
       }
       // set the sense of the surface with respect to the other block to reverse
       if (pair.second() != nullptr)
-        surface_senses_[surface_id] = {reference_block, pair.second()->subdomain_id()};
+        surface_senses_[surface_id] = {reference_block, this->determine_element_subdomain(pair.second()->id())};
     }
   }
 

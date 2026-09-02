@@ -23,6 +23,11 @@ using namespace xdg;
 class MockedTriTetMesh : public MeshManager {
 public:
   MockedTriTetMesh(bool volumetric_elements = true) : volumetric_elements_(volumetric_elements) {
+  }
+
+  // Required overloads
+  void load_file(const std::string& file_name) override {}
+  void init() override {
     volumes_ = {0};
     surfaces_ = {0, 1, 2, 3, 4, 5};
 
@@ -43,19 +48,7 @@ public:
     volume_element_id_map_ = IDBlockMapping<MeshID>(element_ids);
   }
 
-  // Required overloads
-  void load_file(const std::string& file_name) override {}
-  void init() override {}
-
   // Counts
-  virtual int num_volumes() const override {
-    return 1;
-  }
-
-  virtual int num_surfaces() const override {
-    return 6;
-  }
-
   virtual int num_ents_of_dimension(int dim) const override {
    switch (dim)
    {
@@ -73,15 +66,17 @@ public:
   }
 
   virtual int num_volume_elements(MeshID volume) const override {
-    if (!volumetric_elements_) return 0;
+    if (!volumetric_elements_ || volumes_.empty()) return 0;
     return 12;
   }
 
   virtual int num_volume_faces(MeshID volume) const override {
+    if (volumes_.empty()) return 0;
     return 12;
   }
 
   virtual int num_surface_faces(MeshID surface) const override {
+    if (surfaces_.empty()) return 0;
     return 2;
   }
 

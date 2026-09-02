@@ -29,10 +29,12 @@ public:
 
   virtual void init() = 0;
 
-  // Geometry
-  virtual int num_volumes() const = 0;
+  virtual void reset();
 
-  virtual int num_surfaces() const = 0;
+  // Geometry
+  virtual int num_volumes() const { return static_cast<int>(volumes_.size()); }
+
+  virtual int num_surfaces() const { return static_cast<int>(surfaces_.size()); }
 
   virtual int num_ents_of_dimension(int dim) const = 0;
 
