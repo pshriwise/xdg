@@ -114,7 +114,7 @@ void LibMeshManager::check_face_and_element_types() const {
 
     const auto elements = get_volume_elements(volume);
     if (elements.empty()) {
-      fatal_error("Volume {} has no elements, which is not supported", volume);
+      fatal_error(fmt::format("Volume {} has no elements, which is not supported", volume));
     }
 
     // get the type of the first element
@@ -565,6 +565,15 @@ void LibMeshManager::determine_surface_senses() {
 
 std::vector<MeshID>
 LibMeshManager::get_volume_elements(MeshID volume) const {
+  if (!element_subdomain_map_.empty()) {
+    std::vector<MeshID> elements;
+    for (const auto& [element_id, subdomain_id] : element_subdomain_map_) {
+      if (subdomain_id == volume) {
+        elements.push_back(element_id);
+      }
+    }
+    return elements;
+  }
   std::vector<MeshID> elements;
   libMesh::MeshBase::const_element_iterator it =
       mesh()->active_subdomain_elements_begin(volume);

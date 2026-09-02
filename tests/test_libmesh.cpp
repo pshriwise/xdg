@@ -684,3 +684,35 @@ TEMPLATE_TEST_CASE("Test libMesh Transport", "[libmesh][transport]",
     transport_particles(sim_data);
   }
 }
+
+TEST_CASE("Test libMesh Subdomain Mapping","[libmesh][subdomains]")
+{
+  // create a libmesh manager object
+  std::unique_ptr<LibMeshManager> mesh_manager = std::make_unique<LibMeshManager>();
+  mesh_manager->load_file("regularized_tet_mesh.exo");
+  mesh_manager->init();
+  mesh_manager->parse_metadata();
+
+  REQUIRE(mesh_manager->num_volumes() == 2);
+
+  // determine the number of volume elements in the mesh
+  size_t num_volume_elements = mesh_manager->num_volume_elements();
+  REQUIRE(num_volume_elements == 12000);
+
+  // create an custom mapping of elements to subdomain IDs
+  // with 8 total volumes
+  std::unordered_map<MeshID, MeshID> custom_mapping;
+  for (const auto *elem : mesh_manager->mesh()->active_element_ptr_range()) {
+    MeshID elem_id = elem->id();
+    MeshID subdomain_id = (elem_id % 1000) + 1;
+    custom_mapping[elem_id] = subdomain_id;
+  }
+
+  // set the custom mapping in the mesh manager and reinitialize
+  // the mesh
+  mesh_manager->set_subdomain_mapping(custom_mapping);
+  mesh_manager->init();
+
+  // there should now be 9 volumes (including the implicit complement)
+  REQUIRE(mesh_manager->num_volumes() == 13);
+}
