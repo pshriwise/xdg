@@ -261,6 +261,25 @@ void LibMeshManager::map_id_spaces() {
   vertex_id_map_ = IDBlockMapping<MeshID>(vertex_ids);
 }
 
+void LibMeshManager::set_subdomain_mapping(const std::unordered_map<MeshID, MeshID>& mapping) {
+  element_subdomain_map_ = mapping;
+}
+
+MeshID LibMeshManager::determine_element_subdomain(MeshID element) const {
+  // if no custom subdomain element mapping is applied,
+  // then use the subdomain IDs on the mesh object
+  if (!element_subdomain_map_.empty()) {
+    if (element_subdomain_map_.count(element) == 0) {
+      fatal_error("Element {} does not have a subdomain mapping", element);
+    }
+    return element_subdomain_map_.at(element);
+  }
+  // if a custom subdomain element mapping is not applied,
+  // then use the subdomain IDs on the mesh object
+  MeshID subdomain_id = mesh()->elem_ptr(element)->subdomain_id();
+  return subdomain_id;
+}
+
 void LibMeshManager::discover_surface_elements() {
   // as part of this process, we will also build a vector of all
   // volumetric element IDs
@@ -272,12 +291,12 @@ void LibMeshManager::discover_surface_elements() {
   // where the subdomain IDs are different on either side
   for (const auto *elem : mesh()->active_element_ptr_range()) {
     volume_element_ids.push_back(elem->id());
-    MeshID subdomain_id = elem->subdomain_id();
+    MeshID subdomain_id = this->determine_element_subdomain(elem->id());
     for (int i = 0; i < elem->n_sides(); i++) {
       auto neighbor = elem->neighbor_ptr(i);
       // get the subdomain ID of the neighbor, if it exists
       // otherwise set to ID_NONE
-      MeshID neighbor_id = neighbor ? neighbor->subdomain_id() : ID_NONE;
+      MeshID neighbor_id = neighbor ? this->determine_element_subdomain(neighbor->id()) : ID_NONE;
       // if these IDs are different, then this is an interface element
       if (neighbor_id == subdomain_id) continue;
       // ensure that there is only one interface between each block pair

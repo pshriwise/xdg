@@ -33,6 +33,13 @@ public:
   //! \brief Map ID spaces into indices for ordered access by downstream applications
   void map_id_spaces();
 
+
+  //! \brief Set a custom mapping of elements to subdomain IDs, overriding the mesh's subdomain IDs
+  void set_subdomain_mapping(const std::unordered_map<MeshID, MeshID>& mapping);
+
+  //! \brief Determine the subdomain ID for a given element, using either the provided mapping or the mesh's subdomain IDs
+  MeshID determine_element_subdomain(MeshID element) const;
+
   //! Discover element faces on subdomain interfaces.
   void discover_surface_elements();
 
@@ -363,6 +370,9 @@ public:
 
   //! Mapping of surfaces to the volumes on either side. Volumes are ordered
   int32_t next_sidepair_id_ {1}; //!< Next available sidepair ID, starts at one
+
+  //! Custom domain mapping of elements to subdomain IDs. If not provided, the subdomain IDs on the mesh object will be used.
+  std::unordered_map<MeshID, MeshID> element_subdomain_map_;
 };
 
 struct LibMeshElementFaceAccessor : public ElementFaceAccessor {
