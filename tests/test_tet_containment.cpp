@@ -26,6 +26,7 @@ TEST_CASE("MockedTriTetMesh Face Representation")
           std::vector<MeshID> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
   REQUIRE(mm->element_connectivity(0) == std::vector<MeshID> {0, 1, 2, 8});
   REQUIRE(mm->element_connectivity(1) == std::vector<MeshID> {0, 2, 3, 8});
+  REQUIRE(mm->element_type(0) == VolumeElementType::TET);
   REQUIRE(mm->adjacent_element(0, 1) == 1);
   REQUIRE(mm->adjacent_element(1, 2) == 0);
 
@@ -43,6 +44,7 @@ TEST_CASE("MockedTriTetMesh Face Representation")
     const auto faces = mm->get_surface_faces(surface);
     REQUIRE(mm->get_surface_connectivity(surface).size() == faces.size() * 3);
     for (const auto face : faces) {
+      REQUIRE(mm->face_type(face) == SurfaceFaceType::TRI);
       REQUIRE(mm->face_vertices(face).size() == 3);
 
       const auto normal = mm->face_normal(face);

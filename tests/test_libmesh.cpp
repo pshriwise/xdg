@@ -47,6 +47,18 @@ TEST_CASE("Test Brick")
 
   REQUIRE(mesh_manager->num_volumes() == 2);
   REQUIRE(mesh_manager->num_surfaces() == 1);
+
+  for (const auto volume : mesh_manager->volumes()) {
+    const auto elements = mesh_manager->get_volume_elements(volume);
+    if (elements.empty()) continue;
+    REQUIRE(mesh_manager->element_type(elements.front()) == mesh_manager->get_volume_element_type(volume));
+  }
+
+  for (const auto surface : mesh_manager->surfaces()) {
+    const auto faces = mesh_manager->get_surface_faces(surface);
+    REQUIRE(!faces.empty());
+    REQUIRE(mesh_manager->face_type(faces.front()) == mesh_manager->get_surface_face_type(surface));
+  }
 }
 
 

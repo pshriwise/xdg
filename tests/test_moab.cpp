@@ -149,6 +149,15 @@ TEST_CASE("MOAB Element Types")
   for (const auto surface: mesh_manager->surfaces()) {
     auto element_type = mesh_manager->get_surface_face_type(surface);
     REQUIRE(element_type == SurfaceFaceType::TRI); // Each surface should be made up of triangles
+    for (const auto face : mesh_manager->get_surface_faces(surface)) {
+      REQUIRE(mesh_manager->face_type(face) == SurfaceFaceType::TRI);
+    }
+  }
+
+  for (const auto volume : mesh_manager->volumes()) {
+    const auto elements = mesh_manager->get_volume_elements(volume);
+    if (elements.empty()) continue;
+    REQUIRE(mesh_manager->element_type(elements.front()) == mesh_manager->get_volume_element_type(volume));
   }
 }
 
