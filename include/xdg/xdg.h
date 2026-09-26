@@ -35,6 +35,17 @@ MeshID find_element(const Position& point) const;
 MeshID find_element(MeshID volume,
                     const Position& point) const;
 
+//! \brief Determine the segments of a ray that intersect with mesh elements
+//! \param start The starting point of the ray
+//! \param end The ending point of the ray
+//! \param elements Output vector to store the element IDs traversed
+//! \param lengths Output vector to store the lengths traveled through each element
+void
+segments(const Position& start,
+         const Position& end,
+         std::vector<MeshID>& elements,
+         std::vector<double>& lengths) const;
+
 //! Returns a vector of segments between the start and end points on the mesh
 //! @param start The starting point of the query
 //! @param end The ending point of the query

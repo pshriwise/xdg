@@ -113,15 +113,15 @@ MeshManager::get_surface_property(MeshID surface,
   return surface_metadata_.at({surface, type});
 }
 
-std::vector<std::pair<MeshID, double>>
-MeshManager::walk_elements(MeshID starting_element,
-                           const Position& start,
-                           const Direction& u,
-                           double distance) const
+void MeshManager::walk_elements(MeshID starting_element,
+                                const Position& start,
+                                const Direction& u,
+                                double distance,
+                                std::vector<MeshID>& elements,
+                                std::vector<double>& distances) const
 {
   // a copy of the start position that will be updated as elements are traversed
   Position r = start;
-  std::vector<std::pair<MeshID, double>> result;
 
   MeshID elem = starting_element;
   while (distance > 0) {
@@ -137,7 +137,8 @@ MeshManager::walk_elements(MeshID starting_element,
     exit.second = std::min(exit.second, distance);
     distance -= exit.second;
     // only add to the result if the distance is greater than 0
-    result.push_back({elem, exit.second});
+    elements.push_back(elem);
+    distances.push_back(exit.second);
     r += exit.second * u;
 
     elem = exit.first;
@@ -147,7 +148,21 @@ MeshManager::walk_elements(MeshID starting_element,
       break;
     }
   }
+}
 
+std::vector<std::pair<MeshID, double>>
+MeshManager::walk_elements(MeshID starting_element,
+                           const Position& start,
+                           const Direction& u,
+                           double distance) const
+{
+  std::vector<MeshID> elements;
+  std::vector<double> distances;
+  walk_elements(starting_element, start, u, distance, elements, distances);
+  std::vector<std::pair<MeshID, double>> result(distances.size());
+  for (size_t i = 0; i < elements.size(); ++i) {
+    result[i] = {elements[i], distances[i]};
+  }
   return result;
 }
 
@@ -165,7 +180,7 @@ MeshManager::walk_elements(MeshID starting_element,
 std::pair<MeshID, double>
 MeshManager::next_element(MeshID current_element,
                           const Position& r,
-                          const Position& u) const
+                          const Direction& u) const
 {
   struct FaceCandidate {
     MeshID element {ID_NONE};

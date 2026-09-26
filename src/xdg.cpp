@@ -139,13 +139,13 @@ MeshID XDG::find_element(MeshID volume,
   return ray_tracing_interface()->find_element(scene, point);
 }
 
-std::vector<std::pair<MeshID, double>>
+void
 XDG::segments(const Position& start,
-              const Position& end) const
+              const Position& end,
+              std::vector<MeshID>& elements,
+              std::vector<double>& lengths) const
 {
   MeshID ipc = mesh_manager()->implicit_complement();
-
-  std::vector<MeshID> prev_elements;
 
   Position r = start;
   Direction u = end - start;
@@ -154,19 +154,18 @@ XDG::segments(const Position& start,
 
   std::vector<xdg::MeshID> hit_primitives;
 
-  std::vector<std::pair<MeshID, double>> segments;
   while (distance > 0) {
     // attempt to find an element at the start location
     MeshID current_element = ray_tracing_interface()->find_element(r);
     // at this point we may be on the face of an element, if we're declared inside that element, ignore it
-    if (segments.size() > 0 && current_element == segments.back().first) current_element = ID_NONE;
+    if (elements.size() > 0 && current_element == elements.back()) current_element = ID_NONE;
     MeshID volume = ID_NONE;
     if (current_element == ID_NONE) {
       // fire a ray against the implicit complement
       auto hit = ray_fire(ipc, r + u * TINY_BIT, u, INFTY, HitOrientation::EXITING, &hit_primitives);
       // if there is no entry point or the distance to the surface
       // is past the end point, return
-      if (hit.second == ID_NONE || hit.first > distance) return segments;
+      if (hit.second == ID_NONE || hit.first > distance) return;
 
       double hit_dist = hit.first + TINY_BIT;
       // move up to the surface
@@ -179,22 +178,33 @@ XDG::segments(const Position& start,
       auto adjacent_element = mesh_manager()->get_boundary_face_element(hit_primitives.back());
       if (adjacent_element == ID_NONE) {
         warning(fmt::format("Ray fire hit surface {}, but no adjacent elements were found on the other side of the surface.", hit.second));
-        return segments;
+        return;
       }
       current_element = adjacent_element;
       hit_primitives.clear();
     }
-    auto vol_segments = mesh_manager()->walk_elements(current_element, r, u, distance);
-    // add to current set of segments
-    segments.insert(segments.end(), vol_segments.begin(), vol_segments.end());
-    double segment_sum = std::accumulate(vol_segments.begin(), vol_segments.end(), 0.0,
-                                         [](double total, const auto& segment) { return total + segment.second; });
+    int elem_size = elements.size();
+    mesh_manager()->walk_elements(current_element, r, u, distance, elements, lengths);
+    double segment_sum = std::accumulate(lengths.begin() + elem_size, lengths.end(), 0.0);
     // upate location of the track start
     r += u * segment_sum;
     // decrement distance by total distance traveled in the volume
     distance -= segment_sum;
   }
-  return segments;
+}
+
+std::vector<std::pair<MeshID, double>>
+XDG::segments(const Position& start,
+              const Position& end) const
+{
+  std::vector<MeshID> elements;
+  std::vector<double> lengths;
+  segments(start, end, elements, lengths);
+  std::vector<std::pair<MeshID, double>> result(elements.size());
+  for (size_t i = 0; i < elements.size(); ++i) {
+    result[i] = {elements[i], lengths[i]};
+  }
+  return result;
 }
 
 std::vector<std::pair<MeshID, double>>

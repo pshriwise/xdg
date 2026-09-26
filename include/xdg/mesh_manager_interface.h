@@ -41,6 +41,20 @@ public:
   //! \param starting_element The initial element to start the walk from
   //! \param start The starting position of the ray
   //! \param end The ending position of the ray
+  //! \param elements Output vector to store the element IDs traversed
+  //! \param distances Output vector to store the distances traveled through each element
+  void walk_elements(MeshID starting_element,
+                     const Position& start,
+                     const Position& u,
+                     double distance,
+                     std::vector<MeshID>& elements,
+                     std::vector<double>& distances) const;
+
+  //! \brief Walk through elements along a ray from start to end position.
+  //! \note It is assumed that the provided position is within the starting element.
+  //! \param starting_element The initial element to start the walk from
+  //! \param start The starting position of the ray
+  //! \param end The ending position of the ray
   //! \return Vector of pairs containing element IDs and distances traveled through each element
   std::vector<std::pair<MeshID, double>>
   walk_elements(MeshID starting_element,
