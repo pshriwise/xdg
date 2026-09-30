@@ -22,7 +22,7 @@ TEMPLATE_TEST_CASE("Test Element and Face Types Jezebel Tets", "[elements][faces
   constexpr auto mesh_backend = TestType::value;
   // skip if backend not enabled at configuration time
   check_mesh_library_supported(mesh_backend);
-  std::string filename = mesh_backend == MeshLibrary::LIBMESH ? "jezebel.exo" : "jezebel.h5m";
+  std::string filename = mesh_backend == MeshLibrary::MOAB ? "jezebel.h5m" : "jezebel.exo";
   std::shared_ptr<XDG> xdg = XDG::create(mesh_backend);
   REQUIRE(xdg->mesh_manager()->mesh_library() == mesh_backend);
   const auto& mesh_manager = xdg->mesh_manager();
@@ -55,7 +55,7 @@ TEMPLATE_TEST_CASE("Test Element and Face Types Jezebel Quads", "[elements][face
   constexpr auto mesh_backend = TestType::value;
   // skip if backend not enabled at configuration time
   check_mesh_library_supported(mesh_backend);
-  std::string filename = mesh_backend == MeshLibrary::LIBMESH ? "jezebel-quads.exo" : "jezebel-quads.h5m";
+  std::string filename = mesh_backend == MeshLibrary::MOAB ? "jezebel-quads.h5m" : "jezebel-quads.exo";
   std::shared_ptr<XDG> xdg = XDG::create(mesh_backend);
   REQUIRE(xdg->mesh_manager()->mesh_library() == mesh_backend);
   const auto& mesh_manager = xdg->mesh_manager();
