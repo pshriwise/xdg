@@ -5,6 +5,8 @@
 
 #include "xdg/config.h"
 
+#include "xdg/error.h"
+
 void output(const std::string& message, std::ostream& out, int indent)
 {
   // Set line wrapping and indentation
@@ -41,6 +43,12 @@ void write_message(const std::string& message)
     output(message, std::cout, 1);
 }
 
+
+void warning(const std::string& message)
+{
+  write_message("Warning: " + message);
+}
+  
 void fatal_error(const std::string& message, int err)
 {
   switch (xdg::XDGConfig::config().fatal_error_handling()) {
