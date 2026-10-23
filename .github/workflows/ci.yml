@@ -31,7 +31,9 @@ jobs:
         shell: bash
         run: |
           sudo apt -y update
-          sudo apt install -y libembree-dev \
+          sudo apt install -y libgcc-13-dev \
+                              libstdc++-13-dev \
+                              libembree-dev \
                               libnetcdf-dev \
                               libhdf5-dev \
                               libeigen3-dev \
