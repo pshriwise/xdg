@@ -82,6 +82,9 @@ jobs:
       - name: libMesh Clone
         if: ${{ matrix.libmesh }}
         shell: bash
+        env:
+          CC: gcc-13
+          CXX: g++-13
         run: |
           cd ~
           git clone https://github.com/libMesh/libmesh.git
@@ -145,7 +148,7 @@ jobs:
           git submodule update --init --recursive
           mkdir build
           cd build
-          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
+          ../configure --prefix=$HOME/LIBMESH --enable-exodus --disable-netcdf-4 --disable-eigen --disable-lapack --disable-mpi --disable-metaphysicl
           make -j4
           sudo make install
 
