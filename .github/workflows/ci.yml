@@ -82,9 +82,6 @@ jobs:
       - name: libMesh Clone
         if: ${{ matrix.libmesh }}
         shell: bash
-        env:
-          CC: gcc-13
-          CXX: g++-13
         run: |
           cd ~
           git clone https://github.com/libMesh/libmesh.git
@@ -141,6 +138,9 @@ jobs:
       - if: ${{ matrix.libmesh && steps.libmesh-cache.outputs.cache-hit != 'true' }}
         name: Build libMesh
         shell: bash
+        env:
+          CC: gcc-13
+          CXX: g++-13
         run: |
           cd ~
           cd libmesh
