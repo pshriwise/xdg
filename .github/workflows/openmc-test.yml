@@ -87,6 +87,9 @@ jobs:
       - if: ${{ steps.libmesh-cache.outputs.cache-hit != 'true' }}
         name: Build libMesh
         shell: bash
+        env:
+          CC: gcc-13
+          CXX: g++-13
         run: |
           cd ~/libmesh
           git submodule update --init --recursive
