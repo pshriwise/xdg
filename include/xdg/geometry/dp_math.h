@@ -11,12 +11,14 @@ while in Slang compilation, it maps to `double3`.
 #ifdef __SLANG__
 
 // Slang compilation, map dp::vec3 -> double3
-namespace dp { 
+namespace dp {
+  typedef double scalar;
   typedef double3 vec3;
 
   inline double dot(vec3 a, vec3 b) { return ::dot(a, b); }
   inline vec3 cross(vec3 a, vec3 b) { return ::cross(a, b); }
   inline double abs(double a) { return ::abs(a); }
+  inline scalar fma(scalar a, scalar b, scalar c) { return ::fma(a, b, c); }
 
   static const double DBL_ZERO_TOL = 20 * DBL_EPSILON;
   static const double INFTY = 1.7976931348623157e+308; // std::numeric_limits<double>::max() is not available in slang
@@ -33,8 +35,9 @@ namespace dp {
   inline scalar dot(vec3 a, vec3 b) { return xdg::dot(a, b); }
   inline vec3 cross(vec3 a, vec3 b) { return xdg::cross(a, b); }
   inline scalar abs(scalar a) { return std::fabs(a); }
+  inline scalar fma(scalar a, scalar b, scalar c) { return std::fma(a, b, c); }
 
-  static constexpr scalar DBL_ZERO_TOL = 20.0 * std::numeric_limits<scalar>::epsilon();
+  static constexpr scalar DBL_ZERO_TOL = 10.0 * std::numeric_limits<scalar>::epsilon();
   constexpr scalar INFTY {std::numeric_limits<scalar>::max()};
 
 }

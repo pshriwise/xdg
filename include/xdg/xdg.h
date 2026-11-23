@@ -68,12 +68,15 @@ bool point_in_volume(MeshID volume,
       const Direction* direction = nullptr,
       const std::vector<MeshID>* exclude_primitives = nullptr) const;
 
+//! Intersect origin + t * direction for dist_min <= t <= dist_limit.
+//! The returned parameter is measured from origin, including when dist_min > 0.
 std::pair<Scalar, MeshID> ray_fire(MeshID volume,
                                    const Position& origin,
                                    const Direction& direction,
                                    const Scalar dist_limit = INFTY,
                                    HitOrientation orientation = HitOrientation::EXITING,
-                                   std::vector<MeshID>* const exclude_primitives = nullptr) const;
+                                   std::vector<MeshID>* const exclude_primitives = nullptr,
+                                   const Scalar dist_min = 0) const;
 
 std::pair<Scalar, MeshID> closest(MeshID volume,
                                   const Position& origin) const;

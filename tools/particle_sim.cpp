@@ -1,9 +1,14 @@
 #include <algorithm>
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <string>
 #include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "xdg/error.h"
 #include "xdg/mesh_manager_interface.h"
@@ -20,6 +25,8 @@ int main(int argc, char** argv) {
 
 // argument parsing
 argparse::ArgumentParser args("XDG Particle Pseudo-Simulation", "1.0", argparse::default_arguments::help);
+args.add_epilog("Embree particle histories use OpenMP when available. "
+                "Use -t/--threads or OMP_NUM_THREADS to control the number of workers.");
 
 args.add_argument("filename")
     .help("Path to the input file");
@@ -27,7 +34,7 @@ args.add_argument("filename")
 args.add_argument("-v", "--verbose")
     .default_value(false)
     .implicit_value(true)
-    .help("Enable verbose output of particle events");
+    .help("Enable verbose output of particle events (runs serially)");
 
 args.add_argument("-m", "--mfp")
     .default_value(1.0)
@@ -36,6 +43,10 @@ args.add_argument("-m", "--mfp")
 args.add_argument("-n", "--n-particles")
     .default_value(100u)
     .help("Number of particles to simulate").scan<'u', uint32_t>();
+
+args.add_argument("-t", "--threads")
+    .help("Number of OpenMP workers (positive; defaults to the OpenMP environment)")
+    .scan<'i', int>();
 
 args.add_argument("--start-particle-id")
     .default_value(0u)
@@ -64,10 +75,24 @@ args.add_argument("-r", "--rt-library")
 try {
   args.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cout << err.what() << std::endl;
   std::cout << args;
-  exit(0);
+  return 1;
+}
+
+if (args.is_used("--threads")) {
+  const int threads = args.get<int>("--threads");
+  if (threads < 1) {
+    fatal_error(fmt::format("Thread count must be positive, got {}", threads));
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#else
+  if (threads != 1) {
+    fatal_error("This build has no OpenMP support; only -t 1 is available");
+  }
+#endif
 }
 
 SimulationData sim_data;

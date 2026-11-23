@@ -53,7 +53,8 @@ public:
                                      const Direction& direction,
                                      const Scalar dist_limit = INFTY,
                                      HitOrientation orientation = HitOrientation::EXITING,
-                                     std::vector<MeshID>* const exclude_primitives = nullptr) override;
+                                     std::vector<MeshID>* const exclude_primitives = nullptr,
+                                     const Scalar dist_min = 0) override;
 
   std::pair<Scalar, MeshID> closest(TreeID scene,
                                     const Position& origin) override;

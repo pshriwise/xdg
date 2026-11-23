@@ -67,7 +67,7 @@ void TriangleIntersectionFunc(RTCIntersectFunctionNArguments* args) {
                                           ray.get_org(),
                                           ray.get_dir(),
                                           ray.get_tfar(),
-                                          0.0,
+                                          ray.get_tnear(),
                                           false,
                                           0);
   if (!result.hit) return;

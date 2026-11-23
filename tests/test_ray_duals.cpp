@@ -81,6 +81,17 @@ TEST_CASE("Test RTCDualRay properties")
   {
     ray.set_tnear(5.0);
     REQUIRE(ray.tnear == 5.0);
+    REQUIRE(ray.get_tnear() == Scalar(5));
+  }
+
+  SECTION("set_tnear preserves the precise bound with conservative float traversal")
+  {
+    for (Scalar limit : {std::nextafter(Scalar(5), Scalar(0)),
+                         std::nextafter(Scalar(5), INFTY)}) {
+      ray.set_tnear(limit);
+      REQUIRE(ray.get_tnear() == limit);
+      REQUIRE(static_cast<Scalar>(ray.tnear) <= limit);
+    }
   }
 }
 

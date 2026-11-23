@@ -2,6 +2,8 @@
 #ifndef _XDG_RAY_H
 #define _XDG_RAY_H
 
+#include <cmath>
+#include <limits>
 #include <set>
 #include <vector>
 
@@ -25,7 +27,7 @@ class TriangleRef;
 struct RTCDualRay : RTCRay {
 
   RTCDualRay() {
-    this->tnear = 0.0;
+    set_tnear(0);
     this->tfar = INFTY;
     this->mask = -1;
   }
@@ -99,15 +101,22 @@ struct RTCDualRay : RTCRay {
   //! \brief Set both the single and double precision versions of the ray near distance
   void set_tnear(Scalar d) {
     tnear = d;
+    // Embree traverses with floats. Rounding the lower bound upward could skip
+    // a valid hit; the primitive test enforces the original Scalar bound.
+    if (static_cast<Scalar>(tnear) > d)
+      tnear = std::nextafter(tnear, -std::numeric_limits<float>::infinity());
+    dtnear = d;
   }
 
   //! \brief Get ray near distance (both precisions valid)
   Scalar get_tnear() const {
-    return tnear;
+    if constexpr (IsSinglePrecision) return tnear;
+    return dtnear;
   }
 
   double dorg_x, dorg_y, dorg_z, ddir_x, ddir_y, ddir_z; //!< double precision versions of the origin and ray direction
   double dtfar; //!< double precision version of the ray far distance
+  Scalar dtnear; //!< minimum parameter at the configured arithmetic precision
 };
 
 

@@ -1,0 +1,5 @@
+normal_dot_direction=0.013864288798541213
+normal_magnitude=0.03321002296063464
+clearance_interval_world=[-1.272032046190894e-06, 7.7776674040018182e-07]
+equivalent_remaining_parameter_interval=[-3.0469802003192221e-06, 1.8630347132862504e-06]
+effective_boundary_parameter_interval=[0.25561537624329517, 0.25562028625820876]

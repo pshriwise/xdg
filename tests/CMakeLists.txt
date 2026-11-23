@@ -9,6 +9,8 @@ test_find_element
 test_mesh_internal
 test_occluded
 test_ray_fire
+test_triangle_distance
+test_particle_sim
 test_point_in_volume
 test_normal
 test_measure
@@ -62,6 +64,10 @@ foreach(test ${TEST_NAMES})
         TEST_PREFIX "${test}::"
         EXTRA_ARGS "--reporter;console;--out=/dev/stdout")
 endforeach()
+
+if (OpenMP_CXX_FOUND)
+    target_link_libraries(test_particle_sim PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 if (TARGET test_overlap_check)
     target_sources(test_overlap_check PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../tools/overlap.cpp)

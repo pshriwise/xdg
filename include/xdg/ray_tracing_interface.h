@@ -78,12 +78,14 @@ public:
                        const Direction* direction = nullptr,
                        const std::vector<MeshID>* exclude_primitives = nullptr) const = 0;
 
+  // Return the nearest hit parameter in [dist_min, dist_limit], relative to origin.
   virtual std::pair<Scalar, MeshID> ray_fire(TreeID tree,
                                      const Position& origin,
                                      const Direction& direction,
                                      const Scalar dist_limit = INFTY,
                                      HitOrientation orientation = HitOrientation::EXITING,
-                                     std::vector<MeshID>* const exclude_primitives = nullptr) = 0;
+                                     std::vector<MeshID>* const exclude_primitives = nullptr,
+                                     const Scalar dist_min = 0) = 0;
 
   /**
    * @brief Finds the element containing a given point using the global element tree.

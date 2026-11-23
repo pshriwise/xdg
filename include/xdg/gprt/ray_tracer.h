@@ -92,20 +92,21 @@ class GPRTRayTracer : public RayTracer {
                         const Direction* direction = nullptr,
                         const std::vector<MeshID>* exclude_primitives = nullptr) const override;
 
-    std::pair<double, MeshID> ray_fire(TreeID scene,
+    std::pair<Scalar, MeshID> ray_fire(TreeID scene,
                                       const Position& origin,
                                       const Direction& direction,
-                                      const double dist_limit = INFTY,
+                                      const Scalar dist_limit = INFTY,
                                       HitOrientation orientation = HitOrientation::EXITING,
-                                      std::vector<MeshID>* const exclude_primitives = nullptr) override;
+                                      std::vector<MeshID>* const exclude_primitives = nullptr,
+                                      const Scalar dist_min = 0) override;
 
-    std::pair<double, MeshID> closest(TreeID scene,
+    std::pair<Scalar, MeshID> closest(TreeID scene,
                                       const Position& origin) override {};
 
     bool occluded(TreeID scene,
                   const Position& origin,
                   const Direction& direction,
-                  double& dist) const override {
+                  Scalar& dist) const override {
       fatal_error("Occlusion queries are not currently supported with GPRT ray tracer");
       return false;
     }

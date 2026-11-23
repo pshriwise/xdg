@@ -31,7 +31,7 @@ namespace xdg {
 constexpr double FP_BOX_TOL {1e-6};
 
 // TODO : Consider this as an option for managing missed hits?
-constexpr double PLUCKER_ZERO_TOL {20 * std::numeric_limits<double>::epsilon()};
+constexpr double PLUCKER_ZERO_TOL {10 * std::numeric_limits<float>::epsilon()};
 
 constexpr double TINY_BIT {1e-10};
 

@@ -292,7 +292,8 @@ EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
                     const Direction& direction,
                     const Scalar dist_limit,
                     HitOrientation orientation,
-                    std::vector<MeshID>* const exclude_primitves)
+                    std::vector<MeshID>* const exclude_primitves,
+                    const Scalar dist_min)
 {
   RTCScene scene = surface_volume_tree_to_scene_map_.at(tree);
   RTCDualRayHit rayhit;
@@ -300,7 +301,7 @@ EmbreeRayTracer::ray_fire(SurfaceTreeID tree,
   rayhit.ray.set_org(origin);
   rayhit.ray.set_dir(direction);
   rayhit.ray.set_tfar(dist_limit);
-  rayhit.ray.set_tnear(0.0);
+  rayhit.ray.set_tnear(dist_min);
   rayhit.ray.rf_type = RayFireType::VOLUME;
   rayhit.ray.orientation = orientation;
   rayhit.ray.mask = -1; // no mask

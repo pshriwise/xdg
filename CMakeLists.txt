@@ -271,6 +271,13 @@ endif()
 
 add_library(xdg SHARED ${xdg_sources})
 
+# The inline compensated geometry arithmetic needs its intermediate rounding.
+# Explicit std::fma remains available, including hardware FMA when enabled by
+# the selected compiler target; ordinary products and sums must stay separate.
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(xdg PUBLIC -ffp-contract=off)
+endif()
+
 if(XDG_ENABLE_EMBREE)
   # pass precompile definition depending on embree version
   if (${EMBREE_VERSION} VERSION_GREATER_EQUAL 4.0.0)
@@ -343,6 +350,8 @@ if (XDG_ENABLE_GPRT)
     ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/gprt/shared_structs.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/shared_enums.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/geometry/dp_math.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/geometry/plucker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg/geometry/triangle_distance.h
     SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gprt/${device_code}.slang
     )

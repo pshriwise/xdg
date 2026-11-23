@@ -315,12 +315,13 @@ bool GPRTRayTracer::point_in_volume(SurfaceTreeID tree,
 // This will launch the rays and run our shaders in the ray tracing pipeline
 // miss shader returns dist = 0.0 and elementID = -1
 // closest hit shader returns dist = distance to hit and elementID = triangle ID
-std::pair<double, MeshID> GPRTRayTracer::ray_fire(SurfaceTreeID tree,
+std::pair<Scalar, MeshID> GPRTRayTracer::ray_fire(SurfaceTreeID tree,
                                                   const Position& origin,
                                                   const Direction& direction,
-                                                  double dist_limit,
+                                                  const Scalar dist_limit,
                                                   HitOrientation orientation,
-                                                  std::vector<MeshID>* const exclude_primitives) 
+                                                  std::vector<MeshID>* const exclude_primitives,
+                                                  const Scalar dist_min)
 {
   GPRTAccel volume = surface_volume_tree_to_accel_map.at(tree);
   auto rayGen = rayGenPrograms_.at(RayGenType::RAY_FIRE);
@@ -332,7 +333,7 @@ std::pair<double, MeshID> GPRTRayTracer::ray_fire(SurfaceTreeID tree,
   ray[0].origin = {origin.x, origin.y, origin.z};
   ray[0].direction = {direction.x, direction.y, direction.z};
   ray[0].tMax = dist_limit;
-  ray[0].tMin = 0.0;
+  ray[0].tMin = dist_min;
   ray[0].hitOrientation = orientation; // Set orientation for the ray
   ray[0].volume_tree = tree; // Set the TreeID of the volume being queried
 

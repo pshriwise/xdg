@@ -528,7 +528,7 @@ MOABMeshManager::parse_metadata()
     // ensure we have an even number of tokens
     // TODO: are there any cases in which this shouldn't be true???
     if (tokens.size() % 2 != 0) {
-      std:: string msg = fmt::format("Group name tokens ({}) are of incorrect size: {}\n", tokens.size());
+      std:: string msg = fmt::format("Group name tokens ({}) are of incorrect size: {}\n", group_name, tokens.size());
       for (const auto& t : tokens) {
         msg += fmt::format("{}", t);
       }

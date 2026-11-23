@@ -9,6 +9,8 @@
 #include "xdg/vec3/vec3.h"
 #include "xdg/xdg.h"
 
+#include "position_uncertainty.h"
+
 using namespace xdg;
 
 struct SimulationData {
@@ -27,6 +29,8 @@ struct SimulationData {
 };
 
 struct Particle {
+
+enum class Event { COLLISION, SURFACE };
 
 Particle(std::shared_ptr<XDG> xdg, uint32_t id, uint32_t max_events,
          uint64_t initial_seed,
@@ -48,37 +52,36 @@ void initialize() {
   // TODO: replace with sampling
   r_ = {0.0, 0.0, 0.0};
   u_ = rand_dir();
+  start_flight();
   volume_ = xdg_->find_volume(r_, u_);
   log("Particle {} initialized in volume {}", id_, volume_);
 }
 
 void surf_dist() {
-  surface_intersection_ = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::EXITING, &history_);
-  // if (surface_intersection_.first == 0.0) {
-  //   auto [dist, surf] = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::EXITING, &history_);
-  //   auto [dist_back, surf_back] = xdg_->ray_fire(volume_, r_, {-u_.x, -u_.y, -u_.z}, INFTY, HitOrientation::ANY, nullptr);
-  //   write_message(fmt::format(
-  //     "STUCK: particle {} at ({}, {}, {}) in volume {} | dir ({}, {}, {}) | "
-  //     "fwd surf dist {} | back surf dist {} | events {} events_since_coll {}",
-  //     id_, r_.x, r_.y, r_.z, volume_, u_.x, u_.y, u_.z,
-  //     dist, dist_back,
-  //     total_events_, n_events_));
-  //   n_stuck++;
-  //   alive_ = false;
-  //   return;
-  // }
+  auto hit = xdg_->ray_fire(volume_, flight_origin_, u_, INFTY,
+                           HitOrientation::EXITING, &history_, flight_parameter_);
+  surface_parameter_ = hit.first;
+  // Ray parameters are relative to the fixed flight origin; transport and
+  // track-length tallies need the distance from the current parameter instead.
+  surface_intersection_ = {hit.second == ID_NONE ? INFTY : hit.first - flight_parameter_,
+                           hit.second};
   if (surface_intersection_.second == ID_NONE) {
     // Find nearest surface for diagnostics
-    std::cout << "LOST" << std::endl;
-    auto [dist, surf] = xdg_->ray_fire(volume_, r_, u_, INFTY, HitOrientation::EXITING, &history_);
     auto [dist_back, surf_back] = xdg_->ray_fire(volume_, r_, {-u_.x, -u_.y, -u_.z}, INFTY, HitOrientation::ANY, nullptr);
 
-    write_message(fmt::format(
-      "LOST: particle {} at ({}, {}, {}) in volume {} | dir ({}, {}, {}) | "
-      "fwd surf dist {} | back surf dist {} | events {} events_since_coll {}",
-      id_, r_.x, r_.y, r_.z, volume_, u_.x, u_.y, u_.z,
-      dist, dist_back,
-      total_events_, n_events_));
+    // Keep each lost-particle diagnostic together when several workers report.
+#ifdef _OPENMP
+    #pragma omp critical(xdg_particle_diagnostics)
+#endif
+    {
+      std::cout << "LOST" << std::endl;
+      write_message(fmt::format(
+        "LOST: particle {} at ({}, {}, {}) in volume {} | dir ({}, {}, {}) | "
+        "fwd surf dist {} | back surf dist {} | events {} events_since_coll {}",
+        id_, r_.x, r_.y, r_.z, volume_, u_.x, u_.y, u_.z,
+        surface_intersection_.first, dist_back,
+        total_events_, n_events_));
+    }
     n_lost++;
     alive_ = false;
     return;
@@ -95,22 +98,72 @@ void collide() {
   total_events_++;
   log("Event {} for particle {}", n_events_, id_);
   u_ = rand_dir();
-  log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.z, u_.y, u_.z);
+  u_.normalize();
+  log("Particle {} collides with material at position ({}, {}, {}), new direction is ({}, {}, {})", id_, r_.x, r_.y, r_.z, u_.x, u_.y, u_.z);
   history_.clear();
+  start_flight();
 }
 
-void advance(std::unordered_map<MeshID, double>& cell_tracks)
+// A straight flight keeps one ray across all transmitting boundaries. Rebase
+// only when a collision or reflection changes its direction.
+void start_flight() {
+  flight_origin_ = r_;
+  flight_parameter_ = Scalar(0);
+}
+
+void score_track(std::unordered_map<MeshID, double>& cell_tracks,
+                 double distance, bool shared_tallies)
+{
+  if (shared_tallies) {
+    // transport_particles creates every entry before its parallel region.
+    // Lookup cannot insert or rehash the map while other workers use it.
+    double& total = cell_tracks.at(volume_);
+#ifdef _OPENMP
+    #pragma omp atomic update
+#endif
+    total += distance;
+  } else {
+    cell_tracks[volume_] += distance;
+  }
+}
+
+bool collision_is_safely_inside() const
+{
+  if (!(collision_distance_ < surface_intersection_.first)) return false;
+
+  const auto& mesh = xdg_->mesh_manager();
+  const auto vertices = mesh->face_vertices(history_.back());
+  const bool reverse = mesh->surface_sense(surface_intersection_.second, volume_) ==
+      Sense::REVERSE;
+  const auto position = particle_sim_detail::collision_position_bounds(
+      flight_origin_, u_, flight_parameter_, static_cast<Scalar>(collision_distance_));
+  const auto clearance = particle_sim_detail::interior_clearance(vertices, position, reverse);
+  // Certify the lower bound against the selected outgoing face. Ambiguous
+  // collisions become surface events; nearby/entry faces are not covered here.
+  return clearance.lower > Scalar(0);
+}
+
+Event advance(std::unordered_map<MeshID, double>& cell_tracks,
+              bool shared_tallies = false)
 {
   log("Comparing surface intersection distance {} to collision distance {}", surface_intersection_.first, collision_distance_);
-  if (collision_distance_ < surface_intersection_.first) {
-    r_ += collision_distance_ * u_;
-    cell_tracks[volume_] += collision_distance_;
+  const bool collision = collision_is_safely_inside();
+  if (collision) {
+    flight_parameter_ += static_cast<Scalar>(collision_distance_);
+    r_ = flight_origin_ + flight_parameter_ * u_;
+    score_track(cell_tracks, collision_distance_, shared_tallies);
     log("Particle {} collides with material at position ({}, {}, {}) ", id_, r_.x, r_.y, r_.z);
   } else {
-    r_ += surface_intersection_.first * u_;
-    cell_tracks[volume_] += surface_intersection_.first;
-    log("Particle {} advances to surface {} at position ({}, {}, {}) ", id_, surface_intersection_.second, r_.x, r_.y, r_.z);
+    if (collision_distance_ < surface_intersection_.first) {
+      log("Particle {} takes surface event: collision-position uncertainty reaches surface {}",
+          id_, surface_intersection_.second);
+    }
+    flight_parameter_ = surface_parameter_;
+    r_ = flight_origin_ + flight_parameter_ * u_;
+    score_track(cell_tracks, surface_intersection_.first, shared_tallies);
+    log("Particle {} advances to surface {} at position ({}, {}, {}) with direction ({}, {}, {})", id_, surface_intersection_.second, r_.x, r_.y, r_.z, u_.x, u_.y, u_.z);
   }
+  return collision ? Event::COLLISION : Event::SURFACE;
 }
 
 void cross_surface()
@@ -137,6 +190,7 @@ void cross_surface()
       log("Resetting particle history to last intersection");
       history_ = {history_.back()};
     }
+    start_flight();
   } else if (boundary_condition.value == "vacuum") {
     log("Particle {} encounters vacuum boundary at surface {}", id_, surface_intersection_.second);
     alive_ = false;
@@ -188,14 +242,14 @@ static uint64_t particle_initial_seed(uint64_t base_seed, uint32_t id, uint32_t 
 
 void set_rng_state(uint64_t seed) {
   constexpr uint64_t mask = (1ULL << 48) - 1ULL;
-  const uint64_t state = seed & mask;
-  rng_state_[0] = static_cast<unsigned short>(state & 0xffffULL);
-  rng_state_[1] = static_cast<unsigned short>((state >> 16) & 0xffffULL);
-  rng_state_[2] = static_cast<unsigned short>((state >> 32) & 0xffffULL);
+  rng_state_ = seed & mask;
 }
 
 double random() {
-  return erand48(rng_state_);
+  // The same 48-bit LCG and output as erand48, with no shared libc RNG state.
+  constexpr uint64_t mask = (1ULL << 48) - 1ULL;
+  rng_state_ = (0x5deece66dULL * rng_state_ + 0xbULL) & mask;
+  return static_cast<double>(rng_state_) * 0x1p-48;
 }
 
 Direction rand_dir() {
@@ -216,10 +270,13 @@ uint32_t id_ {0};
 int32_t max_events_ {1000};
 uint64_t initial_seed_ {42};
 bool ipc_graveyard_ {false};
-unsigned short rng_state_[3] {0x330e, 0x0000, 0x0000};
+uint64_t rng_state_ {0x330e};
 
 Position r_;
 Direction u_;
+Position flight_origin_;
+Scalar flight_parameter_ {0};
+Scalar surface_parameter_ {INFTY};
 MeshID volume_ {ID_NONE};
 std::vector<MeshID> history_ {};
 std::pair<Scalar, MeshID> surface_intersection_ {INFTY, ID_NONE};
@@ -232,6 +289,21 @@ int32_t total_events_ {0};
 };
 
 void transport_particles(SimulationData& sim_data) {
+  if (sim_data.n_particles_ == 0) return;
+
+  // Only values change during transport; map insertion/rehashing stays serial.
+  for (MeshID volume : sim_data.xdg_->mesh_manager()->volumes()) {
+    sim_data.cell_tracks.try_emplace(volume, 0.0);
+  }
+
+  int lost = 0;
+  int stuck = 0;
+#ifdef _OPENMP
+  // Verbose histories remain ordered. GPRT uses shared GPU query buffers.
+  const bool parallel = !sim_data.verbose_particles_ && sim_data.n_particles_ > 1 &&
+      sim_data.xdg_->ray_tracing_interface()->library() == RTLibrary::EMBREE;
+  #pragma omp parallel for if(parallel) schedule(static) reduction(+:lost,stuck)
+#endif
   for (uint32_t i = 0; i < sim_data.n_particles_; i++) {
     const uint32_t particle_id = sim_data.start_particle_id_ + i;
     const uint64_t initial_seed = Particle::particle_initial_seed(
@@ -247,15 +319,16 @@ void transport_particles(SimulationData& sim_data) {
       if (!p.alive_) break;
 
       p.sample_collision_distance(sim_data.mfp_);
-      p.advance(sim_data.cell_tracks);
-
-      if (p.collision_distance_ < p.surface_intersection_.first) {
+      const auto event = p.advance(sim_data.cell_tracks, true);
+      if (event == Particle::Event::COLLISION) {
         p.collide();
       } else {
         p.cross_surface();
       }
     }
-    sim_data.n_stuck += p.n_stuck;
-    sim_data.n_lost += p.n_lost;
+    stuck += p.n_stuck;
+    lost += p.n_lost;
   }
+  sim_data.n_stuck += stuck;
+  sim_data.n_lost += lost;
 }

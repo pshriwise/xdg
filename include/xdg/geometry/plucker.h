@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "dp_math.h"
+#include "triangle_distance.h"
 
 namespace xdg {
 
@@ -59,12 +60,51 @@ inline Scalar plucker_edge_test(dp::vec3 vertexa, dp::vec3 vertexb,
     pip = dp::dot(ray, edge_normal) + dp::dot(ray_normal, edge);
     pip = -pip;
   }
-  if (dp::DBL_ZERO_TOL > dp::abs(pip))  // <-- absd
-    pip = 0.0;
+  // if (dp::DBL_ZERO_TOL > dp::abs(pip))  // <-- absd
+  //   pip = 0.0;
   return pip;
 }
 
-inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
+namespace detail {
+
+// Evaluate dot(direction, cross(b - a, a - origin)), retaining the
+// subtraction, multiplication, and addition residuals in Scalar pairs.
+inline Scalar compensated_plucker_edge(dp::vec3 a, dp::vec3 b,
+                                       dp::vec3 origin, dp::vec3 direction)
+{
+  // A shared edge follows the same arithmetic in both adjacent triangles.
+  const bool reverse = !first(a, b);
+  if (reverse) {
+    const dp::vec3 temporary = a;
+    a = b;
+    b = temporary;
+  }
+
+  CompensatedScalar edge[3], offset[3], normal[3];
+  for (int i = 0; i < 3; ++i) {
+    edge[i] = compensated_difference(b[i], a[i]);
+    offset[i] = compensated_difference(a[i], origin[i]);
+  }
+  for (int i = 0; i < 3; ++i) {
+    const int j = (i + 1) % 3;
+    const int k = (i + 2) % 3;
+    normal[i] = compensated_add(
+        compensated_multiply(edge[j], offset[k]),
+        compensated_negate(compensated_multiply(edge[k], offset[j])));
+  }
+
+  CompensatedScalar product = {0, 0};
+  for (int i = 0; i < 3; ++i) {
+    product = compensated_add(product,
+        compensated_multiply(normal[i], {direction[i], 0}));
+  }
+  const Scalar result = product.value + product.error;
+  return reverse ? -result : result;
+}
+
+} // namespace detail
+
+inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 verts[3],
                                 dp::vec3 origin,
                                 dp::vec3 direction,
                                 Scalar tMax,
@@ -74,12 +114,9 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
 {
   Scalar dist_out = dp::INFTY;
 
-  const dp::vec3 raya = direction;
-  const dp::vec3 rayb = dp::cross(direction, origin);
-
   // Determine the value of the first Plucker coordinate from edge 0
   Scalar plucker_coord0 =
-    plucker_edge_test(vertices[0], vertices[1], raya, rayb);
+    detail::compensated_plucker_edge(verts[0], verts[1], origin, direction);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
   // correct orientation of intersection
@@ -89,7 +126,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
 
   // Determine the value of the second Plucker coordinate from edge 1
   Scalar plucker_coord1 =
-    plucker_edge_test(vertices[1], vertices[2], raya, rayb);
+    detail::compensated_plucker_edge(verts[1], verts[2], origin, direction);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
   // correct orientation of intersection
@@ -106,7 +143,7 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
 
   // Determine the value of the third Plucker coordinate from edge 2
   Scalar plucker_coord2 =
-    plucker_edge_test(vertices[2], vertices[0], raya, rayb);
+    detail::compensated_plucker_edge(verts[2], verts[0], origin, direction);
 
   // If orientation is set, confirm that sign of plucker_coordinate indicate
   // correct orientation of intersection
@@ -128,52 +165,14 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
     return EXIT_EARLY;
   }
 
-  // get the distance to intersection
+  // Retain the Plucker weights for the existing barycentric checks. Evaluate t
+  // separately so errors in their magnitudes do not distort the hit distance.
   const Scalar inverse_sum =
     1.0 / (plucker_coord0 + plucker_coord1 + plucker_coord2);
 
-  const dp::vec3 intersection = dp::vec3(plucker_coord0 * inverse_sum * vertices[2] +
-                                         plucker_coord1 * inverse_sum * vertices[0] +
-                                         plucker_coord2 * inverse_sum * vertices[1]);
+  dist_out = detail::compensated_triangle_distance(verts, origin, direction);
 
-  // std::cout << "Plucker weights: " << plucker_coord0 * inverse_sum << ", "
-  //           << plucker_coord1 * inverse_sum << ", "
-  //           << plucker_coord2 * inverse_sum << std::endl;
-
-  // To minimize numerical error, get index of largest magnitude direction.
-  int idx = 0;
-  Scalar max_abs_dir = 0;
-  for (uint i = 0; i < 3; ++i) {
-    if (std::abs(direction[i]) > max_abs_dir) {
-      idx = i;
-      max_abs_dir = std::abs(direction[i]);
-    }
-  }
-
-  dist_out = (intersection[idx] - origin[idx]) / direction[idx];
-
-
-
-  // Determine the floating-point resolution at the coordinate scale involved.
-  Scalar coord_scale = std::abs(origin[idx]);
-
-  coord_scale = std::max(coord_scale, std::abs(intersection[idx]));
-  coord_scale = std::max(coord_scale, std::abs(vertices[0][idx]));
-  coord_scale = std::max(coord_scale, std::abs(vertices[1][idx]));
-  coord_scale = std::max(coord_scale, std::abs(vertices[2][idx]));
-
-  const Scalar next_coord =
-      std::nextafter(coord_scale,
-                    std::numeric_limits<Scalar>::infinity());
-
-  const Scalar coordinate_ulp = next_coord - coord_scale;
-
-  // Allow a small number of ULPs for the weighted-sum reconstruction.
-  const Scalar coordinate_tol = Scalar(2) * coordinate_ulp;
-  const Scalar t_zero_tol =
-      coordinate_tol / std::abs(direction[idx]);
-
-  if (std::abs(dist_out) <= t_zero_tol) {
+  if (std::abs(dist_out) <= PLUCKER_ZERO_TOL) {
       dist_out = Scalar(0);
   }
 
@@ -181,13 +180,13 @@ inline PluckerIntersectionResult plucker_ray_tri_intersect(dp::vec3 vertices[3],
   Scalar u = plucker_coord2 * inverse_sum;
   Scalar v = plucker_coord0 * inverse_sum;
 
-  // Barycentric coords check
-  if (u < 0.0 || v < 0.0 || (u + v) > 1.0) {
-      dist_out = -1.0;
-  }
+  // // Barycentric coords check
+  // if (u < 0.0 || v < 0.0 || (u + v) > 1.0) {
+  //     dist_out = -1.0;
+  // }
 
-  // is the intersection within distance limits?
-  if (dist_out < tMin || dist_out > tMax) return EXIT_EARLY;
+  // Require an ordered distance in range; also reject NaN from a singular plane.
+  if (!(dist_out >= tMin && dist_out <= tMax)) return EXIT_EARLY;
 
   return {true, dist_out};
 }
